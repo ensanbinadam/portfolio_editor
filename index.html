@@ -471,9 +471,24 @@
         color: #fff;
         padding: 20px;
       }
-      .header-actions { display:flex; gap:8px; margin-top:10px }
-      .header-btn { background:#ffffff; border:none; color:#1f2937; padding:6px 10px; border-radius:6px; cursor:pointer; font-weight:600 }
-      .header-btn.export { background:#111827; color:#fff }
+      .header-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+      }
+      .header-btn {
+        background: #ffffff;
+        border: none;
+        color: #1f2937;
+        padding: 6px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .header-btn.export {
+        background: #111827;
+        color: #fff;
+      }
       .portfolio-header-inner {
         display: flex;
         align-items: center;
@@ -487,6 +502,11 @@
         background: #ffffff;
         border-radius: 8px;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+      }
+      /* أخفِ الشعار فقط إن لم يكن له مصدر */
+      .portfolio-logo:not([src]),
+      .portfolio-logo[src=""] {
+        display: none;
       }
       .portfolio-titles h1 {
         margin: 0;
@@ -600,7 +620,7 @@
         <div class="tabs-container" id="tabsContainer"></div>
         <div class="sidebar-actions">
           <button class="sidebar-btn" type="button" onclick="UI.addTab()">
-            إضافة تبويب جديد
+            تبويب جديد
           </button>
           <button
             class="sidebar-btn delete"
@@ -855,7 +875,8 @@
             معاينة ملف الإنجاز
           </button>
           <button
-            class="action-btn pdf" style="display:none"
+            class="action-btn pdf"
+            style="display: none"
             type="button"
             aria-label="تصدير PDF"
             onclick="UI.exportPDF()"
@@ -1029,35 +1050,41 @@
           >
             إلغاء
           </button>
-          <button class="btn btn-primary" onclick="UI.confirmLink()">حفظ الرابط</button>
+          <button class="btn btn-primary" onclick="UI.confirmLink()">
+            حفظ الرابط
+          </button>
         </div>
       </div>
     </div>
 
     <!-- Preview -->
     <div class="final-portfolio" id="finalPortfolio">
-          <button
-        class="close-portfolio"
-        onclick="UI.closePreview()"
-      >
+      <button class="close-portfolio" onclick="UI.closePreview()">
         &times;
       </button>
       <div class="portfolio-header">
         <div class="portfolio-header-inner" dir="rtl">
-          <img
-            id="portfolioHeaderLogo"
-            class="portfolio-logo"
-            alt="شعار"
-            style="display: none"
-          />
+          <img id="portfolioHeaderLogo" class="portfolio-logo" alt="شعار" />
           <div class="portfolio-titles">
             <h1 id="portfolioHeaderTitle">ملف الإنجاز</h1>
             <div id="portfolioHeaderSubtitle" class="portfolio-subtitle"></div>
           </div>
-            <div class="header-actions">
-              <button class="header-btn" type="button" onclick="UI.closePreview()">رجوع للمحرر</button>
-              <button class="header-btn export" type="button" onclick="UI.exportHTML()">تصدير HTML</button>
-            </div>
+          <div class="header-actions">
+            <button
+              class="header-btn"
+              type="button"
+              onclick="UI.closePreview()"
+            >
+              رجوع للمحرر
+            </button>
+            <button
+              class="header-btn export"
+              type="button"
+              onclick="UI.exportHTML()"
+            >
+              تصدير HTML
+            </button>
+          </div>
         </div>
       </div>
       <div class="portfolio-sidebar" id="portfolioSidebar">
@@ -1554,7 +1581,9 @@
           const d = downloadHref
             ? `<a href="${downloadHref}" download class="download-link">تحميل</a>`
             : "";
-          return `<div class="embed-container" contenteditable="false" data-embed-id="${eid}" data-type="${fType}" data-origin="${origin || ''}" data-name="${esc(name || '')}">
+          return `<div class="embed-container" contenteditable="false" data-embed-id="${eid}" data-type="${fType}" data-origin="${
+            origin || ""
+          }" data-name="${esc(name || "")}">
       <div class="embed-actions">
         <button class="embed-btn" aria-label="تعديل الوصف" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'edit')">✎</button>
         <button class="embed-btn" aria-label="استبدال الوسائط" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'replace')">🔁</button>
@@ -2461,9 +2490,14 @@
         // Redirect existing export button if used (handled later)
         // UI.exportHTML = UI.exportStandalone;
 
-         UI.closePreview = function(){
-          try{ el.finalPortfolio.style.display = "none"; }catch(_){ var fp=document.getElementById("finalPortfolio"); if(fp) fp.style.display='none'; }
-        };// Portfolio helpers
+        UI.closePreview = function () {
+          try {
+            el.finalPortfolio.style.display = "none";
+          } catch (_) {
+            var fp = document.getElementById("finalPortfolio");
+            if (fp) fp.style.display = "none";
+          }
+        }; // Portfolio helpers
         UI.refreshPortfolioHeaderFooter = function () {
           try {
             var subtitleEl = document.getElementById("portfolioHeaderSubtitle");
@@ -2481,16 +2515,23 @@
                 logoEl.style.display = "block";
               } else {
                 // Fallback: pick first image from tabs
-                var found = '';
-                for (var i=0;i<state.tabs.length;i++){
+                var found = "";
+                for (var i = 0; i < state.tabs.length; i++) {
                   var t = state.tabs[i];
-                  var tmp = document.createElement('div');
-                  tmp.innerHTML = (t && t.content) || '';
-                  var im = tmp.querySelector('img');
-                  if (im && im.getAttribute('src')) { found = im.getAttribute('src'); break; }
+                  var tmp = document.createElement("div");
+                  tmp.innerHTML = (t && t.content) || "";
+                  var im = tmp.querySelector("img");
+                  if (im && im.getAttribute("src")) {
+                    found = im.getAttribute("src");
+                    break;
+                  }
                 }
-                if (found) { logoEl.src = found; logoEl.style.display = 'block'; }
-                else { logoEl.style.display = "none"; }
+                if (found) {
+                  logoEl.src = found;
+                  logoEl.style.display = "block";
+                } else {
+                  logoEl.style.display = "none";
+                }
               }
             }
             var titleEl = document.getElementById("portfolioHeaderTitle");
@@ -2587,7 +2628,7 @@
               "<input id='pfName' class='form-control' placeholder='مثال: أحمد محمد' style='margin-bottom:6px'/>" +
               "<label style='display:block;margin-bottom:4px'>الشعار (رفع)</label>" +
               "<input id='pfLogoFile' type='file' accept='.png,.jpg,.jpeg,.webp,.gif' class='form-control' style='margin-bottom:6px'/>" +
-              "<div style='display:flex;gap:6px;margin-bottom:6px'><input id='pfLogoUrl' class='form-control' placeholder='رابط الشعار (اختياري)'/><button id='pfLogoUrlBtn' class='btn btn-primary' type='button'>تعيين</button></div>" +
+              "<div style='margin-bottom:6px'><input id='pfLogoUrl' class='form-control' placeholder='رابط الشعار (اختياري)'/></div>" +
               "<div style='display:flex;gap:6px;margin-bottom:6px'><button id='pfLogoClear' class='btn btn-secondary' type='button'>حذف الشعار</button><a id='pfLogoDownload' class='btn btn-secondary' href='#' download='logo.png' style='text-decoration:none;display:none'>تحميل الشعار</a></div>" +
               "<label style='display:block;margin-bottom:4px'>تذييل الصفحة</label>" +
               "<textarea id='pfFooter' class='form-control' rows='3' placeholder='نص يظهر أسفل الصفحة'></textarea>" +
@@ -2653,8 +2694,34 @@
               );
             var f = document.getElementById("pfLogoFile");
             if (f) f.addEventListener("change", UI.setLogoFile);
-            var ub = document.getElementById("pfLogoUrlBtn");
-            if (ub) ub.addEventListener("click", UI.setLogoUrl);
+            // اجعل إدخال رابط الشعار يطبّق تلقائياً دون الحاجة لزر "تعيين"
+            var urlIn = document.getElementById("pfLogoUrl");
+            if (urlIn) {
+              var applyLogoUrl = function () {
+                var v = (urlIn.value || "").trim();
+                if (!v) return;
+                state.portfolio = state.portfolio || {};
+                state.portfolio.logoData = v;
+                UI.refreshPortfolioHeaderFooter();
+                var d = document.getElementById("pfLogoDownload");
+                if (d) {
+                  d.href = state.portfolio.logoData;
+                  d.style.display = "inline-block";
+                }
+                saveToStorage();
+              };
+              urlIn.addEventListener("change", applyLogoUrl);
+              urlIn.addEventListener("blur", applyLogoUrl);
+              urlIn.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  applyLogoUrl();
+                }
+              });
+              urlIn.addEventListener("paste", function () {
+                setTimeout(applyLogoUrl, 0);
+              });
+            }
             var cb = document.getElementById("pfLogoClear");
             if (cb) cb.addEventListener("click", UI.clearLogo);
           } catch (_) {}
@@ -2790,10 +2857,11 @@
               if (a) a.content = el.editor.innerHTML;
 
               let base = (state.portfolio && state.portfolio.baseUrl) || "";
-              base = prompt(
-                "أدخل الرابط الأساسي للملفات المرفوعة (اختياري، مثال: https://example.com/assets/):",
-                base || ""
-              ) || "";
+              base =
+                prompt(
+                  "أدخل الرابط الأساسي للملفات المرفوعة (اختياري، مثال: https://example.com/assets/):",
+                  base || ""
+                ) || "";
               if (state.portfolio) state.portfolio.baseUrl = base;
 
               const container = document.createElement("div");
@@ -2801,12 +2869,12 @@
               header.className = "portfolio-header";
               header.innerHTML =
                 '<div class="portfolio-header-inner" dir="rtl">' +
-                '<img id="expLogo" class="portfolio-logo" alt="شعار" style="display:none"/>' +
+                '<img id="expLogo" class="portfolio-logo" alt="شعار" />' +
                 '<div class="portfolio-titles"><h1 id="expTitle">' +
                 ((state.portfolio && state.portfolio.title) || "ملف الإنجاز") +
                 '</h1><div id="expSubtitle" class="portfolio-subtitle"></div></div>' +
                 '<div class="header-actions"><button class="header-btn export" type="button" onclick="window.print()">طباعة</button></div>' +
-                '</div>';
+                "</div>";
               container.appendChild(header);
 
               const sidebar = document.createElement("div");
@@ -2843,7 +2911,9 @@
                 });
                 const body = document.createElement("div");
                 body.innerHTML = t.content;
-                body.querySelectorAll(".embed-actions").forEach((x) => x.remove());
+                body
+                  .querySelectorAll(".embed-actions")
+                  .forEach((x) => x.remove());
                 w.appendChild(h2);
                 w.appendChild(body);
                 contentRoot.appendChild(w);
@@ -2852,165 +2922,248 @@
               const f = document.createElement("div");
               f.className = "portfolio-footer";
               f.id = "portfolioFooterBlock";
-              f.textContent = (state.portfolio && state.portfolio.footerText) || "";
+              f.textContent =
+                (state.portfolio && state.portfolio.footerText) || "";
               contentRoot.appendChild(f);
 
               container.appendChild(sidebar);
               container.appendChild(contentRoot);
 
               const lg = container.querySelector("#expLogo");
-              if (lg){
+              if (lg) {
                 if (state.portfolio && state.portfolio.logoData) {
                   lg.src = state.portfolio.logoData;
                   lg.style.display = "block";
                 } else {
                   // Fallback: first image found in tabs
-                  let found = '';
-                  for (const t of state.tabs){
-                    const tmp = document.createElement('div');
-                    tmp.innerHTML = t.content || '';
-                    const im = tmp.querySelector('img');
-                    if (im && im.getAttribute('src')) { found = im.getAttribute('src'); break; }
+                  let found = "";
+                  for (const t of state.tabs) {
+                    const tmp = document.createElement("div");
+                    tmp.innerHTML = t.content || "";
+                    const im = tmp.querySelector("img");
+                    if (im && im.getAttribute("src")) {
+                      found = im.getAttribute("src");
+                      break;
+                    }
                   }
-                  if (found) { lg.src = found; lg.style.display = 'block'; }
+                  if (found) {
+                    lg.src = found;
+                    lg.style.display = "block";
+                  }
                 }
               }
               const sub = container.querySelector("#expSubtitle");
               if (sub) {
-                const nm = (state.portfolio && state.portfolio.teacherName) || "";
-                const label = (state.portfolio && state.portfolio.teacherLabel) || "المعلم/ـة";
+                const nm =
+                  (state.portfolio && state.portfolio.teacherName) || "";
+                const label =
+                  (state.portfolio && state.portfolio.teacherLabel) ||
+                  "المعلم/ـة";
                 sub.textContent = nm ? label + " / " + nm : "";
               }
 
-              function office(url){
-                return "https://view.officeapps.live.com/op/embed.aspx?src=" + encodeURIComponent(url);
+              function office(url) {
+                return (
+                  "https://view.officeapps.live.com/op/embed.aspx?src=" +
+                  encodeURIComponent(url)
+                );
               }
-              function isOfficeName(n){
-                const e=(n.split(".").pop()||"").toLowerCase();
-                return ["doc","docx","xls","xlsx","ppt","pptx"].includes(e);
+              function isOfficeName(n) {
+                const e = (n.split(".").pop() || "").toLowerCase();
+                return ["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(
+                  e
+                );
               }
-              async function toDataUrl(url){
-                try{const res=await fetch(url); const b=await res.blob(); return await new Promise(r=>{const fr=new FileReader(); fr.onload=()=>r(fr.result); fr.readAsDataURL(b);});}catch(_){return url}
+              async function toDataUrl(url) {
+                try {
+                  const res = await fetch(url);
+                  const b = await res.blob();
+                  return await new Promise((r) => {
+                    const fr = new FileReader();
+                    fr.onload = () => r(fr.result);
+                    fr.readAsDataURL(b);
+                  });
+                } catch (_) {
+                  return url;
+                }
               }
 
               const embeds = container.querySelectorAll(".embed-container");
-              for(const c of embeds){
-                const origin=c.getAttribute("data-origin")||"";
-                const name=c.getAttribute("data-name")||"";
-                const media=c.querySelector(".embed-media img, .embed-media video, .embed-media iframe");
-                const dlink=c.querySelector("a.download-link");
-                if(media){
-                  let src=media.getAttribute("src")||"";
-                  if(src.startsWith("blob:")){
-                    if(base && origin==="upload" && name){
-                      const abs=base + encodeURIComponent(name);
-                      if(isOfficeName(name)){
-                        const frame=c.querySelector("iframe");
-                        if(frame) frame.setAttribute("src", office(abs));
-                        else { const wrap=c.querySelector(".embed-media"); if(wrap) wrap.innerHTML=`<iframe src="${office(abs)}" style="width:100%;height:500px"></iframe>`; }
+              for (const c of embeds) {
+                const origin = c.getAttribute("data-origin") || "";
+                const name = c.getAttribute("data-name") || "";
+                const media = c.querySelector(
+                  ".embed-media img, .embed-media video, .embed-media iframe"
+                );
+                const dlink = c.querySelector("a.download-link");
+                if (media) {
+                  let src = media.getAttribute("src") || "";
+                  if (src.startsWith("blob:")) {
+                    if (base && origin === "upload" && name) {
+                      const abs = base + encodeURIComponent(name);
+                      if (isOfficeName(name)) {
+                        const frame = c.querySelector("iframe");
+                        if (frame) frame.setAttribute("src", office(abs));
+                        else {
+                          const wrap = c.querySelector(".embed-media");
+                          if (wrap)
+                            wrap.innerHTML = `<iframe src="${office(
+                              abs
+                            )}" style="width:100%;height:500px"></iframe>`;
+                        }
                       } else {
                         media.setAttribute("src", abs);
                       }
                     } else {
-                      const data=await toDataUrl(src); media.setAttribute("src", data);
+                      const data = await toDataUrl(src);
+                      media.setAttribute("src", data);
                     }
                   }
                 }
-                if(dlink){
-                  let href=dlink.getAttribute("href")||"";
-                  if(href.startsWith("blob:")){
-                    if(base && origin==="upload" && name){ dlink.setAttribute("href", base + encodeURIComponent(name)); dlink.removeAttribute("download"); dlink.setAttribute("target","_blank"); dlink.setAttribute("rel","noopener noreferrer"); }
-                    else { const data=await toDataUrl(href); dlink.setAttribute("href", data); }
+                if (dlink) {
+                  let href = dlink.getAttribute("href") || "";
+                  if (href.startsWith("blob:")) {
+                    if (base && origin === "upload" && name) {
+                      dlink.setAttribute(
+                        "href",
+                        base + encodeURIComponent(name)
+                      );
+                      dlink.removeAttribute("download");
+                      dlink.setAttribute("target", "_blank");
+                      dlink.setAttribute("rel", "noopener noreferrer");
+                    } else {
+                      const data = await toDataUrl(href);
+                      dlink.setAttribute("href", data);
+                    }
                   }
                 }
               }
 
-              const css = Array.from(document.querySelectorAll("style")).map(s=>s.innerHTML).join("\n");
+              const css = Array.from(document.querySelectorAll("style"))
+                .map((s) => s.innerHTML)
+                .join("\n");
               const extra = `
 .final-portfolio{display:block;position:static}
 .portfolio-sidebar{width:250px;background:#f0f2f5;height:100vh;position:fixed;top:0;right:0;padding:20px;overflow-y:auto}
 .portfolio-content{margin-right:250px;padding:20px;background:var(--editor-print-bg)}
-.tab-content{display:block} /* ensure sections visible in exported file */
+.portfolio-logo:not([src]), .portfolio-logo[src=""]{display:none}
+.tab-content{display:none}
+.tab-content.active{display:block}
 .header-actions{display:flex;gap:8px;margin-top:10px}
 .header-btn{background:#ffffff;border:none;color:#1f2937;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600}
 .header-btn.export{background:#111827;color:#fff}
-@media print{.portfolio-sidebar{display:none}.portfolio-content{margin:0!important}.header-actions{display:none}}
+@media print{.portfolio-sidebar{display:none}.portfolio-content{margin:0!important}.header-actions{display:none}.tab-content{display:block!important}}
 `;
 
               // Normalize anchors: make external links open in new tab, convert relative to absolute if base provided
-              const anchors = container.querySelectorAll('a[href]');
-              anchors.forEach(a => {
-                let href = a.getAttribute('href') || '';
+              const anchors = container.querySelectorAll("a[href]");
+              anchors.forEach((a) => {
+                let href = a.getAttribute("href") || "";
                 if (!href) return;
                 if (/^blob:/i.test(href)) {
                   if (base) {
-                    const name = a.getAttribute('download') || a.textContent.trim() || '';
-                    if (name) a.setAttribute('href', base + encodeURIComponent(name));
+                    const name =
+                      a.getAttribute("download") || a.textContent.trim() || "";
+                    if (name)
+                      a.setAttribute("href", base + encodeURIComponent(name));
                   }
                 } else if (!/^(https?:|mailto:|tel:|#)/i.test(href)) {
-                  if (base) a.setAttribute('href', base + href.replace(/^\.?\//,'') );
+                  if (base)
+                    a.setAttribute("href", base + href.replace(/^\.?\//, ""));
                 }
                 if (!/^#/.test(href)) {
-                  a.setAttribute('target','_blank');
-                  a.setAttribute('rel','noopener noreferrer');
+                  a.setAttribute("target", "_blank");
+                  a.setAttribute("rel", "noopener noreferrer");
                 }
               });
 
               // Ensure header logo is resolvable (convert blob -> data, or take first non-blob image after rewrite)
-              const expLogo = container.querySelector('#expLogo');
+              const expLogo = container.querySelector("#expLogo");
               if (expLogo) {
-                let ls = expLogo.getAttribute('src') || '';
+                let ls = expLogo.getAttribute("src") || "";
                 if (!ls) {
-                  const fi = container.querySelector('.embed-media img');
-                  if (fi && fi.getAttribute('src')) {
-                    expLogo.setAttribute('src', fi.getAttribute('src'));
-                    expLogo.style.display = 'block';
-                    ls = expLogo.getAttribute('src') || '';
+                  const fi = container.querySelector(".embed-media img");
+                  if (fi && fi.getAttribute("src")) {
+                    expLogo.setAttribute("src", fi.getAttribute("src"));
+                    expLogo.style.display = "block";
+                    ls = expLogo.getAttribute("src") || "";
                   }
                 }
                 if (ls && /^blob:/i.test(ls)) {
                   if (base) {
-                    const fi2 = container.querySelector('.embed-media img[src]:not([src^="blob:"])');
+                    const fi2 = container.querySelector(
+                      '.embed-media img[src]:not([src^="blob:"])'
+                    );
                     if (fi2) {
-                      expLogo.setAttribute('src', fi2.getAttribute('src'));
-                      expLogo.style.display = 'block';
+                      expLogo.setAttribute("src", fi2.getAttribute("src"));
+                      expLogo.style.display = "block";
                     } else {
                       const data = await toDataUrl(ls);
-                      expLogo.setAttribute('src', data);
-                      expLogo.style.display = 'block';
+                      expLogo.setAttribute("src", data);
+                      expLogo.style.display = "block";
                     }
                   } else {
                     const data = await toDataUrl(ls);
-                    expLogo.setAttribute('src', data);
-                    expLogo.style.display = 'block';
+                    expLogo.setAttribute("src", data);
+                    expLogo.style.display = "block";
                   }
                 }
               }
 
+              // Inject a small script into the exported HTML to switch sections (one at a time)
+              const switchScriptEl = document.createElement("script");
+              switchScriptEl.textContent = `
+                (function(){
+                  function setActive(id){
+                    var secs=document.querySelectorAll('.tab-content');
+                    secs.forEach(function(s){ s.classList.remove('active');});
+                    var el=document.getElementById(id); if(el){ el.classList.add('active'); }
+                    var links=document.querySelectorAll('.portfolio-sidebar a');
+                    links.forEach(function(a){ var on=(a.getAttribute('href')||'')==='#'+id; a.style.backgroundColor=on?'#4361ee':'transparent'; a.style.color=on?'#fff':'#333'; });
+                  }
+                  document.addEventListener('DOMContentLoaded', function(){
+                    var links=document.querySelectorAll('.portfolio-sidebar a[href^="#tab-"]');
+                    links.forEach(function(a){ a.addEventListener('click', function(e){ e.preventDefault(); var id=(this.getAttribute('href')||'').slice(1); setActive(id); }, {passive:false}); });
+                    if(links[0]){ var first=(links[0].getAttribute('href')||'').slice(1); setActive(first); }
+                  }, {passive:true});
+                })();
+              `;
+              container.appendChild(switchScriptEl);
+
               // Small script to handle index highlighting and smooth scroll
-              const navScript = '<script>(function(){function act(id){var links=document.querySelectorAll(\'.portfolio-sidebar a\');links.forEach(function(a){var on=(a.getAttribute(\'href\')||\'\')===\'#\'+id; a.style.backgroundColor=on?\'#4361ee\':\'transparent\'; a.style.color=on?\'#fff\':\'#333\';});}var links=document.querySelectorAll(\'.portfolio-sidebar a[href^="#tab-"]\');links.forEach(function(a){a.addEventListener(\'click\',function(e){e.preventDefault(); var id=(this.getAttribute(\'href\')||\'\').slice(1); var el=document.getElementById(id); if(el){ el.scrollIntoView({behavior:\'smooth\', block:\'start\'}); act(id);} });}); if(links[0]){ var first=(links[0].getAttribute(\'href\')||\'\').slice(1); act(first);} })();<\/script>';
+              const navScript =
+                "<script>(function(){function act(id){var links=document.querySelectorAll('.portfolio-sidebar a');links.forEach(function(a){var on=(a.getAttribute('href')||'')==='#'+id; a.style.backgroundColor=on?'#4361ee':'transparent'; a.style.color=on?'#fff':'#333';});}var links=document.querySelectorAll('.portfolio-sidebar a[href^=\"#tab-\"]');links.forEach(function(a){a.addEventListener('click',function(e){e.preventDefault(); var id=(this.getAttribute('href')||'').slice(1); var el=document.getElementById(id); if(el){ el.scrollIntoView({behavior:'smooth', block:'start'}); act(id);} });}); if(links[0]){ var first=(links[0].getAttribute('href')||'').slice(1); act(first);} })();<\/script>";
 
-              const html = '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>'+
-                '<title>'+((state.portfolio && state.portfolio.title) || 'ملف الإنجاز')+'</title><style>'+css+'\n'+extra+'</style></head><body>'+container.innerHTML+navScript+'</body></html>';
+              const html =
+                '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>' +
+                "<title>" +
+                ((state.portfolio && state.portfolio.title) || "ملف الإنجاز") +
+                "</title><style>" +
+                css +
+                "\n" +
+                extra +
+                "</style></head><body>" +
+                container.innerHTML +
+                navScript +
+                "</body></html>";
 
-              const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+              const blob = new Blob([html], {
+                type: "text/html;charset=utf-8",
+              });
               const url = URL.createObjectURL(blob);
-              const ael = document.createElement('a');
+              const ael = document.createElement("a");
               ael.href = url;
-              ael.download = 'ملف_الإنجاز_نسخة_مستقلة.html';
+              ael.download = "ملف_الإنجاز_نسخة_مستقلة.html";
               ael.click();
-              setTimeout(()=>URL.revokeObjectURL(url),1500);
-              note('تم إنشاء النسخة النهائية المستقلة');
+              setTimeout(() => URL.revokeObjectURL(url), 1500);
+              note("تم إنشاء النسخة النهائية المستقلة");
             } catch (err) {
-              note('تعذّر إنشاء النسخة النهائية المستقلة','error');
+              note("تعذّر إنشاء النسخة النهائية المستقلة", "error");
             }
           };
           UI.exportHTML = UI.exportStandalone;
-
         })();
       })();
     </script>
   </body>
 </html>
-
-
