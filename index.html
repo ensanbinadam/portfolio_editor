@@ -1029,9 +1029,7 @@
           >
             إلغاء
           </button>
-          <button class="btn btn-primary" onclick="UI.confirmLink()">
-            حفظ الرابط
-            حفظ الرابط
+          <button class="btn btn-primary" onclick="UI.confirmLink()">حفظ الرابط</button>
         </div>
       </div>
     </div>
@@ -2482,7 +2480,17 @@
                 logoEl.src = state.portfolio.logoData;
                 logoEl.style.display = "block";
               } else {
-                logoEl.style.display = "none";
+                // Fallback: pick first image from tabs
+                var found = '';
+                for (var i=0;i<state.tabs.length;i++){
+                  var t = state.tabs[i];
+                  var tmp = document.createElement('div');
+                  tmp.innerHTML = (t && t.content) || '';
+                  var im = tmp.querySelector('img');
+                  if (im && im.getAttribute('src')) { found = im.getAttribute('src'); break; }
+                }
+                if (found) { logoEl.src = found; logoEl.style.display = 'block'; }
+                else { logoEl.style.display = "none"; }
               }
             }
             var titleEl = document.getElementById("portfolioHeaderTitle");
@@ -2851,9 +2859,21 @@
               container.appendChild(contentRoot);
 
               const lg = container.querySelector("#expLogo");
-              if (state.portfolio && state.portfolio.logoData && lg) {
-                lg.src = state.portfolio.logoData;
-                lg.style.display = "block";
+              if (lg){
+                if (state.portfolio && state.portfolio.logoData) {
+                  lg.src = state.portfolio.logoData;
+                  lg.style.display = "block";
+                } else {
+                  // Fallback: first image found in tabs
+                  let found = '';
+                  for (const t of state.tabs){
+                    const tmp = document.createElement('div');
+                    tmp.innerHTML = t.content || '';
+                    const im = tmp.querySelector('img');
+                    if (im && im.getAttribute('src')) { found = im.getAttribute('src'); break; }
+                  }
+                  if (found) { lg.src = found; lg.style.display = 'block'; }
+                }
               }
               const sub = container.querySelector("#expSubtitle");
               if (sub) {
@@ -2910,14 +2930,68 @@
 .final-portfolio{display:block;position:static}
 .portfolio-sidebar{width:250px;background:#f0f2f5;height:100vh;position:fixed;top:0;right:0;padding:20px;overflow-y:auto}
 .portfolio-content{margin-right:250px;padding:20px;background:var(--editor-print-bg)}
+.tab-content{display:block} /* ensure sections visible in exported file */
 .header-actions{display:flex;gap:8px;margin-top:10px}
 .header-btn{background:#ffffff;border:none;color:#1f2937;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600}
 .header-btn.export{background:#111827;color:#fff}
 @media print{.portfolio-sidebar{display:none}.portfolio-content{margin:0!important}.header-actions{display:none}}
 `;
 
+              // Normalize anchors: make external links open in new tab, convert relative to absolute if base provided
+              const anchors = container.querySelectorAll('a[href]');
+              anchors.forEach(a => {
+                let href = a.getAttribute('href') || '';
+                if (!href) return;
+                if (/^blob:/i.test(href)) {
+                  if (base) {
+                    const name = a.getAttribute('download') || a.textContent.trim() || '';
+                    if (name) a.setAttribute('href', base + encodeURIComponent(name));
+                  }
+                } else if (!/^(https?:|mailto:|tel:|#)/i.test(href)) {
+                  if (base) a.setAttribute('href', base + href.replace(/^\.?\//,'') );
+                }
+                if (!/^#/.test(href)) {
+                  a.setAttribute('target','_blank');
+                  a.setAttribute('rel','noopener noreferrer');
+                }
+              });
+
+              // Ensure header logo is resolvable (convert blob -> data, or take first non-blob image after rewrite)
+              const expLogo = container.querySelector('#expLogo');
+              if (expLogo) {
+                let ls = expLogo.getAttribute('src') || '';
+                if (!ls) {
+                  const fi = container.querySelector('.embed-media img');
+                  if (fi && fi.getAttribute('src')) {
+                    expLogo.setAttribute('src', fi.getAttribute('src'));
+                    expLogo.style.display = 'block';
+                    ls = expLogo.getAttribute('src') || '';
+                  }
+                }
+                if (ls && /^blob:/i.test(ls)) {
+                  if (base) {
+                    const fi2 = container.querySelector('.embed-media img[src]:not([src^="blob:"])');
+                    if (fi2) {
+                      expLogo.setAttribute('src', fi2.getAttribute('src'));
+                      expLogo.style.display = 'block';
+                    } else {
+                      const data = await toDataUrl(ls);
+                      expLogo.setAttribute('src', data);
+                      expLogo.style.display = 'block';
+                    }
+                  } else {
+                    const data = await toDataUrl(ls);
+                    expLogo.setAttribute('src', data);
+                    expLogo.style.display = 'block';
+                  }
+                }
+              }
+
+              // Small script to handle index highlighting and smooth scroll
+              const navScript = '<script>(function(){function act(id){var links=document.querySelectorAll(\'.portfolio-sidebar a\');links.forEach(function(a){var on=(a.getAttribute(\'href\')||\'\')===\'#\'+id; a.style.backgroundColor=on?\'#4361ee\':\'transparent\'; a.style.color=on?\'#fff\':\'#333\';});}var links=document.querySelectorAll(\'.portfolio-sidebar a[href^="#tab-"]\');links.forEach(function(a){a.addEventListener(\'click\',function(e){e.preventDefault(); var id=(this.getAttribute(\'href\')||\'\').slice(1); var el=document.getElementById(id); if(el){ el.scrollIntoView({behavior:\'smooth\', block:\'start\'}); act(id);} });}); if(links[0]){ var first=(links[0].getAttribute(\'href\')||\'\').slice(1); act(first);} })();<\/script>';
+
               const html = '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>'+
-                '<title>'+((state.portfolio && state.portfolio.title) || 'ملف الإنجاز')+'</title><style>'+css+'\n'+extra+'</style></head><body>'+container.innerHTML+'</body></html>';
+                '<title>'+((state.portfolio && state.portfolio.title) || 'ملف الإنجاز')+'</title><style>'+css+'\n'+extra+'</style></head><body>'+container.innerHTML+navScript+'</body></html>';
 
               const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
               const url = URL.createObjectURL(blob);
