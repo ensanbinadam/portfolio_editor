@@ -1,0 +1,2942 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>محرّر ملف الإنجاز - v3.4 (إصلاح الإدراج + الروابط + PDF)</title>
+    <style>
+      :root {
+        --primary: #4361ee;
+        --secondary: #3f37c9;
+        --success: #4cc9f0;
+        --dark: #1e1e2c;
+        --light: #f8f9fa;
+        --gray: #6c757d;
+        --danger: #e5383b;
+        --warning: #fca311;
+        --sidebar-width: 280px;
+        --editor-font-size: 16px;
+        --page-print-bg: #f5f7fb;
+        --editor-print-bg: #ffffff;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Cairo", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+      body {
+        background-color: #f5f7fb;
+        color: #333;
+        line-height: 1.6;
+      }
+      .container {
+        display: flex;
+        min-height: 100vh;
+      }
+      .sidebar {
+        width: var(--sidebar-width);
+        background: linear-gradient(135deg, var(--dark), var(--secondary));
+        color: #fff;
+        padding: 20px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        overflow-y: auto;
+      }
+      .app-title {
+        text-align: center;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      .app-title h1 {
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+      }
+      .app-title p {
+        font-size: 0.9rem;
+        opacity: 0.8;
+      }
+      .tabs-container {
+        margin-bottom: 20px;
+      }
+      .tab {
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        border-radius: 8px;
+        color: #fff;
+        padding: 12px 15px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        width: 100%;
+        text-align: right;
+        transition: all 0.3s ease;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .tab:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+      .tab.active {
+        background: var(--primary);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      }
+      .tab-actions {
+        display: flex;
+        gap: 5px;
+      }
+      .tab-btn {
+        background: transparent;
+        border: none;
+        color: #fff;
+        cursor: pointer;
+        font-size: 14px;
+        opacity: 0.7;
+        transition: opacity 0.3s;
+      }
+      .tab-btn:hover {
+        opacity: 1;
+      }
+      .sidebar-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 20px;
+      }
+      .sidebar-btn {
+        background: rgba(255, 255, 255, 0.15);
+        border: none;
+        border-radius: 8px;
+        color: #fff;
+        padding: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 0.9rem;
+      }
+      .sidebar-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+      }
+      .sidebar-btn.delete {
+        background: rgba(229, 56, 59, 0.2);
+      }
+      .sidebar-btn.delete:hover {
+        background: rgba(229, 56, 59, 0.3);
+      }
+
+      .main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      .toolbar {
+        background: #fff;
+        padding: 15px 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+      .toolbar-group {
+        display: flex;
+        gap: 6px;
+        padding: 5px;
+        border-radius: 6px;
+        background: #f0f2f5;
+        align-items: center;
+      }
+      .toolbar-btn {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s;
+      }
+      .toolbar-btn:hover {
+        background: #f0f2f5;
+        border-color: #ccc;
+      }
+      .toolbar-select {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background: #fff;
+        cursor: pointer;
+      }
+      .color-input {
+        width: 34px;
+        height: 34px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 0;
+        background: #fff;
+        cursor: pointer;
+      }
+      .color-label {
+        font-size: 18px;
+        line-height: 1;
+      }
+
+      .editor {
+        flex: 1;
+        padding: 30px;
+        overflow-y: auto;
+        background: #fff;
+        margin: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      }
+      .editor-content {
+        min-height: 500px;
+        padding: 20px;
+        border: 1px solid #eaeaea;
+        border-radius: 8px;
+        outline: none;
+        font-size: var(--editor-font-size);
+      }
+
+      .action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+        padding: 20px;
+        background: #fff;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+      }
+      .action-btn {
+        padding: 12px 18px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .action-btn.export {
+        background: var(--primary);
+        color: #fff;
+      }
+      .action-btn.import {
+        background: #fff;
+        color: var(--primary);
+        border: 2px solid var(--primary);
+      }
+      .action-btn.generate {
+        background: var(--success);
+        color: #fff;
+      }
+      .action-btn.pdf {
+        background: #111827;
+        color: #fff;
+      }
+      .action-btn:hover {
+        filter: brightness(0.95);
+      }
+
+      #jsError {
+        position: fixed;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #e5383b;
+        color: #fff;
+        padding: 10px 14px;
+        border-radius: 8px;
+        z-index: 1300;
+        display: none;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+      .modal-content {
+        background: #fff;
+        border-radius: 12px;
+        padding: 25px;
+        width: 90%;
+        max-width: 600px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+      }
+      .modal-title {
+        font-size: 1.5rem;
+        color: #222;
+      }
+      .close-modal {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #6c757d;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+        color: #222;
+      }
+      .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+      }
+      .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+      .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      .btn-primary {
+        background: var(--primary);
+        color: #fff;
+      }
+      .btn-secondary {
+        background: #f0f2f5;
+        color: #111;
+      }
+
+      @media (max-width: 992px) {
+        .container {
+          flex-direction: column;
+        }
+        .sidebar {
+          width: 100%;
+          height: auto;
+        }
+        .toolbar {
+          overflow-x: auto;
+        }
+      }
+
+      /* Embeds */
+      .embed-container {
+        margin: 15px 0;
+        border: 1px dashed #ddd;
+        border-radius: 8px;
+        padding: 10px;
+        position: relative;
+        background: #fff;
+      }
+      .embed-container:focus-within {
+        outline: 2px dashed var(--secondary);
+        outline-offset: 6px;
+      }
+      .embed-actions {
+        position: absolute;
+        top: -15px;
+        left: 10px;
+        background: #fff;
+        padding: 5px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        display: none;
+        gap: 6px;
+        z-index: 5;
+      }
+      .embed-container:hover .embed-actions {
+        display: flex;
+      }
+      .embed-btn {
+        background: #f0f2f5;
+        border: none;
+        border-radius: 4px;
+        padding: 5px 8px;
+        cursor: pointer;
+        margin: 0 2px;
+        font-size: 12px;
+      }
+      .embed-caption {
+        margin-top: 8px;
+        font-size: 0.92rem;
+        color: #444;
+        background: #fafafa;
+        border: 1px dashed #ddd;
+        border-radius: 6px;
+        padding: 6px 8px;
+      }
+      .embed-caption:empty:before {
+        content: attr(data-placeholder);
+        color: #9aa1a9;
+      }
+      .download-link {
+        display: block;
+        text-align: center;
+        margin-top: 10px;
+        color: var(--primary);
+        text-decoration: none;
+      }
+      .download-link:hover {
+        text-decoration: underline;
+      }
+      .embed-media {
+        display: inline-block;
+        max-width: 100%;
+      }
+      .resizable-x {
+        resize: horizontal;
+        overflow: auto;
+      }
+      .resizable-both {
+        resize: both;
+        overflow: auto;
+      }
+      .embed-media > img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .embed-media > video,
+      .embed-media > iframe {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Notification */
+      .notification {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        background: var(--dark);
+        color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transform: translateY(100px);
+        opacity: 0;
+        transition: all 0.3s;
+        z-index: 1200;
+      }
+      .notification.show {
+        transform: translateY(0);
+        opacity: 1;
+      }
+      .notification.success {
+        background: var(--success);
+      }
+      .notification.error {
+        background: var(--danger);
+      }
+
+      /* Preview */
+      .final-portfolio {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--page-print-bg);
+        z-index: 1100;
+        overflow-y: auto;
+      }
+      .portfolio-header {
+        background: var(--primary);
+        color: #fff;
+        padding: 20px;
+      }
+      .header-actions { display:flex; gap:8px; margin-top:10px }
+      .header-btn { background:#ffffff; border:none; color:#1f2937; padding:6px 10px; border-radius:6px; cursor:pointer; font-weight:600 }
+      .header-btn.export { background:#111827; color:#fff }
+      .portfolio-header-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      .portfolio-logo {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+      }
+      .portfolio-titles h1 {
+        margin: 0;
+      }
+      .portfolio-subtitle {
+        opacity: 0.95;
+        font-size: 1.05rem;
+      }
+      .portfolio-sidebar {
+        width: 250px;
+        background: #f0f2f5;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        right: 0;
+        padding: 20px;
+        overflow-y: auto;
+      }
+      .portfolio-content {
+        margin-right: 250px;
+        padding: 20px;
+        background: var(--editor-print-bg);
+      }
+      .portfolio-footer {
+        margin: 20px auto 0;
+        text-align: center;
+        color: #333;
+        border-top: 1px solid #e0e0e0;
+        padding-top: 12px;
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+      .close-portfolio {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: #fff;
+        color: #4361ee;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      @media print {
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        html,
+        body {
+          background: var(--page-print-bg) !important;
+        }
+        .sidebar,
+        .toolbar,
+        .action-buttons,
+        .modal,
+        .notification,
+        .close-portfolio {
+          display: none !important;
+        }
+        .final-portfolio {
+          position: static !important;
+          display: block !important;
+          background: var(--page-print-bg) !important;
+          height: auto !important;
+        }
+        .portfolio-sidebar {
+          display: none !important;
+        }
+        .portfolio-content {
+          margin: 0 !important;
+          background: var(--editor-print-bg) !important;
+          box-shadow: none !important;
+          font-size: inherit !important;
+        }
+        .tab-content {
+          display: block !important;
+          break-inside: avoid;
+          page-break-inside: avoid;
+          margin-bottom: 16px;
+        }
+        .portfolio-header {
+          background: var(--primary) !important;
+          color: #fff !important;
+        }
+        @page {
+          size: A4;
+          margin: 12mm;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="jsError"></div>
+    <div class="container">
+      <aside class="sidebar">
+        <div class="app-title">
+          <h1>ملف إنجاز المعلم</h1>
+          <p>أداة لإنشاء ملف الإنجاز المهني</p>
+        </div>
+        <div class="tabs-container" id="tabsContainer"></div>
+        <div class="sidebar-actions">
+          <button class="sidebar-btn" type="button" onclick="UI.addTab()">
+            إضافة تبويب جديد
+          </button>
+          <button
+            class="sidebar-btn delete"
+            type="button"
+            onclick="UI.deleteActive()"
+          >
+            حذف التبويب
+          </button>
+          <button class="sidebar-btn" type="button" onclick="UI.newProject()">
+            مشروع جديد
+          </button>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <div class="toolbar">
+          <div class="toolbar-group">
+            <select
+              class="toolbar-select"
+              id="formatSelect"
+              aria-label="تنسيق"
+              onchange="UI.format(this.value)"
+            >
+              <option value="p">نص عادي</option>
+              <option value="h1">عنوان رئيسي</option>
+              <option value="h2">عنوان فرعي</option>
+              <option value="h3">عنوان ثانوي</option>
+            </select>
+          </div>
+
+          <div class="toolbar-group">
+            <button
+              class="toolbar-btn"
+              type="button"
+              aria-label="عريض"
+              onclick="UI.exec('bold')"
+            >
+              <b>B</b>
+            </button>
+            <button
+              class="toolbar-btn"
+              type="button"
+              aria-label="مائل"
+              onclick="UI.exec('italic')"
+            >
+              <i>I</i>
+            </button>
+            <button
+              class="toolbar-btn"
+              type="button"
+              aria-label="تحته خط"
+              onclick="UI.exec('underline')"
+            >
+              <u>U</u>
+            </button>
+          </div>
+
+          <div class="toolbar-group">
+            <button
+              class="toolbar-btn"
+              type="button"
+              aria-label="قائمة نقطية"
+              onclick="UI.exec('insertUnorderedList')"
+            >
+              • قائمة
+            </button>
+            <button
+              class="toolbar-btn"
+              type="button"
+              aria-label="قائمة رقمية"
+              onclick="UI.exec('insertOrderedList')"
+            >
+              1. قائمة
+            </button>
+          </div>
+
+          <div class="toolbar-group">
+            <button
+              class="toolbar-btn"
+              type="button"
+              aria-label="محاذاة يمين"
+              onclick="UI.exec('justifyRight')"
+            >
+              ⟸
+            </button>
+            <button
+              class="toolbar-btn"
+              type="button"
+              aria-label="توسيط"
+              onclick="UI.exec('justifyCenter')"
+            >
+              ↔
+            </button>
+            <button
+              class="toolbar-btn"
+              type="button"
+              aria-label="محاذاة يسار"
+              onclick="UI.exec('justifyLeft')"
+            >
+              ⟹
+            </button>
+          </div>
+
+          <div class="toolbar-group" title="تكبير/تصغير الخط">
+            <button
+              class="toolbar-btn"
+              type="button"
+              aria-label="تصغير الخط"
+              onclick="UI.font(-2)"
+            >
+              A−
+            </button>
+            <button
+              class="toolbar-btn"
+              type="button"
+              aria-label="تكبير الخط"
+              onclick="UI.font(+2)"
+            >
+              A+
+            </button>
+          </div>
+
+          <div class="toolbar-group" title="لون الخط">
+            <span class="color-label">🎨</span>
+            <input
+              type="color"
+              id="fontColorPicker"
+              class="color-input"
+              aria-label="لون الخط"
+              onchange="UI.color(this.value)"
+            />
+          </div>
+
+          <div class="toolbar-group" title="الخلفيات">
+            <span class="color-label">🖼️</span>
+            <input
+              type="color"
+              id="editorBgPicker"
+              class="color-input"
+              aria-label="خلفية المحرر"
+              value="#ffffff"
+              onchange="UI.setEditorBg(this.value)"
+            />
+            <span class="color-label">🧩</span>
+            <input
+              type="color"
+              id="pageBgPicker"
+              class="color-input"
+              aria-label="خلفية الصفحة"
+              value="#f5f7fb"
+              onchange="UI.setPageBg(this.value)"
+            />
+            <button
+              class="toolbar-btn"
+              type="button"
+              aria-label="إعادة المظهر"
+              onclick="UI.resetAppearance()"
+            >
+              إعادة
+            </button>
+          </div>
+
+          <div class="toolbar-group" title="روابط">
+            <button
+              class="toolbar-btn"
+              type="button"
+              aria-label="إضافة رابط"
+              onclick="UI.openLinkModalForSelection()"
+            >
+              🔗 رابط
+            </button>
+            <button
+              class="toolbar-btn"
+              type="button"
+              aria-label="فك الرابط"
+              onclick="UI.unlinkSelection()"
+            >
+              ⛓️ فك
+            </button>
+          </div>
+
+          <div class="toolbar-group">
+            <button
+              class="toolbar-btn"
+              type="button"
+              aria-label="إدراج صورة"
+              onclick="UI.openMedia()"
+            >
+              صورة
+            </button>
+            <button
+              class="toolbar-btn"
+              type="button"
+              aria-label="إدراج ملف"
+              onclick="UI.openMedia()"
+            >
+              ملف
+            </button>
+            <button
+              class="toolbar-btn"
+              type="button"
+              aria-label="إدراج فيديو"
+              onclick="UI.openMedia()"
+            >
+              فيديو
+            </button>
+            <button
+              class="toolbar-btn"
+              type="button"
+              aria-label="إدراج ملف أوفيس"
+              onclick="UI.openOffice()"
+            >
+              أوفيس
+            </button>
+          </div>
+        </div>
+
+        <div class="editor" id="editorWrapper">
+          <div class="editor-content" id="editor" contenteditable="true">
+            <h1>مرحباً بك في محرر ملف الإنجاز (v3.4)</h1>
+            <p>
+              هذه النسخة تصلح <b>إدراج الوسائط</b> حتى بعد فتح النوافذ، وتدعم
+              <b>الروابط</b> للنصوص والوسائط، وتصدر <b>PDF بالألوان</b>. إذا
+              تعطّل أي زر ستظهر رسالة بالأعلى.
+            </p>
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <button
+            class="action-btn export"
+            type="button"
+            aria-label="تصدير المشروع"
+            onclick="UI.exportProject()"
+          >
+            تصدير المشروع
+          </button>
+          <button
+            class="action-btn import"
+            type="button"
+            aria-label="استيراد مشروع"
+            onclick="UI.importProject()"
+          >
+            استيراد مشروع
+          </button>
+          <button
+            class="action-btn generate"
+            type="button"
+            aria-label="معاينة ملف الإنجاز"
+            onclick="UI.previewPortfolio()"
+          >
+            معاينة ملف الإنجاز
+          </button>
+          <button
+            class="action-btn pdf" style="display:none"
+            type="button"
+            aria-label="تصدير PDF"
+            onclick="UI.exportPDF()"
+          >
+            تصدير PDF (بنفس الألوان)
+          </button>
+        </div>
+      </main>
+    </div>
+
+    <!-- New Tab Modal -->
+    <div class="modal" id="newTabModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">إنشاء تبويب جديد</h2>
+          <button
+            class="close-modal"
+            onclick="UI.hide(document.getElementById('newTabModal'))"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="form-group">
+          <label for="tabTitle">اسم التبويب</label>
+          <input
+            type="text"
+            class="form-control"
+            id="tabTitle"
+            placeholder="أدخل اسم التبويب"
+            onkeypress="if(event.key==='Enter'){UI.createTab()}"
+          />
+        </div>
+        <div class="form-actions">
+          <button
+            class="btn btn-secondary"
+            onclick="UI.hide(document.getElementById('newTabModal'))"
+          >
+            إلغاء
+          </button>
+          <button class="btn btn-primary" onclick="UI.createTab()">
+            إنشاء
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Media Modal -->
+    <div class="modal" id="mediaModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title" id="mediaModalTitle">إدراج وسائط</h2>
+          <button
+            class="close-modal"
+            onclick="UI.hide(document.getElementById('mediaModal'))"
+          >
+            &times;
+          </button>
+        </div>
+        <div
+          class="file-type-buttons"
+          style="display: flex; gap: 10px; margin-bottom: 10px"
+        >
+          <button
+            class="toolbar-btn"
+            onclick="UI.toggleMediaType('upload')"
+            id="btnUpload"
+          >
+            رفع ملف
+          </button>
+          <button
+            class="toolbar-btn"
+            onclick="UI.toggleMediaType('url')"
+            id="btnUrl"
+          >
+            رابط خارجي
+          </button>
+        </div>
+        <div id="uploadFileSection">
+          <div class="form-group">
+            <label for="mediaFile">اختر ملف للرفع</label>
+            <input
+              type="file"
+              class="form-control"
+              id="mediaFile"
+              accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.ogg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+            />
+            <small>يدعم الصور، الفيديو، PDF، وملفات Office</small>
+          </div>
+          <div
+            class="file-preview"
+            id="filePreview"
+            style="display: none"
+          ></div>
+        </div>
+        <div id="urlFileSection" style="display: none">
+          <div class="form-group">
+            <label for="mediaUrl">أدخل رابط الملف</label>
+            <input
+              type="text"
+              class="form-control"
+              id="mediaUrl"
+              placeholder="https://example.com/file.pdf"
+            />
+          </div>
+          <div class="form-group">
+            <label for="fileType">نوع الملف</label>
+            <select class="form-control" id="fileType">
+              <option value="auto">تحديد تلقائي</option>
+              <option value="image">صورة</option>
+              <option value="video">فيديو</option>
+              <option value="pdf">PDF</option>
+              <option value="word">Word</option>
+              <option value="excel">Excel</option>
+              <option value="powerpoint">PowerPoint</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="mediaCaption">وصف (اختياري)</label>
+          <input
+            type="text"
+            class="form-control"
+            id="mediaCaption"
+            placeholder="وصف الملف"
+          />
+        </div>
+        <div class="form-actions">
+          <button
+            class="btn btn-secondary"
+            onclick="UI.hide(document.getElementById('mediaModal'))"
+          >
+            إلغاء
+          </button>
+          <button class="btn btn-primary" onclick="UI.insertMedia()">تم</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Link Modal -->
+    <div class="modal" id="linkModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">إدراج/تعديل رابط</h2>
+          <button
+            class="close-modal"
+            onclick="UI.hide(document.getElementById('linkModal'))"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="form-group">
+          <label for="linkUrl">عنوان الرابط (URL)</label>
+          <input
+            type="text"
+            class="form-control"
+            id="linkUrl"
+            placeholder="https://example.com أو mailto:user@example.com"
+          />
+        </div>
+        <div
+          class="form-group"
+          style="display: flex; gap: 8px; align-items: center"
+        >
+          <input type="checkbox" id="linkNewTab" checked />
+          <label for="linkNewTab">فتح في تبويب جديد</label>
+        </div>
+        <div class="form-actions">
+          <button
+            class="btn btn-secondary"
+            onclick="UI.hide(document.getElementById('linkModal'))"
+          >
+            إلغاء
+          </button>
+          <button class="btn btn-primary" onclick="UI.confirmLink()">
+            حفظ الرابط
+            حفظ الرابط
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview -->
+    <div class="final-portfolio" id="finalPortfolio">
+          <button
+        class="close-portfolio"
+        onclick="UI.closePreview()"
+      >
+        &times;
+      </button>
+      <div class="portfolio-header">
+        <div class="portfolio-header-inner" dir="rtl">
+          <img
+            id="portfolioHeaderLogo"
+            class="portfolio-logo"
+            alt="شعار"
+            style="display: none"
+          />
+          <div class="portfolio-titles">
+            <h1 id="portfolioHeaderTitle">ملف الإنجاز</h1>
+            <div id="portfolioHeaderSubtitle" class="portfolio-subtitle"></div>
+          </div>
+            <div class="header-actions">
+              <button class="header-btn" type="button" onclick="UI.closePreview()">رجوع للمحرر</button>
+              <button class="header-btn export" type="button" onclick="UI.exportHTML()">تصدير HTML</button>
+            </div>
+        </div>
+      </div>
+      <div class="portfolio-sidebar" id="portfolioSidebar">
+        <h3>فهرس المحتويات</h3>
+      </div>
+      <div class="portfolio-content" id="portfolioContent"></div>
+    </div>
+
+    <div class="notification" id="notification">
+      <span id="notificationMessage"></span>
+    </div>
+
+    <script>
+      (function () {
+        // Error banner
+        window.onerror = function (msg, src, ln, col, err) {
+          const b = document.getElementById("jsError");
+          b.textContent = "خطأ: " + msg;
+          b.style.display = "block";
+        };
+        window.onunhandledrejection = function (e) {
+          const b = document.getElementById("jsError");
+          b.textContent =
+            "وعد مرفوض: " + ((e.reason && e.reason.message) || e.reason || "");
+          b.style.display = "block";
+        };
+
+        const state = {
+          tabs: [{ id: id(), title: "الغلاف", content: "" }],
+          activeTabId: null,
+          mediaType: "upload",
+          settings: {
+            editorFontSize: 16,
+            pageBg: "#f5f7fb",
+            editorBg: "#ffffff",
+          },
+          portfolio: {
+            teacherName: "",
+            teacherLabel: "المعلم/ـة",
+            footerText: "",
+            logoData: "",
+          },
+          blobMap: {},
+          mode: "insert",
+          replaceTarget: null,
+          savedRange: null,
+          linkContext: null,
+        };
+
+        const el = {
+          tabsContainer: document.getElementById("tabsContainer"),
+          editor: document.getElementById("editor"),
+          editorWrapper: document.getElementById("editorWrapper"),
+          finalPortfolio: document.getElementById("finalPortfolio"),
+          portfolioSidebar: document.getElementById("portfolioSidebar"),
+          portfolioContent: document.getElementById("portfolioContent"),
+          portfolioHeaderTitle: document.getElementById("portfolioHeaderTitle"),
+          filePreview: document.getElementById("filePreview"),
+          linkUrl: document.getElementById("linkUrl"),
+          linkNewTab: document.getElementById("linkNewTab"),
+        };
+
+        function note(msg, type) {
+          const n = document.getElementById("notification");
+          document.getElementById("notificationMessage").textContent = msg;
+          n.className = "notification " + (type || "success");
+          n.classList.add("show");
+          setTimeout(() => n.classList.remove("show"), 2200);
+        }
+        function show(m) {
+          m.style.display = "flex";
+        }
+        function hide(m) {
+          m.style.display = "none";
+        }
+        function id() {
+          return Date.now().toString(36) + Math.random().toString(36).slice(2);
+        }
+        function esc(s) {
+          return (s || "").replace(
+            /[&<>\"']/g,
+            (m) =>
+              ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;",
+              }[m])
+          );
+        }
+        function sanitizeUrl(url) {
+          const t = (url || "").trim();
+          if (!t) return "";
+          if (/^(https?:|mailto:|tel:)/i.test(t)) return t;
+          return "https://" + t.replace(/^\/+/, "");
+        }
+        function sanitizeHTML(html) {
+          try {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, "text/html");
+            const allowed = new Set([
+              "P",
+              "BR",
+              "B",
+              "STRONG",
+              "I",
+              "EM",
+              "U",
+              "A",
+              "UL",
+              "OL",
+              "LI",
+              "H1",
+              "H2",
+              "H3",
+            ]);
+            const walk = (root) => {
+              const nodes = [...root.querySelectorAll("*")];
+              nodes.forEach((n) => {
+                const tag = n.tagName;
+                if (!allowed.has(tag)) {
+                  const parent = n.parentNode;
+                  while (n.firstChild) parent.insertBefore(n.firstChild, n);
+                  parent.removeChild(n);
+                  return;
+                }
+                // strip attributes except href for A
+                [...n.attributes].forEach((a) => {
+                  if (!(tag === "A" && a.name.toLowerCase() === "href"))
+                    n.removeAttribute(a.name);
+                });
+                if (tag === "A") {
+                  const h = n.getAttribute("href") || "";
+                  n.setAttribute("href", sanitizeUrl(h));
+                }
+              });
+            };
+            walk(doc.body);
+            return doc.body.innerHTML;
+          } catch (_) {
+            return html;
+          }
+        }
+        function closest(tag, node) {
+          while (node && node.nodeType === 1) {
+            if (node.tagName === tag) return node;
+            node = node.parentElement;
+          }
+          return null;
+        }
+        function unwrapAnchor(a) {
+          const p = a.parentNode;
+          while (a.firstChild) p.insertBefore(a.firstChild, a);
+          p.removeChild(a);
+        }
+        function wrapWithLink(node, url, newTab) {
+          const a = document.createElement("a");
+          a.href = url;
+          if (newTab) {
+            a.target = "_blank";
+            a.rel = "noopener noreferrer";
+          }
+          node.parentNode.insertBefore(a, node);
+          a.appendChild(node);
+        }
+
+        function applySettings() {
+          el.editor.style.setProperty(
+            "--editor-font-size",
+            state.settings.editorFontSize + "px"
+          );
+          document.body.style.backgroundColor = state.settings.pageBg;
+          el.editorWrapper.style.backgroundColor = state.settings.editorBg;
+          document.documentElement.style.setProperty(
+            "--page-print-bg",
+            state.settings.pageBg
+          );
+          document.documentElement.style.setProperty(
+            "--editor-print-bg",
+            state.settings.editorBg
+          );
+        }
+
+        // Local storage persistence
+        const STORAGE_KEY = "portfolio_v34";
+        function saveToStorage() {
+          try {
+            const a = state.tabs.find((x) => x.id === state.activeTabId);
+            if (a) a.content = el.editor.innerHTML;
+            const data = {
+              version: "3.4",
+              tabs: state.tabs,
+              settings: state.settings,
+              portfolio: state.portfolio,
+              activeTabId: state.activeTabId,
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+          } catch (_) {}
+        }
+        function loadFromStorage() {
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return null;
+            const d = JSON.parse(raw);
+            if (!d || !Array.isArray(d.tabs) || !d.tabs.length) return null;
+            state.tabs = d.tabs;
+            state.settings = d.settings || state.settings;
+            state.portfolio = d.portfolio || state.portfolio;
+            applySettings();
+            const eb = document.getElementById("editorBgPicker");
+            if (eb) eb.value = state.settings.editorBg || "#ffffff";
+            const pb = document.getElementById("pageBgPicker");
+            if (pb) pb.value = state.settings.pageBg || "#f5f7fb";
+            return d.activeTabId || state.tabs[0].id;
+          } catch (_) {
+            return null;
+          }
+        }
+
+        // Helpers for modern selection editing
+        function ensureRangeInEditor() {
+          const sel = window.getSelection();
+          if (
+            !sel ||
+            sel.rangeCount === 0 ||
+            !el.editor.contains(sel.anchorNode)
+          ) {
+            el.editor.focus();
+            const r = document.createRange();
+            r.selectNodeContents(el.editor);
+            r.collapse(false);
+            const s = window.getSelection();
+            s.removeAllRanges();
+            s.addRange(r);
+            return r;
+          }
+          return sel.getRangeAt(0);
+        }
+
+        function wrapRange(range, tag, styles) {
+          const w = document.createElement(tag || "span");
+          if (styles) Object.assign(w.style, styles);
+          const content = range.extractContents();
+          w.appendChild(content);
+          range.insertNode(w);
+          range.setStartAfter(w);
+          range.collapse(true);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+          return w;
+        }
+
+        function unwrap(elm) {
+          if (!elm || !elm.parentNode) return;
+          const p = elm.parentNode;
+          while (elm.firstChild) p.insertBefore(elm.firstChild, elm);
+          p.removeChild(elm);
+        }
+
+        function closestTag(tag, node) {
+          while (node && node.nodeType === 1) {
+            if (node.tagName === tag) return node;
+            node = node.parentElement;
+          }
+          return null;
+        }
+
+        function toggleInlineTag(tag) {
+          const range = ensureRangeInEditor();
+          const startEl =
+            range.startContainer.nodeType === 1
+              ? range.startContainer
+              : range.startContainer.parentElement;
+          const anc = closestTag(tag.toUpperCase(), startEl);
+          if (anc && anc.contains(range.endContainer)) {
+            unwrap(anc);
+            return;
+          }
+          if (range.collapsed) {
+            const w = document.createElement(tag);
+            w.appendChild(document.createTextNode("\u200B"));
+            range.insertNode(w);
+            range.setStart(w.firstChild, 1);
+            range.collapse(true);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+            return;
+          }
+          wrapRange(range, tag);
+        }
+
+        function setBlockFormat(tag) {
+          const range = ensureRangeInEditor();
+          const editorEl = el.editor;
+          // apply to each top-level block touched by selection (simple pass)
+          const blocks = new Set();
+          const walker = document.createTreeWalker(
+            editorEl,
+            NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT,
+            {
+              acceptNode(node) {
+                if (node.nodeType === 3 && !node.textContent.trim())
+                  return NodeFilter.FILTER_SKIP;
+                const r = range;
+                const nodeRange = document.createRange();
+                nodeRange.selectNode(node);
+                if (
+                  r.compareBoundaryPoints(Range.END_TO_START, nodeRange) >= 0 ||
+                  r.compareBoundaryPoints(Range.START_TO_END, nodeRange) <= 0
+                ) {
+                  return NodeFilter.FILTER_SKIP;
+                }
+                let cur = node.nodeType === 1 ? node : node.parentElement;
+                while (
+                  cur &&
+                  cur !== editorEl &&
+                  !/^P|DIV|H[1-6]|LI$/i.test(cur.tagName)
+                )
+                  cur = cur.parentElement;
+                if (cur && cur !== editorEl) blocks.add(cur);
+                return NodeFilter.FILTER_SKIP;
+              },
+            }
+          );
+          while (walker.nextNode()) {}
+          if (blocks.size === 0) {
+            // fallback to current block
+            let b =
+              range.startContainer.nodeType === 1
+                ? range.startContainer
+                : range.startContainer.parentElement;
+            while (b && b !== editorEl && !/^P|DIV|H[1-6]$/i.test(b.tagName))
+              b = b.parentElement;
+            if (b && b !== editorEl) blocks.add(b);
+          }
+          blocks.forEach((b) => {
+            if (!b.parentNode) return;
+            const nb = document.createElement(tag);
+            nb.innerHTML = b.innerHTML;
+            b.parentNode.replaceChild(nb, b);
+          });
+        }
+
+        function setTextAlign(dir) {
+          const range = ensureRangeInEditor();
+          let b =
+            range.startContainer.nodeType === 1
+              ? range.startContainer
+              : range.startContainer.parentElement;
+          while (b && b !== el.editor && !/^P|DIV|H[1-6]$/i.test(b.tagName))
+            b = b.parentElement;
+          if (!b || b === el.editor) return;
+          b.style.textAlign =
+            dir === "right" ? "right" : dir === "center" ? "center" : "left";
+        }
+
+        // Lists via Range/Selection
+        function getBlockAncestor(node) {
+          while (node && node !== el.editor) {
+            if (node.nodeType === 1 && /^P|DIV|H[1-6]|LI$/i.test(node.tagName))
+              return node;
+            node = node.parentNode;
+          }
+          return null;
+        }
+        function getListAncestor(node) {
+          while (node && node !== el.editor) {
+            if (node.nodeType === 1 && /^(UL|OL)$/i.test(node.tagName))
+              return node;
+            node = node.parentNode;
+          }
+          return null;
+        }
+        function collectBlocksInRange(range) {
+          const set = new Set();
+          if (range.collapsed) {
+            const b = getBlockAncestor(range.startContainer);
+            if (b) set.add(b);
+            return Array.from(set);
+          }
+          const walker = document.createTreeWalker(
+            el.editor,
+            NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT,
+            {
+              acceptNode(node) {
+                const r = range;
+                const nr = document.createRange();
+                nr.selectNode(node);
+                if (
+                  r.compareBoundaryPoints(Range.END_TO_START, nr) >= 0 ||
+                  r.compareBoundaryPoints(Range.START_TO_END, nr) <= 0
+                ) {
+                  return NodeFilter.FILTER_SKIP;
+                }
+                const b = getBlockAncestor(node);
+                if (b) set.add(b);
+                return NodeFilter.FILTER_SKIP;
+              },
+            }
+          );
+          while (walker.nextNode()) {}
+          return Array.from(set);
+        }
+        function unwrapList(list) {
+          const parent = list.parentNode;
+          const items = [...list.children];
+          items.forEach((li) => {
+            const p = document.createElement("p");
+            p.innerHTML = li.innerHTML;
+            parent.insertBefore(p, list);
+          });
+          parent.removeChild(list);
+        }
+        function replaceListTag(list, newTag) {
+          const nl = document.createElement(newTag);
+          while (list.firstChild) {
+            nl.appendChild(list.firstChild);
+          }
+          list.parentNode.replaceChild(nl, list);
+          return nl;
+        }
+        function wrapBlocksInList(blocks, tag) {
+          if (!blocks.length) return;
+          const list = document.createElement(tag);
+          const first = blocks[0];
+          first.parentNode.insertBefore(list, first);
+          blocks.forEach((b) => {
+            const li = document.createElement("li");
+            li.innerHTML = b.innerHTML;
+            list.appendChild(li);
+            b.parentNode.removeChild(b);
+          });
+        }
+        function toggleList(tag) {
+          const r = ensureRangeInEditor();
+          const blocks = collectBlocksInRange(r);
+          if (blocks.length === 0) return;
+          const lists = blocks.map((b) => getListAncestor(b)).filter(Boolean);
+          const sameList =
+            lists.length && lists.every((x) => x === lists[0])
+              ? lists[0]
+              : null;
+          if (sameList) {
+            if (sameList.tagName.toLowerCase() !== tag) {
+              replaceListTag(sameList, tag);
+            } else {
+              unwrapList(sameList);
+            }
+            return;
+          }
+          wrapBlocksInList(blocks, tag);
+        }
+
+        function renderTabs() {
+          el.tabsContainer.innerHTML = "";
+          state.tabs.forEach((t) => {
+            const b = document.createElement("button");
+            b.className = "tab " + (t.id === state.activeTabId ? "active" : "");
+            b.type = "button";
+            b.innerHTML = `<span>${t.title}</span><div class="tab-actions"><button class="tab-btn" onclick="event.stopPropagation(); UI.renameTab('${t.id}')">✎</button><button class="tab-btn" onclick="event.stopPropagation(); UI.duplicateTab('${t.id}')">⧉</button></div>`;
+            b.onclick = () => UI.setActiveTab(t.id);
+            el.tabsContainer.appendChild(b);
+          });
+        }
+
+        function makeEmbedHTML({
+          fType,
+          src,
+          name,
+          caption,
+          downloadHref,
+          origin,
+        }) {
+          const eid = id();
+          let inner = "";
+          if (fType === "image") {
+            inner = `<div class="embed-media resizable-x" style="width:100%"><img src="${src}" alt="${esc(
+              caption || name || "صورة"
+            )}" /></div>`;
+          } else if (fType === "video") {
+            inner = `<div class="embed-media resizable-both" style="width:100%;height:360px"><video src="${src}" controls></video></div>`;
+          } else if (fType === "pdf") {
+            inner = `<div class="embed-media resizable-both" style="width:100%;height:500px"><iframe src="${src}"></iframe></div>`;
+          } else if (["word", "excel", "powerpoint"].includes(fType)) {
+            inner = `<div class="embed-media resizable-both" style="width:100%;height:500px"><iframe src="${src}"></iframe></div>`;
+          } else {
+            inner = `<div class="embed-media resizable-x" style="width:100%"><p><strong>${esc(
+              caption || name || "ملف مرفق"
+            )}</strong></p></div>`;
+          }
+          const d = downloadHref
+            ? `<a href="${downloadHref}" download class="download-link">تحميل</a>`
+            : "";
+          return `<div class="embed-container" contenteditable="false" data-embed-id="${eid}" data-type="${fType}" data-origin="${origin || ''}" data-name="${esc(name || '')}">
+      <div class="embed-actions">
+        <button class="embed-btn" aria-label="تعديل الوصف" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'edit')">✎</button>
+        <button class="embed-btn" aria-label="استبدال الوسائط" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'replace')">🔁</button>
+        <button class="embed-btn" aria-label="ربط الوسائط" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'link')">🔗</button>
+        <button class="embed-btn" aria-label="فك الرابط" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'unlink')">⛓️</button>
+        <button class="embed-btn" aria-label="تصغير" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'smaller')">−</button>
+        <button class="embed-btn" aria-label="تكبير" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'bigger')">+</button>
+        <button class="embed-btn" aria-label="ملاءمة العرض" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'fit')">100%</button>
+        <button class="embed-btn" aria-label="تعيين العرض" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'setwidth')">↔</button>
+        <button class="embed-btn" aria-label="تعيين الارتفاع" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'setheight')">↕</button>
+        <button class="embed-btn" aria-label="حذف" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'remove')">🗑</button>
+      </div>
+      ${inner}
+      <div class="embed-caption" contenteditable="true" data-placeholder="أدخل وصفًا...">${esc(
+        caption || ""
+      )}</div>
+      ${d}
+    </div>`;
+        }
+
+        function upgradeEmbeds(scope) {
+          scope.querySelectorAll(".embed-container").forEach((c) => {
+            if (!c.querySelector(".embed-actions")) {
+              const bar = document.createElement("div");
+              bar.className = "embed-actions";
+              bar.innerHTML = `
+          <button class="embed-btn" aria-label="تعديل الوصف" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'edit')">✎</button>
+          <button class="embed-btn" aria-label="استبدال الوسائط" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'replace')">🔁</button>
+          <button class="embed-btn" aria-label="ربط الوسائط" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'link')">🔗</button>
+          <button class="embed-btn" aria-label="فك الرابط" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'unlink')">⛓️</button>
+          <button class="embed-btn" aria-label="تصغير" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'smaller')">−</button>
+          <button class="embed-btn" aria-label="تكبير" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'bigger')">+</button>
+          <button class="embed-btn" aria-label="ملاءمة العرض" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'fit')">100%</button>
+          <button class="embed-btn" aria-label="تعيين العرض" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'setwidth')">↔</button>
+          <button class="embed-btn" aria-label="تعيين الارتفاع" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'setheight')">↕</button>
+          <button class="embed-btn" aria-label="حذف" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'remove')">🗑</button>`;
+              c.insertBefore(bar, c.firstChild);
+            }
+            if (!c.querySelector(".embed-media")) {
+              const m = c.querySelector("img,video,iframe");
+              if (m) {
+                const wrap = document.createElement("div");
+                const isImg = m.tagName === "IMG";
+                wrap.className =
+                  "embed-media " + (isImg ? "resizable-x" : "resizable-both");
+                wrap.style.width = "100%";
+                m.style.width = isImg ? "100%" : "100%";
+                m.style.height = isImg ? "auto" : "100%";
+                m.parentNode.insertBefore(wrap, m);
+                wrap.appendChild(m);
+              }
+            }
+            c.setAttribute("contenteditable", "false");
+          });
+        }
+
+        function getFileType(name) {
+          const ext = (name.split(".").pop() || "").toLowerCase();
+          if (["jpg", "jpeg", "png", "gif", "webp", "bmp"].includes(ext))
+            return "image";
+          if (["mp4", "webm", "ogg", "mov", "avi"].includes(ext))
+            return "video";
+          if (ext === "pdf") return "pdf";
+          if (["doc", "docx"].includes(ext)) return "word";
+          if (["xls", "xlsx"].includes(ext)) return "excel";
+          if (["ppt", "pptx"].includes(ext)) return "powerpoint";
+          return "other";
+        }
+        function gdrive(url) {
+          return `https://drive.google.com/viewerng/viewer?embedded=true&url=${encodeURIComponent(
+            url
+          )}`;
+        }
+        function office(url) {
+          return (
+            "https://view.officeapps.live.com/op/embed.aspx?src=" +
+            encodeURIComponent(url)
+          );
+        }
+
+        function saveSel() {
+          const s = window.getSelection();
+          if (s && s.rangeCount > 0 && el.editor.contains(s.anchorNode))
+            state.savedRange = s.getRangeAt(0);
+        }
+        function restoreSel() {
+          const s = window.getSelection();
+          const r = state.savedRange;
+          if (!r) return;
+          try {
+            const c = r.commonAncestorContainer;
+            if (!document.contains(c) || !el.editor.contains(c))
+              throw new Error("stale range");
+            s.removeAllRanges();
+            s.addRange(r);
+          } catch (_) {
+            state.savedRange = null;
+          }
+        }
+
+        // NEW in v3.4 — يضمن وجود المؤشر داخل المحرّر قبل الإدراج
+        function ensureCaretInEditor() {
+          const sel = window.getSelection();
+          if (!sel || !sel.anchorNode || !el.editor.contains(sel.anchorNode)) {
+            el.editor.focus();
+            const r = document.createRange();
+            r.selectNodeContents(el.editor);
+            r.collapse(false); // إلى نهاية المحرّر
+            sel.removeAllRanges();
+            sel.addRange(r);
+          }
+        }
+
+        // Public API
+        window.UI = {
+          show,
+          hide,
+          note,
+          exec: (cmd) => {
+            const c = (cmd || "").toLowerCase();
+            if (c === "bold" || c === "italic" || c === "underline") {
+              toggleInlineTag(c === "bold" ? "b" : c === "italic" ? "i" : "u");
+            } else if (c === "insertunorderedlist") {
+              toggleList("ul");
+            } else if (c === "insertorderedlist") {
+              toggleList("ol");
+            } else if (c === "justifyright") {
+              setTextAlign("right");
+            } else if (c === "justifycenter") {
+              setTextAlign("center");
+            } else if (c === "justifyleft") {
+              setTextAlign("left");
+            } else {
+              try {
+                document.execCommand(cmd, false, null);
+              } catch (_) {}
+            }
+            el.editor.focus();
+          },
+          format: (tag) => {
+            setBlockFormat(tag);
+            el.editor.focus();
+          },
+          font: (d) => {
+            state.settings.editorFontSize = Math.max(
+              10,
+              Math.min(36, state.settings.editorFontSize + d)
+            );
+            applySettings();
+            saveToStorage();
+          },
+          color: (val) => {
+            const range = ensureRangeInEditor();
+            if (range.collapsed) {
+              const w = document.createElement("span");
+              w.style.color = val;
+              w.appendChild(document.createTextNode("\u200B"));
+              range.insertNode(w);
+              range.setStart(w.firstChild, 1);
+              range.collapse(true);
+              const s = window.getSelection();
+              s.removeAllRanges();
+              s.addRange(range);
+            } else {
+              wrapRange(range, "span", { color: val });
+            }
+            el.editor.focus();
+          },
+          setEditorBg: (v) => {
+            state.settings.editorBg = v;
+            applySettings();
+            saveToStorage();
+          },
+          setPageBg: (v) => {
+            state.settings.pageBg = v;
+            applySettings();
+            saveToStorage();
+          },
+          resetAppearance: () => {
+            state.settings.editorFontSize = 16;
+            state.settings.pageBg = "#f5f7fb";
+            state.settings.editorBg = "#ffffff";
+            applySettings();
+            saveToStorage();
+          },
+
+          addTab: () => {
+            show(document.getElementById("newTabModal"));
+          },
+          createTab: () => {
+            const t = document.getElementById("tabTitle").value.trim();
+            if (!t) return note("أدخل اسم التبويب", "error");
+            const nt = { id: id(), title: t, content: "" };
+            state.tabs.push(nt);
+            UI.setActiveTab(nt.id);
+            hide(document.getElementById("newTabModal"));
+            document.getElementById("tabTitle").value = "";
+            saveToStorage();
+          },
+          setActiveTab: (tid) => {
+            if (state.activeTabId) {
+              const a = state.tabs.find((x) => x.id === state.activeTabId);
+              if (a) a.content = el.editor.innerHTML;
+            }
+            state.activeTabId = tid;
+            const n = state.tabs.find((x) => x.id === tid);
+            el.editor.innerHTML = n ? n.content || "" : "";
+            upgradeEmbeds(el.editor);
+            renderTabs();
+            saveToStorage();
+          },
+          renameTab: (tid) => {
+            const t = state.tabs.find((x) => x.id === tid);
+            if (!t) return;
+            const v = prompt("اسم جديد:", t.title);
+            if (v && v.trim()) {
+              t.title = v.trim();
+              renderTabs();
+              saveToStorage();
+              note("تم التعديل");
+            }
+          },
+          duplicateTab: (tid) => {
+            const t = state.tabs.find((x) => x.id === tid);
+            if (!t) return;
+            const nt = {
+              id: id(),
+              title: t.title + " - نسخة",
+              content: t.content,
+            };
+            state.tabs.push(nt);
+            UI.setActiveTab(nt.id);
+            saveToStorage();
+            note("تم النسخ");
+          },
+          deleteActive: () => {
+            if (state.tabs.length <= 1)
+              return note("لا يمكن حذف جميع التبويبات", "error");
+            const i = state.tabs.findIndex((x) => x.id === state.activeTabId);
+            if (confirm(`حذف التبويب "${state.tabs[i].title}"؟`)) {
+              state.tabs.splice(i, 1);
+              UI.setActiveTab(state.tabs[Math.max(0, i - 1)].id);
+              saveToStorage();
+              note("تم الحذف");
+            }
+          },
+          newProject: () => {
+            if (
+              !confirm(
+                "هل تريد بدء مشروع جديد؟ سيؤدي هذا لمسح المحفوظات المحلية."
+              )
+            )
+              return;
+            try {
+              localStorage.removeItem("portfolio_v34");
+            } catch (_) {}
+            state.tabs = [{ id: id(), title: "الغلاف", content: "" }];
+            state.activeTabId = null;
+            state.mediaType = "upload";
+            state.settings = {
+              editorFontSize: 16,
+              pageBg: "#f5f7fb",
+              editorBg: "#ffffff",
+            };
+            state.portfolio = {
+              teacherName: "",
+              teacherLabel: "المعلم/ـة",
+              footerText: "",
+              logoData: "",
+              title: "الغلاف",
+            };
+            applySettings();
+            renderTabs();
+            UI.setActiveTab(state.tabs[0].id);
+            note("تم بدء مشروع جديد");
+          },
+
+          // Media
+          openMedia: () => {
+            saveSel(); // مهم: نحفظ موضع المؤشر قبل فتح النافذة
+            state.mode = "insert";
+            state.replaceTarget = null;
+            document.getElementById("mediaModalTitle").textContent =
+              "إدراج وسائط";
+            UI.toggleMediaType("upload");
+            // إعادة تعيين الحقول قبل الفتح
+            const fInp = document.getElementById("mediaFile");
+            if (fInp) fInp.value = "";
+            el.filePreview.innerHTML = "";
+            el.filePreview.style.display = "none";
+            const uInp = document.getElementById("mediaUrl");
+            if (uInp) uInp.value = "";
+            const fType = document.getElementById("fileType");
+            if (fType) fType.value = "auto";
+            const cap = document.getElementById("mediaCaption");
+            if (cap) cap.value = "";
+            show(document.getElementById("mediaModal"));
+          },
+          openOffice: () => {
+            UI.openMedia();
+            UI.toggleMediaType("url");
+            document.getElementById("fileType").value = "word";
+          },
+          toggleMediaType: (t) => {
+            state.mediaType = t;
+            document.getElementById("uploadFileSection").style.display =
+              t === "upload" ? "block" : "none";
+            document.getElementById("urlFileSection").style.display =
+              t === "url" ? "block" : "none";
+          },
+
+          insertMedia: () => {
+            const caption = (
+              document.getElementById("mediaCaption").value || ""
+            ).trim();
+            let html = "";
+            if (state.mediaType === "upload") {
+              const inp = document.getElementById("mediaFile");
+              if (!inp.files || !inp.files[0])
+                return note("اختر ملفًا", "error");
+              const f = inp.files[0];
+              const t = getFileType(f.name || "");
+              const url = URL.createObjectURL(f);
+              const useType = ["image", "video", "pdf"].includes(t)
+                ? t
+                : "other";
+              html = makeEmbedHTML({
+                fType: useType,
+                src: url,
+                name: f.name,
+                caption,
+                downloadHref: url,
+                origin: "upload",
+              });
+            } else {
+              const url = (
+                document.getElementById("mediaUrl").value || ""
+              ).trim();
+              if (!url) return note("أدخل الرابط", "error");
+              let t = document.getElementById("fileType").value;
+              if (t === "auto") {
+                const fake = url.split("?")[0].split("#")[0];
+                t = getFileType(fake);
+              }
+              let preview = url;
+              if (["word", "excel", "powerpoint"].includes(t))
+                preview = office(url);
+              html = makeEmbedHTML({
+                fType: t,
+                src: preview,
+                name: url.split("/").pop(),
+                caption,
+                downloadHref: url,
+                origin: "url",
+              });
+            }
+
+            // استبدال عنصر موجود؟
+            if (state.mode === "replace" && state.replaceTarget) {
+              state.replaceTarget.outerHTML = html;
+              state.mode = "insert";
+              state.replaceTarget = null;
+              hide(document.getElementById("mediaModal"));
+              note("تم الاستبدال");
+              upgradeEmbeds(el.editor);
+              return;
+            }
+
+            // إعادة التحديد وضمان تركيز المؤشر داخل المحرّر ثم إدراج عبر Range
+            restoreSel();
+            ensureCaretInEditor();
+            const sel = window.getSelection();
+            if (sel && sel.rangeCount > 0) {
+              const r = sel.getRangeAt(0);
+              const frag = r.createContextualFragment(html);
+              r.deleteContents();
+              r.insertNode(frag);
+              r.collapse(false);
+              sel.removeAllRanges();
+              sel.addRange(r);
+            } else {
+              el.editor.insertAdjacentHTML("beforeend", html);
+            }
+
+            hide(document.getElementById("mediaModal"));
+            note("تم الإدراج");
+            upgradeEmbeds(el.editor);
+            saveToStorage();
+          },
+
+          // Embed actions
+          embedAction: (btn, action) => {
+            const cont = btn.closest(".embed-container");
+            const media = cont.querySelector(".embed-media");
+            if (action === "remove") {
+              cont.remove();
+              saveToStorage();
+              return note("تم الحذف");
+            }
+            if (action === "edit") {
+              const cap = cont.querySelector(".embed-caption");
+              const cur = (cap && cap.textContent.trim()) || "";
+              const v = prompt("حرّر الوصف:", cur);
+              if (v !== null) {
+                if (cap) cap.textContent = v;
+                const img = cont.querySelector("img");
+                if (img) img.alt = v || img.alt;
+                saveToStorage();
+              }
+              return note("تم التعديل");
+            }
+            if (action === "replace") {
+              state.mode = "replace";
+              state.replaceTarget = cont;
+              document.getElementById("mediaModalTitle").textContent =
+                "استبدال وسائط";
+              UI.toggleMediaType("upload");
+              show(document.getElementById("mediaModal"));
+              return;
+            }
+            if (action === "fit") {
+              media.style.width = "100%";
+              saveToStorage();
+              return note("العرض: 100%");
+            }
+            if (action === "smaller" || action === "bigger") {
+              const pw =
+                (cont.parentElement || el.editor).getBoundingClientRect()
+                  .width || 1;
+              const cw = media.getBoundingClientRect().width || 1;
+              let pct = Math.round((cw / pw) * 100);
+              pct += action === "bigger" ? 10 : -10;
+              pct = Math.max(20, Math.min(100, pct));
+              media.style.width = pct + "%";
+              saveToStorage();
+              return note("العرض: " + pct + "%");
+            }
+            if (action === "setwidth") {
+              let v = prompt("أدخل العرض (مثال: 70% أو 400px):", "80%");
+              if (!v) return;
+              v = v.trim();
+              if (!/%$|px$/.test(v)) v = v + "%";
+              media.style.width = v;
+              saveToStorage();
+              return note("تم ضبط العرض على " + v);
+            }
+            if (action === "setheight") {
+              let v = prompt("الارتفاع بالبكسل (مثال: 420):", "500");
+              if (!v) return;
+              v = v.replace(/[^0-9]/g, "");
+              if (!v) return;
+              media.style.height = v + "px";
+              const vf = media.querySelector("video,iframe");
+              if (vf) vf.style.height = "100%";
+              saveToStorage();
+              return note("تم ضبط الارتفاع على " + v + "px");
+            }
+            if (action === "link") {
+              state.linkContext = media;
+              document.getElementById("linkUrl").value = "";
+              document.getElementById("linkNewTab").checked = true;
+              show(document.getElementById("linkModal"));
+              return;
+            }
+            if (action === "unlink") {
+              const a = closest("A", media.parentElement);
+              if (a) {
+                unwrapAnchor(a);
+                saveToStorage();
+                note("تم فك الرابط");
+              }
+              return;
+            }
+          },
+
+          // Links
+          openLinkModalForSelection: () => {
+            state.linkContext = null;
+            saveSel();
+            const sel = window.getSelection();
+            const a =
+              sel && sel.anchorNode
+                ? closest("A", sel.anchorNode.parentElement)
+                : null;
+            document.getElementById("linkUrl").value = a
+              ? a.getAttribute("href") || ""
+              : "";
+            document.getElementById("linkNewTab").checked = a
+              ? a.getAttribute("target") === "_blank"
+              : true;
+            show(document.getElementById("linkModal"));
+          },
+          unlinkSelection: () => {
+            const sel = window.getSelection();
+            const a =
+              sel && sel.anchorNode
+                ? closest("A", sel.anchorNode.parentElement)
+                : null;
+            if (a) {
+              unwrapAnchor(a);
+              saveToStorage();
+            }
+            note("تم فك الرابط");
+          },
+          confirmLink: () => {
+            const raw = document.getElementById("linkUrl").value || "";
+            const url = sanitizeUrl(raw);
+            if (!url) return note("أدخل رابطًا صحيحًا", "error");
+            const newTab = document.getElementById("linkNewTab").checked;
+            if (state.linkContext) {
+              const media = state.linkContext;
+              const existing = closest("A", media.parentElement);
+              if (existing) {
+                existing.setAttribute("href", url);
+                if (newTab) {
+                  existing.setAttribute("target", "_blank");
+                  existing.setAttribute("rel", "noopener noreferrer");
+                } else {
+                  existing.removeAttribute("target");
+                  existing.removeAttribute("rel");
+                }
+              } else {
+                wrapWithLink(media, url, newTab);
+              }
+              state.linkContext = null;
+              hide(document.getElementById("linkModal"));
+              saveToStorage();
+              return note("تم ربط الوسائط");
+            }
+            restoreSel();
+            const sel = window.getSelection();
+            if (sel && !sel.isCollapsed) {
+              const r = sel.getRangeAt(0);
+              const a = document.createElement("a");
+              a.href = url;
+              if (newTab) {
+                a.target = "_blank";
+                a.rel = "noopener noreferrer";
+              }
+              const contents = r.extractContents();
+              a.appendChild(contents);
+              r.insertNode(a);
+              r.selectNodeContents(a);
+              sel.removeAllRanges();
+              sel.addRange(r);
+              hide(document.getElementById("linkModal"));
+              saveToStorage();
+              return note("تم إنشاء الرابط");
+            }
+            note("حدّدي نصًا أو استخدمي زر 🔗 على الوسائط", "error");
+          },
+
+          // Export / Import / Preview / PDF
+          exportProject: () => {
+            const a = state.tabs.find((x) => x.id === state.activeTabId);
+            if (a) a.content = el.editor.innerHTML;
+            const data = {
+              version: "3.4",
+              exportDate: new Date().toISOString(),
+              tabs: state.tabs,
+              settings: state.settings,
+              portfolio: state.portfolio,
+            };
+            const uri =
+              "data:application/json;charset=utf-8," +
+              encodeURIComponent(JSON.stringify(data, null, 2));
+            const link = document.createElement("a");
+            link.href = uri;
+            link.download = "ملف_الإنجاز_v3_4.json";
+            link.click();
+            note("تم التصدير");
+          },
+          importProject: () => {
+            const input = document.createElement("input");
+            input.type = "file";
+            input.accept = ".json";
+            input.onchange = (e) => {
+              const f = e.target.files[0];
+              const r = new FileReader();
+              r.onload = (v) => {
+                try {
+                  const d = JSON.parse(v.target.result);
+                  if (d.tabs && Array.isArray(d.tabs)) {
+                    state.tabs = d.tabs;
+                    state.settings = d.settings || state.settings;
+                    state.portfolio = d.portfolio || state.portfolio;
+                    applySettings();
+                    // مزامنة أدوات الألوان مع الإعدادات
+                    const eb = document.getElementById("editorBgPicker");
+                    if (eb) eb.value = state.settings.editorBg || "#ffffff";
+                    const pb = document.getElementById("pageBgPicker");
+                    if (pb) pb.value = state.settings.pageBg || "#f5f7fb";
+                    UI.setActiveTab(state.tabs[0].id);
+                    note("تم الاستيراد");
+                  } else note("ملف غير صالح", "error");
+                } catch (err) {
+                  note("خطأ في قراءة الملف", "error");
+                }
+              };
+              r.readAsText(f);
+            };
+            input.click();
+          },
+          previewPortfolio: () => {
+            const a = state.tabs.find((x) => x.id === state.activeTabId);
+            if (a) a.content = el.editor.innerHTML;
+            document.getElementById("portfolioHeaderTitle").textContent =
+              (state.portfolio && state.portfolio.title) || "ملف الإنجاز";
+            UI.refreshPortfolioHeaderFooter();
+            UI.buildPortfolioSidebar();
+            state.tabs.forEach((t, i) => {
+              const link = document.createElement("a");
+              link.href = "#tab-" + i;
+              link.textContent = t.title;
+              Object.assign(link.style, {
+                display: "block",
+                padding: "8px 10px",
+                marginBottom: "5px",
+                color: "#333",
+                textDecoration: "none",
+                borderRadius: "5px",
+              });
+              link.onclick = (e) => {
+                e.preventDefault();
+                UI.showTab(i);
+              };
+              el.portfolioSidebar.appendChild(link);
+            });
+            el.portfolioContent.innerHTML = "";
+            state.tabs.forEach((t, i) => {
+              const w = document.createElement("div");
+              w.className = "tab-content";
+              w.id = "tab-" + i;
+              const h2 = document.createElement("h2");
+              h2.textContent = t.title;
+              Object.assign(h2.style, {
+                color: "var(--primary)",
+                borderBottom: "2px solid var(--primary)",
+                paddingBottom: "10px",
+                marginBottom: "20px",
+              });
+              const body = document.createElement("div");
+              body.innerHTML = t.content;
+              body
+                .querySelectorAll(".embed-actions")
+                .forEach((x) => x.remove());
+              w.appendChild(h2);
+              w.appendChild(body);
+              el.portfolioContent.appendChild(w);
+            });
+            const f = document.createElement("div");
+            f.className = "portfolio-footer";
+            f.id = "portfolioFooterBlock";
+            f.setAttribute("contenteditable", "true");
+            f.textContent =
+              (state.portfolio && state.portfolio.footerText) || "";
+            f.addEventListener("input", function () {
+              state.portfolio.footerText = f.textContent || "";
+              saveToStorage();
+            });
+            el.portfolioContent.appendChild(f);
+            el.finalPortfolio.style.display = "block";
+            UI.showTab(0);
+          },
+          showTab: (i) => {
+            document
+              .querySelectorAll(".tab-content")
+              .forEach((t) => (t.style.display = "none"));
+            const s = document.getElementById("tab-" + i);
+            if (s) s.style.display = "block";
+            const links = el.portfolioSidebar.querySelectorAll("a");
+            links.forEach((a, idx) => {
+              a.style.backgroundColor = idx === i ? "#4361ee" : "transparent";
+              a.style.color = idx === i ? "#fff" : "#333";
+            });
+          },
+          exportPDF: () => {
+            UI.previewPortfolio();
+            setTimeout(() => {
+              window.print();
+            }, 400);
+          },
+        };
+
+        /* UI.exportHTML = async function () {
+          try {
+            const a = state.tabs.find((x) => x.id === state.activeTabId);
+            if (a) a.content = el.editor.innerHTML;
+            const container = document.createElement("div");
+            const header = document.createElement("div");
+            header.className = "portfolio-header";
+            header.innerHTML =
+              '<div class="portfolio-header-inner" dir="rtl">' +
+              '<img id="expLogo" class="portfolio-logo" alt="شعار" style="display:none"/>' +
+              '<div class="portfolio-titles"><h1>' +
+              ((state.portfolio && state.portfolio.title) || 'ملف الإنجاز') + 
+              "</h1>" +
+              '<div class="portfolio-subtitle">' +
+              (state.portfolio && state.portfolio.teacherName
+                ? (state.portfolio.teacherLabel || 'المعلم/ـة') +
+                  " / " +
+                  state.portfolio.teacherName
+                : "") +
+              "</div></div></div>";
+            container.appendChild(header); const lg=document.getElementById("expLogo"); if(state.portfolio && state.portfolio.logoData && lg){ lg.src=state.portfolio.logoData; lg.style.display="block"; }
+            state.tabs.forEach((t, i) => {
+              const w = document.createElement("div");
+              w.className = "tab-content";
+              w.id = "tab-" + i;
+              const h2 = document.createElement("h2");
+              h2.textContent = t.title;
+              Object.assign(h2.style, {
+                color: "var(--primary)",
+                borderBottom: "2px solid var(--primary)",
+                paddingBottom: "10px",
+                marginBottom: "20px",
+              });
+              const body = document.createElement("div");
+              body.innerHTML = t.content;
+              body
+                .querySelectorAll(".embed-actions")
+                .forEach((x) => x.remove());
+              w.appendChild(h2);
+              w.appendChild(body);
+              container.appendChild(w);
+            });
+            const f = document.createElement("div");
+            f.className = "portfolio-footer";
+            f.textContent =
+              (state.portfolio && state.portfolio.footerText) || "";
+            container.appendChild(f);
+            const imgs = container.querySelectorAll("img");
+            for (const img of imgs) {
+              if (img.src && img.src.startsWith("blob:")) {
+                const res = await fetch(img.src);
+                const blob = await res.blob();
+                img.src = await new Promise((resolve) => {
+                  const fr = new FileReader();
+                  fr.onload = () => resolve(fr.result);
+                  fr.readAsDataURL(blob);
+                });
+              }
+            }
+            const css = Array.from(document.querySelectorAll("style"))
+              .map((s) => s.innerHTML)
+              .join("\n");
+            const html =
+              '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>' +
+              ((state.portfolio && state.portfolio.title) || "ملف الإنجاز") +
+              "</title><style>" +
+              css +
+              "</style></head><body>" +
+              container.innerHTML +
+              "</body></html>";
+            const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const ael = document.createElement("a");
+            ael.href = url;
+            ael.download = "النسخة_النهائية_ملف_الإنجاز.html";
+            ael.click();
+            setTimeout(() => URL.revokeObjectURL(url), 1500);
+            note("تم تصدير HTML النهائي");
+          } catch (err) {
+            note("تعذّر تصدير HTML", "error");
+          }
+        }; */
+
+        // Export a standalone viewer with control panel and print (disabled old version)
+        /* UI.exportStandalone = async function () {
+          try {
+            const a = state.tabs.find((x) => x.id === state.activeTabId);
+            if (a) a.content = el.editor.innerHTML;
+
+            const container = document.createElement("div");
+            const header = document.createElement("div");
+            header.className = "portfolio-header";
+            header.innerHTML =
+              '<div class="portfolio-header-inner" dir="rtl">' +
+              '<img id="expLogo" class="portfolio-logo" alt="شعار" style="display:none"/>' +
+              '<div class="portfolio-titles"><h1 id="expTitle">' +
+              ((state.portfolio && state.portfolio.title) || "ملف الإنجاز") +
+              '</h1><div id="expSubtitle" class="portfolio-subtitle"></div></div></div>';
+            container.appendChild(header);
+
+            state.tabs.forEach((t, i) => {
+              const w = document.createElement("div");
+              w.className = "tab-content";
+              w.id = "tab-" + i;
+              const h2 = document.createElement("h2");
+              h2.textContent = t.title;
+              Object.assign(h2.style, {
+                color: "var(--primary)",
+                borderBottom: "2px solid var(--primary)",
+                paddingBottom: "10px",
+                marginBottom: "20px",
+              });
+              const body = document.createElement("div");
+              body.innerHTML = t.content;
+              body.querySelectorAll(".embed-actions").forEach((x) => x.remove());
+              w.appendChild(h2);
+              w.appendChild(body);
+              container.appendChild(w);
+            });
+
+            const f = document.createElement("div");
+            f.className = "portfolio-footer";
+            f.id = "portfolioFooterBlock";
+            f.textContent = (state.portfolio && state.portfolio.footerText) || "";
+            container.appendChild(f);
+
+            const imgs = container.querySelectorAll("img");
+            for (const img of imgs) {
+              if (img.src && img.src.startsWith("blob:")) {
+                const res = await fetch(img.src);
+                const blob = await res.blob();
+                img.src = await new Promise((resolve) => {
+                  const fr = new FileReader();
+                  fr.onload = () => resolve(fr.result);
+                  fr.readAsDataURL(blob);
+                });
+              }
+            }
+
+            const css = Array.from(document.querySelectorAll("style"))
+              .map((s) => s.innerHTML)
+              .join("\n");
+            const extra = `
+.standalone-container{display:flex;gap:16px;margin:16px}
+.control-panel{width:280px;background:#f0f2f5;padding:12px;border-radius:8px}
+.control-panel h3{margin:0 0 8px 0}
+.control-panel label{display:block;margin:6px 0 4px}
+.control-panel .form-control{width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;margin-bottom:6px}
+.control-panel .btn{padding:8px 12px;border:none;border-radius:6px;cursor:pointer;font-weight:600}
+.control-panel .btn-primary{background:var(--primary);color:#fff}
+.control-panel .btn-secondary{background:#e5e7eb;color:#111}
+.standalone-content{flex:1;background:var(--editor-print-bg);padding:16px;border-radius:8px}
+@media print{.control-panel{display:none}body{background:var(--page-print-bg)!important}}
+`;
+
+            const html =
+              '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>' +
+              '<title>' +
+              ((state.portfolio && state.portfolio.title) || "ملف الإنجاز") +
+              '</title><style>' +
+              css +
+              '\n' +
+              extra +
+              '</style></head><body>' +
+              '<div class="standalone-container">' +
+              '<aside class="control-panel">' +
+              '<h3>لوحة التحكم</h3>' +
+              '<label>العنوان الرئيسي</label><input id="pfTitle" class="form-control" placeholder="مثال: ملف الإنجاز" />' +
+              '<label>الصفة</label><select id="pfLabel" class="form-control"><option>المعلم/ـة</option><option>المعلم</option><option>المعلمة</option></select>' +
+              '<label>الاسم</label><input id="pfName" class="form-control" placeholder="مثال: محمد علي" />' +
+              '<label>الشعار (صورة)</label><input id="pfLogoFile" type="file" accept=".png,.jpg,.jpeg,.webp,.gif" class="form-control" />' +
+              '<div style="display:flex;gap:6px;margin-bottom:6px"><input id="pfLogoUrl" class="form-control" placeholder="رابط الشعار (اختياري)"/><button id="pfLogoUrlBtn" class="btn btn-primary" type="button">تعيين</button></div>' +
+              '<div style="display:flex;gap:6px;margin-bottom:6px"><button id="pfLogoClear" class="btn btn-secondary" type="button">حذف الشعار</button><a id="pfLogoDownload" class="btn btn-secondary" href="#" download="logo.png" style="text-decoration:none;display:none">تحميل الشعار</a></div>' +
+              '<label>نص التذييل</label><textarea id="pfFooter" class="form-control" rows="3" placeholder="اكتب نص التذييل هنا"></textarea>' +
+              '<button id="printBtn" class="btn btn-primary" type="button" style="margin-top:6px">طباعة</button>' +
+              '</aside>' +
+              '<main class="standalone-content" id="contentRoot">' +
+              container.innerHTML +
+              '</main></div>' +
+              '<script>(function(){' +
+              'var state=' +
+              JSON.stringify({
+                title:
+                  (state.portfolio && state.portfolio.title) || "ملف الإنجاز",
+                teacherName: (state.portfolio && state.portfolio.teacherName) || "",
+                teacherLabel: (state.portfolio && state.portfolio.teacherLabel) || "المعلم/ـة",
+                footerText: (state.portfolio && state.portfolio.footerText) || "",
+                logoData: (state.portfolio && state.portfolio.logoData) || "",
+              }) +
+              ';' +
+              'function refresh(){var t=document.getElementById("expTitle");if(t) t.textContent=state.title||"ملف الإنجاز";var s=document.getElementById("expSubtitle");if(s) s.textContent=state.teacherName?((state.teacherLabel||"المعلم/ـة")+" / "+state.teacherName):"";var l=document.getElementById("expLogo");if(l){if(state.logoData){l.src=state.logoData;l.style.display="block";}else{l.style.display="none";}}var fb=document.getElementById("portfolioFooterBlock");if(fb) fb.textContent=state.footerText||"";var d=document.getElementById("pfLogoDownload");if(d){if(state.logoData){d.href=state.logoData;d.style.display="inline-block";}else{d.style.display="none";}}}' +
+              'function save(){try{localStorage.setItem("portfolio_standalone",JSON.stringify(state));}catch(e){}}' +
+              'function load(){try{var raw=localStorage.getItem("portfolio_standalone");if(!raw) return;var obj=JSON.parse(raw);if(obj&&typeof obj==="object"){Object.assign(state,obj);}}catch(e){}}' +
+              'function setLogoFile(f){var fr=new FileReader();fr.onload=function(){state.logoData=fr.result;refresh();save();};fr.readAsDataURL(f);}' +
+              'document.getElementById("pfTitle").addEventListener("input",function(){state.title=this.value||"";refresh();save();});' +
+              'document.getElementById("pfName").addEventListener("input",function(){state.teacherName=this.value||"";refresh();save();});' +
+              'document.getElementById("pfLabel").addEventListener("change",function(){state.teacherLabel=this.value||"المعلم/ـة";refresh();save();});' +
+              'document.getElementById("pfFooter").addEventListener("input",function(){state.footerText=this.value||"";refresh();save();});' +
+              'var f=document.getElementById("pfLogoFile");if(f) f.addEventListener("change",function(e){if(e.target.files&&e.target.files[0]) setLogoFile(e.target.files[0]);});' +
+              'var ub=document.getElementById("pfLogoUrlBtn");if(ub) ub.addEventListener("click",function(){var u=document.getElementById("pfLogoUrl").value.trim();if(u){state.logoData=u;refresh();save();}});' +
+              'var cb=document.getElementById("pfLogoClear");if(cb) cb.addEventListener("click",function(){state.logoData="";refresh();save();});' +
+              'document.getElementById("printBtn").addEventListener("click",function(){window.print();});' +
+              'load();document.getElementById("pfTitle").value=state.title||"";document.getElementById("pfName").value=state.teacherName||"";document.getElementById("pfLabel").value=state.teacherLabel||"المعلم/ـة";document.getElementById("pfFooter").value=state.footerText||"";refresh();' +
+              '})();<\/script>' +
+              '</body></html>';
+
+            const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const ael = document.createElement("a");
+            ael.href = url;
+            ael.download = "ملف_الإنجاز_نسخة_مستقلة.html";
+            ael.click();
+            setTimeout(() => URL.revokeObjectURL(url), 1500);
+            note("تم إنشاء النسخة المستقلة");
+          } catch (err) {
+            note("تعذّر إنشاء النسخة المستقلة", "error");
+          }
+        }; */
+
+        // Redirect existing export button if used (handled later)
+        // UI.exportHTML = UI.exportStandalone;
+
+         UI.closePreview = function(){
+          try{ el.finalPortfolio.style.display = "none"; }catch(_){ var fp=document.getElementById("finalPortfolio"); if(fp) fp.style.display='none'; }
+        };// Portfolio helpers
+        UI.refreshPortfolioHeaderFooter = function () {
+          try {
+            var subtitleEl = document.getElementById("portfolioHeaderSubtitle");
+            if (subtitleEl) {
+              var nm = (state.portfolio && state.portfolio.teacherName) || "";
+              var label =
+                (state.portfolio && state.portfolio.teacherLabel) ||
+                "المعلم/ـة";
+              subtitleEl.textContent = nm ? label + " / " + nm : "";
+            }
+            var logoEl = document.getElementById("portfolioHeaderLogo");
+            if (logoEl) {
+              if (state.portfolio && state.portfolio.logoData) {
+                logoEl.src = state.portfolio.logoData;
+                logoEl.style.display = "block";
+              } else {
+                logoEl.style.display = "none";
+              }
+            }
+            var titleEl = document.getElementById("portfolioHeaderTitle");
+            if (titleEl) {
+              titleEl.textContent =
+                (state.portfolio && state.portfolio.title) || "ملف الإنجاز";
+            }
+            var fb = document.getElementById("portfolioFooterBlock");
+            if (fb) {
+              fb.textContent =
+                (state.portfolio && state.portfolio.footerText) || "";
+            }
+          } catch (_) {}
+        };
+        UI.updatePortfolioSettingsFromSidebar = function () {
+          try {
+            var nameEl = document.getElementById("pfName");
+            var labelEl = document.getElementById("pfLabel");
+            var footerEl = document.getElementById("pfFooter");
+            if (!state.portfolio)
+              state.portfolio = {
+                teacherName: "",
+                teacherLabel: "المعلم/ـة",
+                footerText: "",
+                logoData: "",
+              };
+            if (nameEl) state.portfolio.teacherName = nameEl.value || "";
+            if (labelEl)
+              state.portfolio.teacherLabel = labelEl.value || "المعلم/ـة";
+            if (footerEl) state.portfolio.footerText = footerEl.value || "";
+            UI.refreshPortfolioHeaderFooter();
+            saveToStorage();
+          } catch (_) {}
+        };
+        UI.setLogoFile = function () {
+          try {
+            var inp = document.getElementById("pfLogoFile");
+            if (!inp || !inp.files || !inp.files[0]) return;
+            var f = inp.files[0];
+            var rd = new FileReader();
+            rd.onload = function (e) {
+              state.portfolio = state.portfolio || {};
+              state.portfolio.logoData = e.target.result;
+              UI.refreshPortfolioHeaderFooter();
+              var d = document.getElementById("pfLogoDownload");
+              if (d) {
+                d.href = state.portfolio.logoData;
+                d.style.display = "inline-block";
+              }
+              saveToStorage();
+            };
+            rd.readAsDataURL(f);
+          } catch (_) {}
+        };
+        UI.setLogoUrl = function () {
+          try {
+            var urlIn = document.getElementById("pfLogoUrl");
+            if (!urlIn) return;
+            var v = (urlIn.value || "").trim();
+            if (!v) return;
+            state.portfolio = state.portfolio || {};
+            state.portfolio.logoData = v;
+            UI.refreshPortfolioHeaderFooter();
+            var d = document.getElementById("pfLogoDownload");
+            if (d) {
+              d.href = state.portfolio.logoData;
+              d.style.display = "inline-block";
+            }
+            saveToStorage();
+          } catch (_) {}
+        };
+        UI.clearLogo = function () {
+          try {
+            if (state.portfolio) {
+              state.portfolio.logoData = "";
+            }
+            UI.refreshPortfolioHeaderFooter();
+            var d = document.getElementById("pfLogoDownload");
+            if (d) {
+              d.style.display = "none";
+            }
+            saveToStorage();
+          } catch (_) {}
+        };
+        UI.buildPortfolioSidebar = function () {
+          try {
+            el.portfolioSidebar.innerHTML = "";
+            var box = document.createElement("div");
+            box.innerHTML =
+              "<h3 style='margin-bottom:8px'>إعدادات الغلاف</h3>" +
+              "<label style='display:block;margin-bottom:4px'>الصفة</label>" +
+              "<select id='pfLabel' class='form-control' style='margin-bottom:6px'><option>المعلم/ـة</option><option>المعلم</option><option>المعلمة</option></select>" +
+              "<label style='display:block;margin-bottom:4px'>الاسم</label>" +
+              "<input id='pfName' class='form-control' placeholder='مثال: أحمد محمد' style='margin-bottom:6px'/>" +
+              "<label style='display:block;margin-bottom:4px'>الشعار (رفع)</label>" +
+              "<input id='pfLogoFile' type='file' accept='.png,.jpg,.jpeg,.webp,.gif' class='form-control' style='margin-bottom:6px'/>" +
+              "<div style='display:flex;gap:6px;margin-bottom:6px'><input id='pfLogoUrl' class='form-control' placeholder='رابط الشعار (اختياري)'/><button id='pfLogoUrlBtn' class='btn btn-primary' type='button'>تعيين</button></div>" +
+              "<div style='display:flex;gap:6px;margin-bottom:6px'><button id='pfLogoClear' class='btn btn-secondary' type='button'>حذف الشعار</button><a id='pfLogoDownload' class='btn btn-secondary' href='#' download='logo.png' style='text-decoration:none;display:none'>تحميل الشعار</a></div>" +
+              "<label style='display:block;margin-bottom:4px'>تذييل الصفحة</label>" +
+              "<textarea id='pfFooter' class='form-control' rows='3' placeholder='نص يظهر أسفل الصفحة'></textarea>" +
+              "<h3 style='margin-top:12px'>فهرس المحتويات</h3>";
+            el.portfolioSidebar.appendChild(box);
+            var h3s = box.querySelectorAll("h3");
+            var anchor = h3s[h3s.length - 1] || null;
+            var tl = document.createElement("label");
+            tl.style.display = "block";
+            tl.style.marginBottom = "4px";
+            tl.textContent = "عنوان الملف";
+            var ti = document.createElement("input");
+            ti.id = "pfTitle";
+            ti.className = "form-control";
+            ti.placeholder = "مثال: ملف الإنجاز";
+            ti.style.marginBottom = "6px";
+            ti.value = (state.portfolio && state.portfolio.title) || "";
+            ti.addEventListener("input", function () {
+              state.portfolio = state.portfolio || {};
+              state.portfolio.title = this.value || "";
+              UI.refreshPortfolioHeaderFooter();
+              saveToStorage();
+            });
+            if (anchor) {
+              box.insertBefore(tl, anchor);
+              box.insertBefore(ti, anchor);
+            } else {
+              box.appendChild(tl);
+              box.appendChild(ti);
+            }
+            var n = document.getElementById("pfName");
+            if (n)
+              n.value = (state.portfolio && state.portfolio.teacherName) || "";
+            var l = document.getElementById("pfLabel");
+            if (l)
+              l.value =
+                (state.portfolio && state.portfolio.teacherLabel) ||
+                "المعلم/ـة";
+            var ft = document.getElementById("pfFooter");
+            if (ft)
+              ft.value = (state.portfolio && state.portfolio.footerText) || "";
+            var dl = document.getElementById("pfLogoDownload");
+            if (dl) {
+              if (state.portfolio && state.portfolio.logoData) {
+                dl.href = state.portfolio.logoData;
+                dl.style.display = "inline-block";
+              }
+            }
+            if (n)
+              n.addEventListener(
+                "input",
+                UI.updatePortfolioSettingsFromSidebar
+              );
+            if (l)
+              l.addEventListener(
+                "change",
+                UI.updatePortfolioSettingsFromSidebar
+              );
+            if (ft)
+              ft.addEventListener(
+                "input",
+                UI.updatePortfolioSettingsFromSidebar
+              );
+            var f = document.getElementById("pfLogoFile");
+            if (f) f.addEventListener("change", UI.setLogoFile);
+            var ub = document.getElementById("pfLogoUrlBtn");
+            if (ub) ub.addEventListener("click", UI.setLogoUrl);
+            var cb = document.getElementById("pfLogoClear");
+            if (cb) cb.addEventListener("click", UI.clearLogo);
+          } catch (_) {}
+        };
+        // init
+        (function init() {
+          applySettings();
+          // مزامنة أدوات الألوان عند البدء
+          const eb = document.getElementById("editorBgPicker");
+          if (eb) eb.value = state.settings.editorBg || "#ffffff";
+          const pb = document.getElementById("pageBgPicker");
+          if (pb) pb.value = state.settings.pageBg || "#f5f7fb";
+          const loadedId = loadFromStorage();
+          renderTabs();
+          UI.setActiveTab(
+            loadedId && state.tabs.find((t) => t.id === loadedId)
+              ? loadedId
+              : state.tabs[0].id
+          );
+          // save selection continually
+          ["mouseup", "keyup", "touchend"].forEach((ev) =>
+            el.editor.addEventListener(ev, saveSel)
+          );
+          // prevent selection/focus shift when clicking embed action buttons
+          el.editor.addEventListener(
+            "mousedown",
+            (e) => {
+              if (
+                e.target &&
+                e.target.closest &&
+                e.target.closest(".embed-actions")
+              ) {
+                e.preventDefault();
+              }
+            },
+            true
+          );
+          // file preview name
+          document
+            .getElementById("mediaFile")
+            .addEventListener("change", (e) => {
+              el.filePreview.innerHTML = "";
+              el.filePreview.style.display = "block";
+              if (!e.target.files || !e.target.files[0]) return;
+              el.filePreview.textContent = e.target.files[0].name;
+            });
+          // Auto-save on input
+          el.editor.addEventListener("input", () => {
+            const a = state.tabs.find((x) => x.id === state.activeTabId);
+            if (a) a.content = el.editor.innerHTML;
+            saveToStorage();
+          });
+          // Sanitize paste
+          el.editor.addEventListener("paste", (e) => {
+            e.preventDefault();
+            const html =
+              (e.clipboardData && e.clipboardData.getData("text/html")) || "";
+            const text =
+              (e.clipboardData && e.clipboardData.getData("text/plain")) || "";
+            const toInsert = html
+              ? sanitizeHTML(html)
+              : text
+              ? text
+                  .replace(
+                    /[&<>"']/g,
+                    (m) =>
+                      ({
+                        "&": "&amp;",
+                        "<": "&lt;",
+                        ">": "&gt;",
+                        '"': "&quot;",
+                        "'": "&#39;",
+                      }[m])
+                  )
+                  .replace(/\r?\n/g, "<br>")
+              : "";
+            ensureCaretInEditor();
+            const sel = window.getSelection();
+            if (sel && sel.rangeCount > 0) {
+              const r = sel.getRangeAt(0);
+              const frag = r.createContextualFragment(toInsert);
+              r.deleteContents();
+              r.insertNode(frag);
+              r.collapse(false);
+              sel.removeAllRanges();
+              sel.addRange(r);
+            }
+          });
+          // Drag & Drop files
+          el.editor.addEventListener("dragover", (e) => {
+            e.preventDefault();
+          });
+          el.editor.addEventListener("drop", (e) => {
+            e.preventDefault();
+            const dt = e.dataTransfer;
+            if (!dt || !dt.files || !dt.files.length) return;
+            const files = [...dt.files];
+            ensureCaretInEditor();
+            const sel = window.getSelection();
+            const r = sel && sel.rangeCount > 0 ? sel.getRangeAt(0) : null;
+            files.forEach((f) => {
+              const t = getFileType(f.name || "");
+              const url = URL.createObjectURL(f);
+              const useType = ["image", "video", "pdf"].includes(t)
+                ? t
+                : "other";
+              const html = makeEmbedHTML({
+                fType: useType,
+                src: url,
+                name: f.name,
+                caption: "",
+                downloadHref: url,
+                origin: "upload",
+              });
+              if (r) {
+                const frag = r.createContextualFragment(html);
+                r.insertNode(frag);
+                r.collapse(false);
+                sel.removeAllRanges();
+                sel.addRange(r);
+              } else {
+                el.editor.insertAdjacentHTML("beforeend", html);
+              }
+            });
+            upgradeEmbeds(el.editor);
+            saveToStorage();
+          });
+
+          // Override export to build a clean standalone (index + print, no controls)
+          UI.exportStandalone = async function () {
+            try {
+              const a = state.tabs.find((x) => x.id === state.activeTabId);
+              if (a) a.content = el.editor.innerHTML;
+
+              let base = (state.portfolio && state.portfolio.baseUrl) || "";
+              base = prompt(
+                "أدخل الرابط الأساسي للملفات المرفوعة (اختياري، مثال: https://example.com/assets/):",
+                base || ""
+              ) || "";
+              if (state.portfolio) state.portfolio.baseUrl = base;
+
+              const container = document.createElement("div");
+              const header = document.createElement("div");
+              header.className = "portfolio-header";
+              header.innerHTML =
+                '<div class="portfolio-header-inner" dir="rtl">' +
+                '<img id="expLogo" class="portfolio-logo" alt="شعار" style="display:none"/>' +
+                '<div class="portfolio-titles"><h1 id="expTitle">' +
+                ((state.portfolio && state.portfolio.title) || "ملف الإنجاز") +
+                '</h1><div id="expSubtitle" class="portfolio-subtitle"></div></div>' +
+                '<div class="header-actions"><button class="header-btn export" type="button" onclick="window.print()">طباعة</button></div>' +
+                '</div>';
+              container.appendChild(header);
+
+              const sidebar = document.createElement("div");
+              sidebar.className = "portfolio-sidebar";
+              sidebar.id = "expSidebar";
+              const contentRoot = document.createElement("div");
+              contentRoot.className = "portfolio-content";
+              contentRoot.id = "expContent";
+
+              state.tabs.forEach((t, i) => {
+                const link = document.createElement("a");
+                link.href = "#tab-" + i;
+                link.textContent = t.title;
+                Object.assign(link.style, {
+                  display: "block",
+                  padding: "8px 10px",
+                  marginBottom: "5px",
+                  color: "#333",
+                  textDecoration: "none",
+                  borderRadius: "5px",
+                });
+                sidebar.appendChild(link);
+
+                const w = document.createElement("div");
+                w.className = "tab-content";
+                w.id = "tab-" + i;
+                const h2 = document.createElement("h2");
+                h2.textContent = t.title;
+                Object.assign(h2.style, {
+                  color: "var(--primary)",
+                  borderBottom: "2px solid var(--primary)",
+                  paddingBottom: "10px",
+                  marginBottom: "20px",
+                });
+                const body = document.createElement("div");
+                body.innerHTML = t.content;
+                body.querySelectorAll(".embed-actions").forEach((x) => x.remove());
+                w.appendChild(h2);
+                w.appendChild(body);
+                contentRoot.appendChild(w);
+              });
+
+              const f = document.createElement("div");
+              f.className = "portfolio-footer";
+              f.id = "portfolioFooterBlock";
+              f.textContent = (state.portfolio && state.portfolio.footerText) || "";
+              contentRoot.appendChild(f);
+
+              container.appendChild(sidebar);
+              container.appendChild(contentRoot);
+
+              const lg = container.querySelector("#expLogo");
+              if (state.portfolio && state.portfolio.logoData && lg) {
+                lg.src = state.portfolio.logoData;
+                lg.style.display = "block";
+              }
+              const sub = container.querySelector("#expSubtitle");
+              if (sub) {
+                const nm = (state.portfolio && state.portfolio.teacherName) || "";
+                const label = (state.portfolio && state.portfolio.teacherLabel) || "المعلم/ـة";
+                sub.textContent = nm ? label + " / " + nm : "";
+              }
+
+              function office(url){
+                return "https://view.officeapps.live.com/op/embed.aspx?src=" + encodeURIComponent(url);
+              }
+              function isOfficeName(n){
+                const e=(n.split(".").pop()||"").toLowerCase();
+                return ["doc","docx","xls","xlsx","ppt","pptx"].includes(e);
+              }
+              async function toDataUrl(url){
+                try{const res=await fetch(url); const b=await res.blob(); return await new Promise(r=>{const fr=new FileReader(); fr.onload=()=>r(fr.result); fr.readAsDataURL(b);});}catch(_){return url}
+              }
+
+              const embeds = container.querySelectorAll(".embed-container");
+              for(const c of embeds){
+                const origin=c.getAttribute("data-origin")||"";
+                const name=c.getAttribute("data-name")||"";
+                const media=c.querySelector(".embed-media img, .embed-media video, .embed-media iframe");
+                const dlink=c.querySelector("a.download-link");
+                if(media){
+                  let src=media.getAttribute("src")||"";
+                  if(src.startsWith("blob:")){
+                    if(base && origin==="upload" && name){
+                      const abs=base + encodeURIComponent(name);
+                      if(isOfficeName(name)){
+                        const frame=c.querySelector("iframe");
+                        if(frame) frame.setAttribute("src", office(abs));
+                        else { const wrap=c.querySelector(".embed-media"); if(wrap) wrap.innerHTML=`<iframe src="${office(abs)}" style="width:100%;height:500px"></iframe>`; }
+                      } else {
+                        media.setAttribute("src", abs);
+                      }
+                    } else {
+                      const data=await toDataUrl(src); media.setAttribute("src", data);
+                    }
+                  }
+                }
+                if(dlink){
+                  let href=dlink.getAttribute("href")||"";
+                  if(href.startsWith("blob:")){
+                    if(base && origin==="upload" && name){ dlink.setAttribute("href", base + encodeURIComponent(name)); dlink.removeAttribute("download"); dlink.setAttribute("target","_blank"); dlink.setAttribute("rel","noopener noreferrer"); }
+                    else { const data=await toDataUrl(href); dlink.setAttribute("href", data); }
+                  }
+                }
+              }
+
+              const css = Array.from(document.querySelectorAll("style")).map(s=>s.innerHTML).join("\n");
+              const extra = `
+.final-portfolio{display:block;position:static}
+.portfolio-sidebar{width:250px;background:#f0f2f5;height:100vh;position:fixed;top:0;right:0;padding:20px;overflow-y:auto}
+.portfolio-content{margin-right:250px;padding:20px;background:var(--editor-print-bg)}
+.header-actions{display:flex;gap:8px;margin-top:10px}
+.header-btn{background:#ffffff;border:none;color:#1f2937;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600}
+.header-btn.export{background:#111827;color:#fff}
+@media print{.portfolio-sidebar{display:none}.portfolio-content{margin:0!important}.header-actions{display:none}}
+`;
+
+              const html = '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>'+
+                '<title>'+((state.portfolio && state.portfolio.title) || 'ملف الإنجاز')+'</title><style>'+css+'\n'+extra+'</style></head><body>'+container.innerHTML+'</body></html>';
+
+              const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+              const url = URL.createObjectURL(blob);
+              const ael = document.createElement('a');
+              ael.href = url;
+              ael.download = 'ملف_الإنجاز_نسخة_مستقلة.html';
+              ael.click();
+              setTimeout(()=>URL.revokeObjectURL(url),1500);
+              note('تم إنشاء النسخة النهائية المستقلة');
+            } catch (err) {
+              note('تعذّر إنشاء النسخة النهائية المستقلة','error');
+            }
+          };
+          UI.exportHTML = UI.exportStandalone;
+
+        })();
+      })();
+    </script>
+  </body>
+</html>
+
+
