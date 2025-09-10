@@ -46,7 +46,7 @@
         text-align: center;
         margin-bottom: 30px;
         padding-bottom: 15px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        border-bottom: 1px solid rgba(116, 94, 94, 0.2);
       }
       .app-title h1 {
         font-size: 1.5rem;
@@ -355,6 +355,48 @@
         background: #f0f2f5;
         color: #111;
       }
+      /* أزرار الشعار */
+      #pfLogoClear.btn,
+      #pfLogoDownload.btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 18px;
+        width: 100%;
+        height: auto;
+        border-radius: 6px;
+        border: 1px solid #ddd; /* مطابقة لإطار الحقل */
+        text-align: center;
+        font-weight: 700;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease,
+          background-color 0.2s ease, transform 0.06s ease;
+      }
+      #pfLogoDownload.btn {
+        text-decoration: none;
+      }
+      #pfLogoClear.btn.btn-secondary,
+      #pfLogoDownload.btn.btn-secondary {
+        background: #fff !important; /* نفس خلفية حقل رابط الشعار */
+        color: #111 !important;
+        text-decoration: none !important;
+        border-color: #ddd !important;
+      }
+      /* تأثير طفيف عند التحويم والضغط والتركيز */
+      #pfLogoClear.btn:hover,
+      #pfLogoDownload.btn:hover {
+        border-color: #cbd5e1; /* أفتح قليلاً */
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        background: #fff;
+      }
+      #pfLogoClear.btn:active,
+      #pfLogoDownload.btn:active {
+        transform: translateY(1px);
+      }
+      #pfLogoClear.btn:focus,
+      #pfLogoDownload.btn:focus {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
+      }
 
       @media (max-width: 992px) {
         .container {
@@ -555,6 +597,37 @@
         padding: 20px;
         overflow-y: auto;
       }
+      /* ألوان متناوبة لفهرس المحتويات في المعاينة */
+      .portfolio-sidebar a {
+        display: block;
+        padding: 8px 10px;
+        margin-bottom: 5px;
+        text-decoration: none;
+        border-radius: 6px;
+        color: #fff !important; /* لتجاوز أي لون مضمّن */
+        transition: filter 0.2s ease;
+      }
+      .portfolio-sidebar a:hover {
+        filter: brightness(1.06);
+      }
+      .portfolio-sidebar a:nth-of-type(6n + 1) {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      }
+      .portfolio-sidebar a:nth-of-type(6n + 2) {
+        background: linear-gradient(135deg, #10b981, #047857);
+      }
+      .portfolio-sidebar a:nth-of-type(6n + 3) {
+        background: linear-gradient(135deg, #f59e0b, #b45309);
+      }
+      .portfolio-sidebar a:nth-of-type(6n + 4) {
+        background: linear-gradient(135deg, #ef4444, #b91c1c);
+      }
+      .portfolio-sidebar a:nth-of-type(6n + 5) {
+        background: linear-gradient(135deg, #06b6d4, #0e7490);
+      }
+      .portfolio-sidebar a:nth-of-type(6n) {
+        background: linear-gradient(135deg, #a855f7, #6b21a8);
+      }
       .portfolio-content {
         margin-right: 250px;
         padding: 20px;
@@ -569,6 +642,31 @@
       }
       .tab-content {
         display: none;
+        /* إطار متقطع خفيف يلف محتوى التبويب في المعاينة */
+        border: 2px dashed #e5e7eb;
+        border-radius: 10px;
+        padding: 16px;
+        background: #fff;
+        margin-bottom: 16px;
+      }
+      /* ألوان إطار الحاوية حسب ترتيب التبويب ليتماشى مع لون الفهرس */
+      .portfolio-content .tab-content:nth-of-type(6n + 1) {
+        border-color: #1d4ed8;
+      }
+      .portfolio-content .tab-content:nth-of-type(6n + 2) {
+        border-color: #047857;
+      }
+      .portfolio-content .tab-content:nth-of-type(6n + 3) {
+        border-color: #b45309;
+      }
+      .portfolio-content .tab-content:nth-of-type(6n + 4) {
+        border-color: #b91c1c;
+      }
+      .portfolio-content .tab-content:nth-of-type(6n + 5) {
+        border-color: #0e7490;
+      }
+      .portfolio-content .tab-content:nth-of-type(6n) {
+        border-color: #6b21a8;
       }
       .tab-content.active {
         display: block;
@@ -2716,7 +2814,7 @@
               var d = document.getElementById("pfLogoDownload");
               if (d) {
                 d.href = state.portfolio.logoData;
-                d.style.display = "inline-block";
+                d.style.display = "inline-flex";
               }
               saveToStorage();
             };
@@ -2735,7 +2833,7 @@
             var d = document.getElementById("pfLogoDownload");
             if (d) {
               d.href = state.portfolio.logoData;
-              d.style.display = "inline-block";
+              d.style.display = "inline-flex";
             }
             saveToStorage();
           } catch (_) {}
@@ -2766,7 +2864,7 @@
               "<label style='display:block;margin-bottom:4px'>الشعار (رفع)</label>" +
               "<input id='pfLogoFile' type='file' accept='.png,.jpg,.jpeg,.webp,.gif' class='form-control' style='margin-bottom:6px'/>" +
               "<div style='margin-bottom:6px'><input id='pfLogoUrl' class='form-control' placeholder='رابط الشعار (اختياري)'/></div>" +
-              "<div style='display:flex;gap:6px;margin-bottom:6px'><button id='pfLogoClear' class='btn btn-secondary' type='button'>حذف الشعار</button><a id='pfLogoDownload' class='btn btn-secondary' href='#' download='logo.png' style='text-decoration:none;display:none'>تحميل الشعار</a></div>" +
+              "<div style='display:flex;flex-direction:column;gap:6px;margin-bottom:6px'><button id='pfLogoClear' class='btn btn-secondary' type='button'>حذف الشعار</button><a id='pfLogoDownload' class='btn btn-secondary' href='#' download='logo.png' style='text-decoration:none;display:none'>تحميل الشعار</a></div>" +
               "<label style='display:block;margin-bottom:4px'>تذييل الصفحة</label>" +
               "<textarea id='pfFooter' class='form-control' rows='3' placeholder='نص يظهر أسفل الصفحة'></textarea>" +
               "<h3 style='margin-top:12px'>فهرس المحتويات</h3>";
@@ -2843,7 +2941,7 @@
                 var d = document.getElementById("pfLogoDownload");
                 if (d) {
                   d.href = state.portfolio.logoData;
-                  d.style.display = "inline-block";
+                  d.style.display = "inline-flex";
                 }
                 saveToStorage();
               };
@@ -3188,8 +3286,25 @@
 .tab-content{display:none}
 .tab-content.active{display:block}
 .header-actions{display:flex;gap:8px;margin-top:10px}
-.header-btn{background:#ffffff;border:none;color:#1f2937;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600}
-.header-btn.export{background:#111827;color:#fff}
+  .header-btn{background:#ffffff;border:none;color:#1f2937;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600}
+  .header-btn.export{background:#111827;color:#fff}
+  /* Framed tab sections */
+  .tab-content{border:2px dashed #e5e7eb;border-radius:10px;padding:16px;background:#fff;margin-bottom:16px}
+  .portfolio-content .tab-content:nth-of-type(6n+1){border-color:#1d4ed8}
+  .portfolio-content .tab-content:nth-of-type(6n+2){border-color:#047857}
+  .portfolio-content .tab-content:nth-of-type(6n+3){border-color:#b45309}
+  .portfolio-content .tab-content:nth-of-type(6n+4){border-color:#b91c1c}
+  .portfolio-content .tab-content:nth-of-type(6n+5){border-color:#0e7490}
+  .portfolio-content .tab-content:nth-of-type(6n){border-color:#6b21a8}
+  /* Alternating colors for sidebar links */
+.portfolio-sidebar a{display:block;padding:8px 10px;margin-bottom:5px;text-decoration:none;border-radius:6px;color:#fff !important;transition:filter .2s ease}
+.portfolio-sidebar a:hover{filter:brightness(1.06)}
+ .portfolio-sidebar a:nth-of-type(6n+1){background:linear-gradient(135deg,#3b82f6,#1d4ed8)}
+ .portfolio-sidebar a:nth-of-type(6n+2){background:linear-gradient(135deg,#10b981,#047857)}
+ .portfolio-sidebar a:nth-of-type(6n+3){background:linear-gradient(135deg,#f59e0b,#b45309)}
+ .portfolio-sidebar a:nth-of-type(6n+4){background:linear-gradient(135deg,#ef4444,#b91c1c)}
+ .portfolio-sidebar a:nth-of-type(6n+5){background:linear-gradient(135deg,#06b6d4,#0e7490)}
+ .portfolio-sidebar a:nth-of-type(6n){background:linear-gradient(135deg,#a855f7,#6b21a8)}
 @media print{.portfolio-sidebar{display:none}.portfolio-content{margin:0!important}.header-actions{display:none}.tab-content{display:block!important}.portfolio-header{padding-right:20px!important;padding-left:20px!important}.portfolio-header-inner{justify-content:flex-start!important}}
 `;
 
@@ -3421,8 +3536,25 @@
 .tab-content{display:none}
 .tab-content.active{display:block}
 .header-actions{display:flex;gap:8px;margin-top:10px}
-.header-btn{background:#ffffff;border:none;color:#1f2937;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600}
-.header-btn.export{background:#111827;color:#fff}
+  .header-btn{background:#ffffff;border:none;color:#1f2937;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600}
+  .header-btn.export{background:#111827;color:#fff}
+  /* Framed tab sections */
+  .tab-content{border:2px dashed #e5e7eb;border-radius:10px;padding:16px;background:#fff;margin-bottom:16px}
+  .portfolio-content .tab-content:nth-of-type(6n+1){border-color:#1d4ed8}
+  .portfolio-content .tab-content:nth-of-type(6n+2){border-color:#047857}
+  .portfolio-content .tab-content:nth-of-type(6n+3){border-color:#b45309}
+  .portfolio-content .tab-content:nth-of-type(6n+4){border-color:#b91c1c}
+  .portfolio-content .tab-content:nth-of-type(6n+5){border-color:#0e7490}
+  .portfolio-content .tab-content:nth-of-type(6n){border-color:#6b21a8}
+  /* Alternating colors for sidebar links */
+.portfolio-sidebar a{display:block;padding:8px 10px;margin-bottom:5px;text-decoration:none;border-radius:6px;color:#fff !important;transition:filter .2s ease}
+.portfolio-sidebar a:hover{filter:brightness(1.06)}
+ .portfolio-sidebar a:nth-of-type(6n+1){background:linear-gradient(135deg,#3b82f6,#1d4ed8)}
+ .portfolio-sidebar a:nth-of-type(6n+2){background:linear-gradient(135deg,#10b981,#047857)}
+ .portfolio-sidebar a:nth-of-type(6n+3){background:linear-gradient(135deg,#f59e0b,#b45309)}
+ .portfolio-sidebar a:nth-of-type(6n+4){background:linear-gradient(135deg,#ef4444,#b91c1c)}
+ .portfolio-sidebar a:nth-of-type(6n+5){background:linear-gradient(135deg,#06b6d4,#0e7490)}
+ .portfolio-sidebar a:nth-of-type(6n){background:linear-gradient(135deg,#a855f7,#6b21a8)}
 @media print{.portfolio-sidebar{display:none}.portfolio-content{margin:0!important}.header-actions{display:none}.tab-content{display:block!important}.portfolio-header{padding-right:20px!important;padding-left:20px!important}.portfolio-header-inner{justify-content:flex-start!important}}
 `;
 
