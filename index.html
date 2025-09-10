@@ -69,17 +69,45 @@
         cursor: pointer;
         width: 100%;
         text-align: right;
-        transition: all 0.3s ease;
+        transition: all 0.25s ease;
         display: flex;
         justify-content: space-between;
         align-items: center;
       }
       .tab:hover {
-        background: rgba(255, 255, 255, 0.2);
+        filter: brightness(1.06);
       }
+      /* تمييز التبويب النشط بدون تغيير لونه الأساسي */
       .tab.active {
-        background: var(--primary);
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+        outline: 2px solid rgba(255, 255, 255, 0.7);
+        outline-offset: -2px;
+        transform: translateY(-1px);
+      }
+      /* ألوان متناوبة للتبويبات */
+      .tabs-container .tab:nth-child(6n + 1) {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        color: #fff;
+      }
+      .tabs-container .tab:nth-child(6n + 2) {
+        background: linear-gradient(135deg, #10b981, #047857);
+        color: #fff;
+      }
+      .tabs-container .tab:nth-child(6n + 3) {
+        background: linear-gradient(135deg, #f59e0b, #b45309);
+        color: #fff;
+      }
+      .tabs-container .tab:nth-child(6n + 4) {
+        background: linear-gradient(135deg, #ef4444, #b91c1c);
+        color: #fff;
+      }
+      .tabs-container .tab:nth-child(6n + 5) {
+        background: linear-gradient(135deg, #06b6d4, #0e7490);
+        color: #fff;
+      }
+      .tabs-container .tab:nth-child(6n) {
+        background: linear-gradient(135deg, #a855f7, #6b21a8);
+        color: #fff;
       }
       .tab-actions {
         display: flex;
