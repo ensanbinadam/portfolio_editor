@@ -616,6 +616,41 @@
           margin: 12mm;
         }
       }
+      .footer {
+        font-family: "Cairo", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: var(--text);
+        text-align: center;
+        padding: 14px 12px;
+        border-top: 1px solid #e5e7eb;
+        background: transparent;
+        line-height: 1.7;
+        font-size: 0.95rem;
+      }
+      .footer .line {
+        margin: 2px 0;
+      }
+      .footer a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 700;
+      }
+      .footer a:hover {
+        text-decoration: underline;
+      }
+      .footer .sep {
+        margin: 0 6px;
+        color: var(--muted);
+      }
+      @media print {
+        .footer {
+          page-break-inside: avoid;
+          font-size: 0.9rem;
+        }
+        .footer a {
+          color: #1f3af5 !important;
+          text-decoration: none;
+        }
+      }
     </style>
   </head>
   <body>
