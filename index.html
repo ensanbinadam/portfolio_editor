@@ -470,6 +470,8 @@
         background: var(--primary);
         color: #fff;
         padding: 20px;
+        /* ادفع محتوى الترويسة لليسار حتى لا تغطيه القائمة الجانبية الثابتة */
+        padding-right: calc(280px + 20px);
       }
       .header-actions {
         display: flex;
@@ -601,6 +603,13 @@
         .portfolio-header {
           background: var(--primary) !important;
           color: #fff !important;
+          /* Ensure logo sits on the right with safe padding in print */
+          padding-right: 20px !important;
+          padding-left: 20px !important;
+        }
+        /* Keep header items grouped to the right in print */
+        .portfolio-header-inner {
+          justify-content: flex-start !important;
         }
         @page {
           size: A4;
@@ -1078,9 +1087,20 @@
               رجوع للمحرر
             </button>
             <button
+              class="header-btn"
+              type="button"
+              onclick="UI.exportZIP()"
+              title="حزمة ZIP (للنشر): يجمع الصفحة النهائية وكل الوسائط ضمن مجلد assets"
+              aria-label="حزمة ZIP (للنشر)"
+            >
+              حزمة ZIP (للنشر)
+            </button>
+            <button
               class="header-btn export"
               type="button"
               onclick="UI.exportHTML()"
+              title="تصدير HTML (ملف واحد): مناسب للمشاركة السريعة"
+              aria-label="تصدير HTML (ملف واحد)"
             >
               تصدير HTML
             </button>
@@ -1096,6 +1116,25 @@
     <div class="notification" id="notification">
       <span id="notificationMessage"></span>
     </div>
+
+    <!-- مكوّن تذييل جاهز -->
+    <footer class="footer" dir="rtl">
+      <div class="line">
+        <span>برمجة: أ/فاطمة هزازي، أ/عبدالعزيز العبدالجبار</span>
+        <span class="sep">•</span>
+        <span>باستخدام</span>
+        <a href="https://chatgpt.com" target="_blank" rel="noopener noreferrer"
+          >ChatGPT</a
+        >
+      </div>
+      <div class="line">جميع الحقوق محفوظة لملتقى معلمي ومعلمات الرياضيات</div>
+      <div class="line">
+        <span>للاستفسار والتواصل: </span>
+        <a href="https://t.me/ITG_KSA" target="_blank" rel="noopener noreferrer"
+          >ملتقى التعليم التفاعلي</a
+        >
+      </div>
+    </footer>
 
     <script>
       (function () {
@@ -2245,6 +2284,41 @@
               saveToStorage();
             });
             el.portfolioContent.appendChild(f);
+            // Update export buttons labels and tooltips in Arabic (runtime safe)
+            try {
+              var btnZip = document.querySelector(
+                '.final-portfolio .header-actions [onclick="UI.exportZIP()"]'
+              );
+              if (btnZip) {
+                btnZip.textContent =
+                  "\u062D\u0632\u0645\u0629 ZIP (\u0644\u0644\u0646\u0634\u0631)";
+                btnZip.setAttribute(
+                  "aria-label",
+                  "\u062D\u0632\u0645\u0629 ZIP (\u0644\u0644\u0646\u0634\u0631)"
+                );
+                if (!btnZip.getAttribute("title"))
+                  btnZip.setAttribute(
+                    "title",
+                    "\u064A\u062C\u0645\u0639 \u0627\u0644\u0635\u0641\u062D\u0629 \u0627\u0644\u0646\u0647\u0627\u0626\u064A\u0629 \u0648\u0643\u0644 \u0627\u0644\u0648\u0633\u0627\u0626\u0637 \u0636\u0645\u0646 \u0645\u062C\u0644\u062F assets"
+                  );
+              }
+              var btnHtml = document.querySelector(
+                '.final-portfolio .header-actions [onclick="UI.exportHTML()"]'
+              );
+              if (btnHtml) {
+                btnHtml.textContent =
+                  "\u062A\u0635\u062F\u064A\u0631 HTML (\u0645\u0644\u0641 \u0648\u0627\u062D\u062F)";
+                btnHtml.setAttribute(
+                  "aria-label",
+                  "\u062A\u0635\u062F\u064A\u0631 HTML (\u0645\u0644\u0641 \u0648\u0627\u062D\u062F)"
+                );
+                if (!btnHtml.getAttribute("title"))
+                  btnHtml.setAttribute(
+                    "title",
+                    "\u0645\u0644\u0641 HTML \u0648\u0627\u062D\u062F: \u0645\u0646\u0627\u0633\u0628 \u0644\u0644\u0645\u0634\u0627\u0631\u0643\u0629 \u0627\u0644\u0633\u0631\u064A\u0639\u0629"
+                  );
+              }
+            } catch (_) {}
             el.finalPortfolio.style.display = "block";
             UI.showTab(0);
           },
@@ -3047,12 +3121,13 @@
 .portfolio-sidebar{width:250px;background:#f0f2f5;height:100vh;position:fixed;top:0;right:0;padding:20px;overflow-y:auto}
 .portfolio-content{margin-right:250px;padding:20px;background:var(--editor-print-bg)}
 .portfolio-logo:not([src]), .portfolio-logo[src=""]{display:none}
+.portfolio-header{padding-right:280px}
 .tab-content{display:none}
 .tab-content.active{display:block}
 .header-actions{display:flex;gap:8px;margin-top:10px}
 .header-btn{background:#ffffff;border:none;color:#1f2937;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600}
 .header-btn.export{background:#111827;color:#fff}
-@media print{.portfolio-sidebar{display:none}.portfolio-content{margin:0!important}.header-actions{display:none}.tab-content{display:block!important}}
+@media print{.portfolio-sidebar{display:none}.portfolio-content{margin:0!important}.header-actions{display:none}.tab-content{display:block!important}.portfolio-header{padding-right:20px!important;padding-left:20px!important}.portfolio-header-inner{justify-content:flex-start!important}}
 `;
 
               // Normalize anchors: make external links open in new tab, convert relative to absolute if base provided
@@ -3156,11 +3231,362 @@
               ael.download = "ملف_الإنجاز_نسخة_مستقلة.html";
               ael.click();
               setTimeout(() => URL.revokeObjectURL(url), 1500);
-              note("تم إنشاء النسخة النهائية المستقلة");
+              note(
+                "\u062A\u0645 \u0625\u0646\u0634\u0627\u0621 \u0645\u0644\u0641 ZIP \u0628\u0646\u062C\u0627\u062D \u0648\u062A\u0645 \u062A\u0646\u0632\u064A\u0644\u0647"
+              );
             } catch (err) {
-              note("تعذّر إنشاء النسخة النهائية المستقلة", "error");
+              note(
+                "\u062A\u0639\u0630\u0631 \u0625\u0646\u0634\u0627\u0621 \u0645\u0644\u0641 ZIP",
+                "error"
+              );
             }
           };
+          // إنشاء حزمة ZIP تحتوي على index.html + مجلد assets
+          UI.exportZIP = async function () {
+            try {
+              const a = state.tabs.find((x) => x.id === state.activeTabId);
+              if (a) a.content = el.editor.innerHTML;
+
+              // بناء الصفحة النهائية (نفس منطق التصدير)
+              const container = document.createElement("div");
+              const header = document.createElement("div");
+              header.className = "portfolio-header";
+              header.innerHTML =
+                '<div class="portfolio-header-inner" dir="rtl">' +
+                '<img id="expLogo" class="portfolio-logo" alt="الشعار" />' +
+                '<div class="portfolio-titles"><h1 id="expTitle">' +
+                ((state.portfolio && state.portfolio.title) || "��� ��뤟�") +
+                '</h1><div id="expSubtitle" class="portfolio-subtitle"></div></div>' +
+                "</div>";
+              container.appendChild(header);
+
+              const sidebar = document.createElement("div");
+              sidebar.className = "portfolio-sidebar";
+              sidebar.id = "expSidebar";
+              const contentRoot = document.createElement("div");
+              contentRoot.className = "portfolio-content";
+              contentRoot.id = "expContent";
+
+              state.tabs.forEach((t, i) => {
+                const link = document.createElement("a");
+                link.href = "#tab-" + i;
+                link.textContent = t.title;
+                Object.assign(link.style, {
+                  display: "block",
+                  padding: "8px 10px",
+                  marginBottom: "5px",
+                  color: "#333",
+                  textDecoration: "none",
+                  borderRadius: "5px",
+                });
+                sidebar.appendChild(link);
+
+                const w = document.createElement("div");
+                w.className = "tab-content";
+                w.id = "tab-" + i;
+                const h2 = document.createElement("h2");
+                h2.textContent = t.title;
+                Object.assign(h2.style, {
+                  color: "var(--primary)",
+                  borderBottom: "2px solid var(--primary)",
+                  paddingBottom: "10px",
+                  marginBottom: "20px",
+                });
+                const body = document.createElement("div");
+                body.innerHTML = t.content;
+                body
+                  .querySelectorAll(".embed-actions")
+                  .forEach((x) => x.remove());
+                w.appendChild(h2);
+                w.appendChild(body);
+                contentRoot.appendChild(w);
+              });
+
+              const f = document.createElement("div");
+              f.className = "portfolio-footer";
+              f.id = "portfolioFooterBlock";
+              f.textContent =
+                (state.portfolio && state.portfolio.footerText) || "";
+              contentRoot.appendChild(f);
+
+              container.appendChild(sidebar);
+              container.appendChild(contentRoot);
+
+              // ترويسة: شعار وعنوان فرعي
+              const lg = container.querySelector("#expLogo");
+              if (lg) {
+                if (state.portfolio && state.portfolio.logoData) {
+                  lg.src = state.portfolio.logoData;
+                  lg.style.display = "block";
+                } else {
+                  let found = "";
+                  for (const t of state.tabs) {
+                    const tmp = document.createElement("div");
+                    tmp.innerHTML = t.content || "";
+                    const im = tmp.querySelector("img");
+                    if (im && im.getAttribute("src")) {
+                      found = im.getAttribute("src");
+                      break;
+                    }
+                  }
+                  if (found) {
+                    lg.src = found;
+                    lg.style.display = "block";
+                  }
+                }
+              }
+              const sub = container.querySelector("#expSubtitle");
+              if (sub) {
+                const nm =
+                  (state.portfolio && state.portfolio.teacherName) || "";
+                const label =
+                  (state.portfolio && state.portfolio.teacherLabel) ||
+                  "������/��";
+                sub.textContent = nm ? label + " / " + nm : "";
+              }
+
+              // CSS + طبقة أنماط إضافية للطباعة
+              const css = Array.from(document.querySelectorAll("style"))
+                .map((s) => s.innerHTML)
+                .join("\n");
+              const extra = `
+.final-portfolio{display:block;position:static}
+.portfolio-sidebar{width:250px;background:#f0f2f5;height:100vh;position:fixed;top:0;right:0;padding:20px;overflow-y:auto}
+.portfolio-content{margin-right:250px;padding:20px;background:var(--editor-print-bg)}
+.portfolio-logo:not([src]), .portfolio-logo[src=""]{display:none}
+.portfolio-header{padding-right:280px}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.header-actions{display:flex;gap:8px;margin-top:10px}
+.header-btn{background:#ffffff;border:none;color:#1f2937;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600}
+.header-btn.export{background:#111827;color:#fff}
+@media print{.portfolio-sidebar{display:none}.portfolio-content{margin:0!important}.header-actions{display:none}.tab-content{display:block!important}.portfolio-header{padding-right:20px!important;padding-left:20px!important}.portfolio-header-inner{justify-content:flex-start!important}}
+`;
+
+              // أدوات مساعدة لتجميع الأصول
+              function sanitizeFilename(name) {
+                name = (name || "")
+                  .replace(/[\\\/:*?"<>|]+/g, "_")
+                  .replace(/\s+/g, " ")
+                  .trim();
+                return name || "file";
+              }
+              function extFromType(type) {
+                const map = {
+                  "image/png": "png",
+                  "image/jpeg": "jpg",
+                  "image/webp": "webp",
+                  "image/gif": "gif",
+                  "image/svg+xml": "svg",
+                  "application/pdf": "pdf",
+                  "video/mp4": "mp4",
+                  "video/webm": "webm",
+                  "audio/mpeg": "mp3",
+                };
+                return map[type] || "";
+              }
+              function extFromUrl(url) {
+                try {
+                  const u = (url || "").split("?")[0];
+                  const m = /\.([a-z0-9]+)$/i.exec(u);
+                  return m ? m[1].toLowerCase() : "";
+                } catch (_) {
+                  return "";
+                }
+              }
+              function nameFromUrl(url) {
+                try {
+                  const u = (url || "").split("?")[0];
+                  const p = u.split("/");
+                  return sanitizeFilename(
+                    decodeURIComponent(p[p.length - 1] || "file")
+                  );
+                } catch (_) {
+                  return "file";
+                }
+              }
+              function dataUrlToBlob(dataUrl) {
+                const arr = (dataUrl || "").split(",");
+                const m = arr[0].match(/:(.*?);/);
+                const mime = m ? m[1] : "application/octet-stream";
+                const bstr = atob(arr[1] || "");
+                const u8 = new Uint8Array(bstr.length);
+                for (let i = 0; i < bstr.length; i++)
+                  u8[i] = bstr.charCodeAt(i);
+                return new Blob([u8], { type: mime });
+              }
+              async function blobFromUrl(url) {
+                const res = await fetch(url);
+                if (!res.ok) throw new Error("fetch failed");
+                return await res.blob();
+              }
+              async function ensureJSZip() {
+                if (window.JSZip) return window.JSZip;
+                await new Promise((resolve, reject) => {
+                  const s = document.createElement("script");
+                  s.src =
+                    "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js";
+                  s.onload = resolve;
+                  s.onerror = reject;
+                  document.head.appendChild(s);
+                });
+                return window.JSZip;
+              }
+              const usedNames = new Set();
+              function uniqueName(base) {
+                base = sanitizeFilename(base || "file");
+                let name = base,
+                  i = 2;
+                while (usedNames.has(name)) {
+                  const dot = base.lastIndexOf(".");
+                  name =
+                    dot > 0
+                      ? base.slice(0, dot) + "-" + i + base.slice(dot)
+                      : base + "-" + i;
+                  i++;
+                }
+                usedNames.add(name);
+                return name;
+              }
+              const assets = [];
+              async function addAssetFrom(url, preferName, element, attr) {
+                try {
+                  if (!url) return null;
+                  let blob = null;
+                  if (/^data:/i.test(url)) blob = dataUrlToBlob(url);
+                  else if (/^blob:/i.test(url) || /^https?:/i.test(url)) {
+                    try {
+                      blob = await blobFromUrl(url);
+                    } catch (_) {
+                      blob = null;
+                    }
+                  } else {
+                    return null;
+                  }
+                  if (!blob) return null;
+                  let baseName = sanitizeFilename(
+                    preferName || nameFromUrl(url)
+                  );
+                  if (!/\.[a-z0-9]+$/i.test(baseName)) {
+                    const ext =
+                      extFromType(blob.type) || extFromUrl(url) || "bin";
+                    baseName = baseName + "." + ext;
+                  }
+                  const finalName = uniqueName(baseName);
+                  assets.push({ name: finalName, blob });
+                  if (element && attr)
+                    element.setAttribute(attr, "assets/" + finalName);
+                  return finalName;
+                } catch (_) {
+                  return null;
+                }
+              }
+
+              // الشعار
+              const expLogo = container.querySelector("#expLogo");
+              if (expLogo) {
+                const ls = expLogo.getAttribute("src") || "";
+                if (ls) await addAssetFrom(ls, "logo", expLogo, "src");
+              }
+
+              // الوسائط داخل المحتوى
+              const embeds = container.querySelectorAll(".embed-container");
+              for (const c of embeds) {
+                const name = c.getAttribute("data-name") || "";
+                const media = c.querySelector(
+                  ".embed-media img, .embed-media video, .embed-media iframe"
+                );
+                const dlink = c.querySelector("a.download-link");
+                if (media) {
+                  const src = media.getAttribute("src") || "";
+                  await addAssetFrom(src, name, media, "src");
+                }
+                if (dlink) {
+                  const href = dlink.getAttribute("href") || "";
+                  const nm = await addAssetFrom(
+                    href,
+                    dlink.getAttribute("download") || name,
+                    dlink,
+                    "href"
+                  );
+                  if (nm) {
+                    dlink.removeAttribute("download");
+                    dlink.setAttribute("target", "_blank");
+                    dlink.setAttribute("rel", "noopener noreferrer");
+                  }
+                }
+              }
+
+              // أعد ضبط خصائص الروابط العامة
+              const anchors = container.querySelectorAll("a[href]");
+              anchors.forEach((a) => {
+                const href = a.getAttribute("href") || "";
+                if (!/^#/.test(href)) {
+                  a.setAttribute("target", "_blank");
+                  a.setAttribute("rel", "noopener noreferrer");
+                }
+              });
+
+              // مبدّل الأقسام + تمييز التنقل
+              const switchScriptEl = document.createElement("script");
+              switchScriptEl.textContent = `
+                (function(){
+                  function setActive(id){
+                    var secs=document.querySelectorAll('.tab-content');
+                    secs.forEach(function(s){ s.classList.remove('active');});
+                    var el=document.getElementById(id); if(el){ el.classList.add('active'); }
+                    var links=document.querySelectorAll('.portfolio-sidebar a');
+                    links.forEach(function(a){ var on=(a.getAttribute('href')||'')==='#'+id; a.style.backgroundColor=on?'#4361ee':'transparent'; a.style.color=on?'#fff':'#333'; });
+                  }
+                  document.addEventListener('DOMContentLoaded', function(){
+                    var links=document.querySelectorAll('.portfolio-sidebar a[href^="#tab-"]');
+                    links.forEach(function(a){ a.addEventListener('click', function(e){ e.preventDefault(); var id=(this.getAttribute('href')||'').slice(1); setActive(id); }, {passive:false}); });
+                    if(links[0]){ var first=(links[0].getAttribute('href')||'').slice(1); setActive(first); }
+                  }, {passive:true});
+                })();
+              `;
+              container.appendChild(switchScriptEl);
+
+              const navScript =
+                "<script>(function(){function act(id){var links=document.querySelectorAll('.portfolio-sidebar a');links.forEach(function(a){var on=(a.getAttribute('href')||'')==='#'+id; a.style.backgroundColor=on?'#4361ee':'transparent'; a.style.color=on?'#fff':'#333';});}var links=document.querySelectorAll('.portfolio-sidebar a[href^=\\\"#tab-\\\"]');links.forEach(function(a){a.addEventListener('click',function(e){e.preventDefault(); var id=(this.getAttribute('href')||'').slice(1); var el=document.getElementById(id); if(el){ el.scrollIntoView({behavior:'smooth', block:'start'}); act(id);} });}); if(links[0]){ var first=(links[0].getAttribute('href')||'').slice(1); act(first);} })();<\\/script>";
+
+              const html =
+                '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>' +
+                "<title>" +
+                ((state.portfolio && state.portfolio.title) || "��� ��뤟�") +
+                "</title><style>" +
+                css +
+                "\n" +
+                extra +
+                "</style></head><body>" +
+                container.innerHTML +
+                navScript +
+                "</body></html>";
+
+              await ensureJSZip();
+              const zip = new JSZip();
+              zip.file("index.html", html);
+              const af = zip.folder("assets");
+              for (const it of assets) {
+                const ab = await it.blob.arrayBuffer();
+                af.file(it.name, ab);
+              }
+              const zblob = await zip.generateAsync({ type: "blob" });
+              const url = URL.createObjectURL(zblob);
+              const ael = document.createElement("a");
+              const fname =
+                ((state.portfolio && state.portfolio.title) || "portfolio") +
+                "_package.zip";
+              ael.href = url;
+              ael.download = fname;
+              ael.click();
+              setTimeout(() => URL.revokeObjectURL(url), 1500);
+              note("تم إنشاء ملف ZIP بنجاح وتم تنزيله");
+            } catch (err) {
+              note("تعذر إنشاء ملف ZIP", "error");
+            }
+          };
+
           UI.exportHTML = UI.exportStandalone;
         })();
       })();
