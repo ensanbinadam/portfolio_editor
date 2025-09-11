@@ -293,6 +293,10 @@
         outline: 2px dashed var(--secondary);
         outline-offset: 6px;
       }
+      .embed-container {
+        position: relative;
+      }
+
       .embed-actions {
         position: absolute;
         top: -15px;
@@ -303,8 +307,14 @@
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         display: none;
         gap: 6px;
-        z-index: 5;
+        z-index: 9999; /* كان 5: نرفعه فوق الفيديو/iframe */
+        pointer-events: auto; /* تأكيد قابلية النقر */
       }
+      .embed-container:hover .embed-actions,
+      .embed-container:focus-within .embed-actions {
+        display: flex;
+      }
+
       .embed-container:hover .embed-actions {
         display: flex;
       }
@@ -796,6 +806,13 @@
           text-decoration: none;
         }
       }
+      .embed-container {
+        position: relative;
+      }
+      .embed-actions {
+        z-index: 10000;
+        pointer-events: auto;
+      }
     </style>
   </head>
   <body>
@@ -837,6 +854,7 @@
               <option value="h1">عنوان رئيسي</option>
               <option value="h2">عنوان فرعي</option>
               <option value="h3">عنوان ثانوي</option>
+              <option value="blockquote">اقتباس</option>
             </select>
           </div>
 
@@ -865,6 +883,30 @@
             >
               <u>U</u>
             </button>
+            <button
+              class="toolbar-btn"
+              type="button"
+              aria-label="يتوسطه خط"
+              onclick="UI.exec('strikeThrough')"
+            >
+              <s>S</s>
+            </button>
+            <button
+              class="toolbar-btn"
+              type="button"
+              aria-label="مرتفع"
+              onclick="UI.exec('superscript')"
+            >
+              X<sup>2</sup>
+            </button>
+            <button
+              class="toolbar-btn"
+              type="button"
+              aria-label="منخفض"
+              onclick="UI.exec('subscript')"
+            >
+              X<sub>2</sub>
+            </button>
           </div>
 
           <div class="toolbar-group">
@@ -883,6 +925,34 @@
               onclick="UI.exec('insertOrderedList')"
             >
               1. قائمة
+            </button>
+          </div>
+
+          <!-- أدوات إضافية: المسافة البادئة والخط الأفقي -->
+          <div class="toolbar-group" title="تنسيق الفقرة">
+            <button
+              class="toolbar-btn"
+              type="button"
+              aria-label="زيادة المسافة البادئة"
+              onclick="UI.exec('indent')"
+            >
+              ⇥
+            </button>
+            <button
+              class="toolbar-btn"
+              type="button"
+              aria-label="إنقاص المسافة البادئة"
+              onclick="UI.exec('outdent')"
+            >
+              ⇤
+            </button>
+            <button
+              class="toolbar-btn"
+              type="button"
+              aria-label="إدراج خط أفقي"
+              onclick="UI.exec('insertHorizontalRule')"
+            >
+              ―
             </button>
           </div>
 
@@ -1842,6 +1912,7 @@
                 (state.pasteMode === "smart" ? "ذكي" : "نصي")
             );
           },
+
           exec: (cmd) => {
             try {
               ensureRangeInEditor();
@@ -2159,6 +2230,7 @@
             encodeURIComponent(url)
           );
         }
+
         function makeEmbedHTML({
           fType,
           src,
@@ -2170,61 +2242,60 @@
           const eid = id();
           let inner = "";
           if (fType === "image") {
-            inner = `<div class="embed-media resizable-x" style="width:100%"><img src="${src}" alt="${esc(
-              caption || name || "صورة"
-            )}"/></div>`;
+            inner = `<div class="embed-media resizable-x" style="width:100%">
+                     <img src="${src}" alt="${esc(caption || name || "صورة")}"/>
+                   </div>`;
           } else if (fType === "video") {
-            inner = `<div class="embed-media resizable-both" style="width:100%;height:360px"><video src="${src}" controls></video></div>`;
+            inner = `<div class="embed-media resizable-both" style="width:100%;height:360px">
+                     <video src="${src}" controls></video>
+                   </div>`;
           } else if (
             fType === "pdf" ||
             ["word", "excel", "powerpoint"].includes(fType)
           ) {
-            inner = `<div class="embed-media resizable-both" style="width:100%;height:500px"><iframe src="${src}"></iframe></div>`;
+            inner = `<div class="embed-media resizable-both" style="width:100%;height:500px">
+                     <iframe src="${src}"></iframe>
+                   </div>`;
           } else {
-            inner = `<div class="embed-media resizable-x" style="width:100%"><p><strong>${esc(
-              caption || name || "ملف مرفق"
-            )}</strong></p></div>`;
+            inner = `<div class="embed-media resizable-x" style="width:100%">
+                     <p><strong>${esc(
+                       caption || name || "ملف مرفق"
+                     )}</strong></p>
+                   </div>`;
           }
           const d = downloadHref
             ? `<a href="${downloadHref}" download class="download-link">تحميل</a>`
             : "";
-          return `<div class="embed-container" contenteditable="false" data-embed-id="${eid}" data-type="${fType}" data-origin="${
+
+          const captionEl = `<figcaption class="embed-caption" contenteditable="true" data-placeholder="وصف (اختياري)...">${esc(
+            caption
+          )}</figcaption>`;
+
+          return `<div class="embed-container" contenteditable="false" draggable="false" data-embed-id="${eid}" data-type="${fType}" data-origin="${
             origin || ""
           }" data-name="${esc(name || "")}">
-                  <div class="embed-actions">
-                    <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'edit')">✎</button>
-                    <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'replace')">🔁</button>
-                    <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'link')">🔗</button>
-                    <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'unlink')">⛓️</button>
-                    <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'smaller')">−</button>
-                    <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'bigger')">+</button>
-                    <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'fit')">100%</button>
-                    <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'setwidth')">↔</button>
-                    <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'setheight')">↕</button>
-                    <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'remove')">🗑</button>
-                  </div>
-                  ${inner}
-                  <div class="embed-caption" contenteditable="true" data-placeholder="أدخل وصفًا...">${esc(
-                    caption || ""
-                  )}</div>
-                  ${d}
-                </div>`;
+                         ${inner}
+                         ${captionEl}
+                         ${d}
+                       </div>`;
         }
+
         function upgradeEmbeds(scope) {
           scope.querySelectorAll(".embed-container").forEach((c) => {
             if (!c.querySelector(".embed-actions")) {
               const bar = document.createElement("div");
               bar.className = "embed-actions";
-              bar.innerHTML = `<button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'edit')">✎</button>
-                      <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'replace')">🔁</button>
-                      <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'link')">🔗</button>
-                      <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'unlink')">⛓️</button>
-                      <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'smaller')">−</button>
-                      <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'bigger')">+</button>
-                      <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'fit')">100%</button>
-                      <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'setwidth')">↔</button>
-                      <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'setheight')">↕</button>
-                      <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'remove')">🗑</button>`;
+              bar.innerHTML = `
+              <button class="embed-btn" type="button" data-action="edit">✎</button>
+              <button class="embed-btn" type="button" data-action="replace">🔁</button>
+              <button class="embed-btn" type="button" data-action="link">🔗</button>
+              <button class="embed-btn" type="button" data-action="unlink">⛓️</button>
+              <button class="embed-btn" type="button" data-action="smaller">−</button>
+              <button class="embed-btn" type="button" data-action="bigger">+</button>
+              <button class="embed-btn" type="button" data-action="fit">100%</button>
+              <button class="embed-btn" type="button" data-action="setwidth">↔</button>
+              <button class="embed-btn" type="button" data-action="setheight">↕</button>
+              <button class="embed-btn" type="button" data-action="remove">🗑</button>`;
               c.insertBefore(bar, c.firstChild);
             }
             if (!c.querySelector(".embed-media")) {
@@ -2235,12 +2306,17 @@
                 wrap.className =
                   "embed-media " + (isImg ? "resizable-x" : "resizable-both");
                 wrap.style.width = "100%";
-                m.style.width = isImg ? "100%" : "100%";
+                m.style.width = "100%";
                 m.style.height = isImg ? "auto" : "100%";
-                m.parentNode.insertBefore(wrap, m);
+                m.parentNode.insertBefore(wrap, m); // <— تصحيح
                 wrap.appendChild(m);
               }
             }
+            c.setAttribute("draggable", "false");
+            c.querySelectorAll("img,video,iframe").forEach((el) =>
+              el.setAttribute("draggable", "false")
+            );
+
             c.setAttribute("contenteditable", "false");
           });
         }
@@ -2725,16 +2801,26 @@
             el.editor.addEventListener(ev, saveSel)
           );
 
+          // لا تمنع الافتراضي حتى يصل click للأزرار
           el.editor.addEventListener(
             "mousedown",
             (e) => {
-              if (
-                e.target &&
-                e.target.closest &&
-                e.target.closest(".embed-actions")
-              ) {
-                e.preventDefault();
-              }
+              if (e.target && e.target.closest(".embed-actions"))
+                e.stopPropagation();
+            },
+            true
+          );
+
+          // تفويض النقر على أزرار شريط الوسائط
+          el.editor.addEventListener(
+            "click",
+            (e) => {
+              const btn = e.target.closest(".embed-actions .embed-btn");
+              if (!btn) return;
+              e.preventDefault();
+              e.stopPropagation();
+              const action = btn.dataset.action;
+              if (action) UI.embedAction(btn, action);
             },
             true
           );
@@ -3630,9 +3716,161 @@
           } catch (_) {}
         };
 
-        // مكان للعمليات الإضافية (embedAction/… إن احتجتها لاحقًا)
-        UI.embedAction = function (btn, action) {
-          /* اختياري: نفس التنفيذ السابق إن رغبت */
+        // تفويض النقر: يعمل سواء الأزرار inline أو data-action
+        document.addEventListener(
+          "click",
+          function (e) {
+            const btn = e.target.closest(".embed-actions .embed-btn");
+            if (!btn) return;
+            e.preventDefault();
+            e.stopPropagation();
+            UI.embedAction(
+              btn,
+              btn.dataset.action || btn.getAttribute("data-action")
+            );
+          },
+          true
+        );
+
+        // منع سحب الوسائط داخل المحرّر (يمنع تكرار العنصر عند السحب)
+        document.addEventListener(
+          "dragstart",
+          function (e) {
+            if (
+              e.target &&
+              e.target.closest &&
+              e.target.closest(".embed-container, .embed-actions, .embed-media")
+            ) {
+              e.preventDefault();
+            }
+          },
+          true
+        );
+
+        // تنفيذ كامل لأوامر الشريط العائم للوسائط
+        UI.embedAction = function (ref, action) {
+          try {
+            const btn = ref && ref.nodeType === 1 ? ref : null;
+            const cont =
+              (btn && btn.closest(".embed-container")) ||
+              (ref && ref.closest && ref.closest(".embed-container")) ||
+              ref;
+            if (!cont) return;
+
+            const mediaWrap = cont.querySelector(".embed-media");
+            const mediaEl =
+              (mediaWrap && mediaWrap.querySelector("img,video,iframe")) ||
+              mediaWrap;
+
+            const act = (
+              action ||
+              (btn &&
+                (btn.dataset?.action ||
+                  btn.getAttribute("data-action") ||
+                  (btn.getAttribute("aria-label") || "").toLowerCase())) ||
+              ""
+            ).toLowerCase();
+
+            if (act === "remove") {
+              cont.remove();
+              saveToStorage();
+              return note("تم الحذف");
+            }
+
+            if (act === "edit") {
+              const cap = cont.querySelector(".embed-caption");
+              const cur = (cap && cap.textContent.trim()) || "";
+              const v = prompt("حرّر الوصف:", cur);
+              if (v !== null) {
+                if (cap) cap.textContent = v;
+                const img = cont.querySelector("img");
+                if (img) img.alt = v || img.alt || "صورة";
+                saveToStorage();
+                note("تم التعديل");
+              }
+              return;
+            }
+
+            if (act === "replace") {
+              state.mode = "replace";
+              state.replaceTarget = cont;
+              document.getElementById("mediaModalTitle").textContent =
+                "استبدال وسائط";
+              UI.toggleMediaType("upload");
+              show(document.getElementById("mediaModal"));
+              return;
+            }
+
+            if (act === "fit") {
+              if (mediaWrap) mediaWrap.style.width = "100%";
+              saveToStorage();
+              return note("العرض: 100%");
+            }
+
+            if (act === "smaller" || act === "bigger") {
+              if (mediaWrap) {
+                const pw =
+                  (cont.parentElement || el.editor).getBoundingClientRect()
+                    .width || 1;
+                const cw = mediaWrap.getBoundingClientRect().width || 1;
+                let pct = Math.round((cw / pw) * 100);
+                pct += act === "bigger" ? 10 : -10;
+                pct = Math.max(20, Math.min(100, pct));
+                mediaWrap.style.width = pct + "%";
+                saveToStorage();
+                return note("العرض: " + pct + "%");
+              }
+            }
+
+            if (act === "setwidth") {
+              let v = prompt("أدخل العرض (مثال: 70% أو 400px):", "80%");
+              if (!v) return;
+              v = v.trim();
+              if (!/%$|px$/i.test(v)) v += "%";
+              if (mediaWrap) mediaWrap.style.width = v;
+              saveToStorage();
+              return note("تم ضبط العرض على " + v);
+            }
+
+            if (act === "setheight") {
+              let v = prompt("الارتفاع بالبكسل (مثال: 500):", "500");
+              if (!v) return;
+              v = String(v).replace(/[^0-9]/g, "");
+              if (!v) return;
+              if (mediaWrap) {
+                mediaWrap.style.height = v + "px";
+                if (
+                  mediaEl &&
+                  (mediaEl.tagName === "VIDEO" || mediaEl.tagName === "IFRAME")
+                ) {
+                  mediaEl.style.height = "100%";
+                }
+              }
+              saveToStorage();
+              return note("تم ضبط الارتفاع على " + v + "px");
+            }
+
+            if (act === "link") {
+              state.linkContext = mediaWrap;
+              document.getElementById("linkUrl").value = "";
+              document.getElementById("linkNewTab").checked = true;
+              show(document.getElementById("linkModal"));
+              return;
+            }
+
+            if (act === "unlink") {
+              const a = closest("A", mediaWrap.parentElement);
+              if (a) {
+                unwrapAnchor(a);
+                saveToStorage();
+                note("تم فك الرابط");
+              }
+              return;
+            }
+          } catch (e) {
+            note("تعذر تنفيذ الأمر", "error");
+            console.error(e);
+          }
         };
       })();
     </script>
