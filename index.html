@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>محرّر ملف الإنجاز - v3.4 (إصلاح الإدراج + الروابط + PDF)</title>
+    <title>محرر ملف الإنجاز | portfolio_editor</title>
     <style>
       :root {
         --primary: #4361ee;
@@ -23,10 +24,10 @@
         margin: 0;
         padding: 0;
         box-sizing: border-box;
-        font-family: "Cairo", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-family: "Segoe UI", "Cairo", Tahoma, Geneva, Verdana, sans-serif;
       }
       body {
-        background-color: #f5f7fb;
+        background: #f5f7fb;
         color: #333;
         line-height: 1.6;
       }
@@ -46,7 +47,7 @@
         text-align: center;
         margin-bottom: 30px;
         padding-bottom: 15px;
-        border-bottom: 1px solid rgba(116, 94, 94, 0.2);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
       }
       .app-title h1 {
         font-size: 1.5rem;
@@ -77,37 +78,29 @@
       .tab:hover {
         filter: brightness(1.06);
       }
-      /* تمييز التبويب النشط بدون تغيير لونه الأساسي */
       .tab.active {
         box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
         outline: 2px solid rgba(255, 255, 255, 0.7);
         outline-offset: -2px;
         transform: translateY(-1px);
       }
-      /* ألوان متناوبة للتبويبات */
       .tabs-container .tab:nth-child(6n + 1) {
         background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-        color: #fff;
       }
       .tabs-container .tab:nth-child(6n + 2) {
         background: linear-gradient(135deg, #10b981, #047857);
-        color: #fff;
       }
       .tabs-container .tab:nth-child(6n + 3) {
         background: linear-gradient(135deg, #f59e0b, #b45309);
-        color: #fff;
       }
       .tabs-container .tab:nth-child(6n + 4) {
         background: linear-gradient(135deg, #ef4444, #b91c1c);
-        color: #fff;
       }
       .tabs-container .tab:nth-child(6n + 5) {
         background: linear-gradient(135deg, #06b6d4, #0e7490);
-        color: #fff;
       }
       .tabs-container .tab:nth-child(6n) {
         background: linear-gradient(135deg, #a855f7, #6b21a8);
-        color: #fff;
       }
       .tab-actions {
         display: flex;
@@ -150,7 +143,6 @@
       .sidebar-btn.delete:hover {
         background: rgba(229, 56, 59, 0.3);
       }
-
       .main-content {
         flex: 1;
         display: flex;
@@ -206,7 +198,6 @@
         font-size: 18px;
         line-height: 1;
       }
-
       .editor {
         flex: 1;
         padding: 30px;
@@ -224,7 +215,18 @@
         outline: none;
         font-size: var(--editor-font-size);
       }
-
+      .editor-content h1 {
+        font-size: 2em;
+        margin: 0.6em 0 0.4em;
+      }
+      .editor-content h2 {
+        font-size: 1.6em;
+        margin: 0.6em 0 0.4em;
+      }
+      .editor-content h3 {
+        font-size: 1.3em;
+        margin: 0.6em 0 0.4em;
+      }
       .action-buttons {
         display: flex;
         flex-wrap: wrap;
@@ -265,7 +267,6 @@
       .action-btn:hover {
         filter: brightness(0.95);
       }
-
       #jsError {
         position: fixed;
         top: 10px;
@@ -279,139 +280,7 @@
         display: none;
       }
 
-      .modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 1000;
-        justify-content: center;
-        align-items: center;
-      }
-      .modal-content {
-        background: #fff;
-        border-radius: 12px;
-        padding: 25px;
-        width: 90%;
-        max-width: 600px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      }
-      .modal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-        padding-bottom: 15px;
-        border-bottom: 1px solid #eee;
-      }
-      .modal-title {
-        font-size: 1.5rem;
-        color: #222;
-      }
-      .close-modal {
-        background: none;
-        border: none;
-        font-size: 1.5rem;
-        cursor: pointer;
-        color: #6c757d;
-      }
-
-      .form-group {
-        margin-bottom: 20px;
-      }
-      .form-group label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: bold;
-        color: #222;
-      }
-      .form-control {
-        width: 100%;
-        padding: 12px 15px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        font-size: 1rem;
-      }
-      .form-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-      }
-      .btn {
-        padding: 10px 20px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: bold;
-      }
-      .btn-primary {
-        background: var(--primary);
-        color: #fff;
-      }
-      .btn-secondary {
-        background: #f0f2f5;
-        color: #111;
-      }
-      /* أزرار الشعار */
-      #pfLogoClear.btn,
-      #pfLogoDownload.btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 10px 18px;
-        width: 100%;
-        height: auto;
-        border-radius: 6px;
-        border: 1px solid #ddd; /* مطابقة لإطار الحقل */
-        text-align: center;
-        font-weight: 700;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease,
-          background-color 0.2s ease, transform 0.06s ease;
-      }
-      #pfLogoDownload.btn {
-        text-decoration: none;
-      }
-      #pfLogoClear.btn.btn-secondary,
-      #pfLogoDownload.btn.btn-secondary {
-        background: #fff !important; /* نفس خلفية حقل رابط الشعار */
-        color: #111 !important;
-        text-decoration: none !important;
-        border-color: #ddd !important;
-      }
-      /* تأثير طفيف عند التحويم والضغط والتركيز */
-      #pfLogoClear.btn:hover,
-      #pfLogoDownload.btn:hover {
-        border-color: #cbd5e1; /* أفتح قليلاً */
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-        background: #fff;
-      }
-      #pfLogoClear.btn:active,
-      #pfLogoDownload.btn:active {
-        transform: translateY(1px);
-      }
-      #pfLogoClear.btn:focus,
-      #pfLogoDownload.btn:focus {
-        outline: 2px solid var(--primary);
-        outline-offset: 2px;
-      }
-
-      @media (max-width: 992px) {
-        .container {
-          flex-direction: column;
-        }
-        .sidebar {
-          width: 100%;
-          height: auto;
-        }
-        .toolbar {
-          overflow-x: auto;
-        }
-      }
-
-      /* Embeds */
+      /* ===== Embeds ===== */
       .embed-container {
         margin: 15px 0;
         border: 1px dashed #ddd;
@@ -495,7 +364,68 @@
         height: 100%;
       }
 
-      /* Notification */
+      /* ===== جدول المحرر + الشريط العائم ===== */
+      .rte-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 10px 0;
+      }
+      .rte-table th,
+      .rte-table td {
+        border: 1px solid #e5e7eb;
+        padding: 8px;
+        background: #fff;
+        vertical-align: top;
+      }
+      .rte-table th {
+        background: #f8fafc;
+        font-weight: 700;
+      }
+      .rte-table td:focus,
+      .rte-table th:focus {
+        outline: 2px solid rgba(67, 97, 238, 0.35);
+      }
+      .table-bubble {
+        position: absolute;
+        display: none;
+        z-index: 1200;
+        background: #111827;
+        color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+        padding: 6px;
+        gap: 6px;
+        align-items: center;
+      }
+      .table-bubble .tb-btn {
+        border: none;
+        border-radius: 6px;
+        background: #1f2937;
+        color: #fff;
+        padding: 6px 8px;
+        cursor: pointer;
+        font-size: 12px;
+      }
+      .table-bubble .tb-btn:hover {
+        background: #374151;
+      }
+      .table-bubble .sep {
+        width: 1px;
+        height: 20px;
+        background: rgba(255, 255, 255, 0.18);
+        margin: 0 4px;
+      }
+      .table-bubble .tb-color {
+        width: 30px;
+        height: 30px;
+        border: 1px solid #444;
+        border-radius: 6px;
+        background: #fff;
+        cursor: pointer;
+        padding: 0;
+      }
+
+      /* ===== Notification ===== */
       .notification {
         position: fixed;
         bottom: 20px;
@@ -524,7 +454,7 @@
         background: var(--danger);
       }
 
-      /* Preview */
+      /* ===== Preview ===== */
       .final-portfolio {
         display: none;
         position: fixed;
@@ -540,7 +470,6 @@
         background: var(--primary);
         color: #fff;
         padding: 20px;
-        /* ادفع محتوى الترويسة لليسار حتى لا تغطيه القائمة الجانبية الثابتة */
         padding-right: calc(280px + 20px);
       }
       .header-actions {
@@ -575,7 +504,6 @@
         border-radius: 8px;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
       }
-      /* أخفِ الشعار فقط إن لم يكن له مصدر */
       .portfolio-logo:not([src]),
       .portfolio-logo[src=""] {
         display: none;
@@ -597,14 +525,13 @@
         padding: 20px;
         overflow-y: auto;
       }
-      /* ألوان متناوبة لفهرس المحتويات في المعاينة */
       .portfolio-sidebar a {
         display: block;
         padding: 8px 10px;
         margin-bottom: 5px;
         text-decoration: none;
         border-radius: 6px;
-        color: #fff !important; /* لتجاوز أي لون مضمّن */
+        color: #fff !important;
         transition: filter 0.2s ease;
       }
       .portfolio-sidebar a:hover {
@@ -642,14 +569,12 @@
       }
       .tab-content {
         display: none;
-        /* إطار متقطع خفيف يلف محتوى التبويب في المعاينة */
         border: 2px dashed #e5e7eb;
         border-radius: 10px;
         padding: 16px;
         background: #fff;
         margin-bottom: 16px;
       }
-      /* ألوان إطار الحاوية حسب ترتيب التبويب ليتماشى مع لون الفهرس */
       .portfolio-content .tab-content:nth-of-type(6n + 1) {
         border-color: #1d4ed8;
       }
@@ -688,6 +613,99 @@
         justify-content: center;
       }
 
+      /* ===== مودالات (الإصلاح هنا) ===== */
+      .modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 1400;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      .modal-content {
+        width: min(680px, 100%);
+        background: #fff;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        direction: rtl;
+      }
+      .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+      .modal-title {
+        font-size: 1.15rem;
+        margin: 0;
+      }
+      .close-modal {
+        background: transparent;
+        border: none;
+        font-size: 26px;
+        cursor: pointer;
+        line-height: 1;
+      }
+      .form-group {
+        margin-bottom: 12px;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+      .form-control {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        background: #fff;
+      }
+      .form-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: 8px;
+      }
+      .btn {
+        padding: 10px 14px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 700;
+      }
+      .btn-primary {
+        background: var(--primary);
+        color: #fff;
+      }
+      .btn-secondary {
+        background: #f0f2f5;
+        color: #111827;
+      }
+      .file-preview {
+        margin-top: 8px;
+        background: #f8fafc;
+        border: 1px dashed #e5e7eb;
+        border-radius: 8px;
+        padding: 8px;
+      }
+
+      @media (max-width: 992px) {
+        .container {
+          flex-direction: column;
+        }
+        .sidebar {
+          width: 100%;
+          height: auto;
+        }
+        .toolbar {
+          overflow-x: auto;
+        }
+      }
       @media print {
         * {
           -webkit-print-color-adjust: exact !important;
@@ -697,6 +715,8 @@
         body {
           background: var(--page-print-bg) !important;
         }
+        .header-actions,
+        .header-btn,
         .sidebar,
         .toolbar,
         .action-buttons,
@@ -729,11 +749,9 @@
         .portfolio-header {
           background: var(--primary) !important;
           color: #fff !important;
-          /* Ensure logo sits on the right with safe padding in print */
           padding-right: 20px !important;
           padding-left: 20px !important;
         }
-        /* Keep header items grouped to the right in print */
         .portfolio-header-inner {
           justify-content: flex-start !important;
         }
@@ -742,8 +760,9 @@
           margin: 12mm;
         }
       }
+
       .footer {
-        font-family: "Cairo", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-family: "Cairo", Tahoma, Geneva, Verdana, sans-serif;
         color: var(--text);
         text-align: center;
         padding: 14px 12px;
@@ -784,8 +803,8 @@
     <div class="container">
       <aside class="sidebar">
         <div class="app-title">
-          <h1>ملف إنجاز المعلم</h1>
-          <p>أداة لإنشاء ملف الإنجاز المهني</p>
+          <h1>محرر ملف الإنجاز</h1>
+          <p>نسخةالإصدار الاول ـ مرحبا بك</p>
         </div>
         <div class="tabs-container" id="tabsContainer"></div>
         <div class="sidebar-actions">
@@ -1006,16 +1025,92 @@
               أوفيس
             </button>
           </div>
+
+          <div class="toolbar-group" title="اللصق">
+            <span style="padding: 0 6px; font-size: 13px">اللصق:</span>
+            <button
+              class="toolbar-btn"
+              type="button"
+              onclick="UI.setPasteMode('smart')"
+            >
+              ذكي
+            </button>
+            <button
+              class="toolbar-btn"
+              type="button"
+              onclick="UI.setPasteMode('plain')"
+            >
+              نصي
+            </button>
+          </div>
+
+          <div class="toolbar-group" title="جدول">
+            <button
+              class="toolbar-btn"
+              type="button"
+              aria-label="إدراج جدول"
+              onclick="UI.openTableModal()"
+            >
+              جدول
+            </button>
+          </div>
         </div>
 
         <div class="editor" id="editorWrapper">
           <div class="editor-content" id="editor" contenteditable="true">
-            <h1>مرحباً بك في محرر ملف الإنجاز (v3.4)</h1>
+            <h1>محرر ملف الإنجاز | portfolio_editor</h1>
             <p>
-              هذه النسخة تصلح <b>إدراج الوسائط</b> حتى بعد فتح النوافذ، وتدعم
-              <b>الروابط</b> للنصوص والوسائط، وتصدر <b>PDF بالألوان</b>. إذا
-              تعطّل أي زر ستظهر رسالة بالأعلى.
+              إصلاح ظهور نصوص المودالات أسفل الصفحة + مزايا اللصق الذكي وتلوين
+              خلايا الجداول كما في النسخة السابقة.
             </p>
+          </div>
+
+          <!-- شريط تحكم الجداول العائم -->
+          <div class="table-bubble" id="tableBubble" dir="rtl">
+            <button class="tb-btn" data-act="row-before" title="إضافة صف قبل">
+              صف ↑
+            </button>
+            <button class="tb-btn" data-act="row-after" title="إضافة صف بعد">
+              صف ↓
+            </button>
+            <span class="sep"></span>
+            <button class="tb-btn" data-act="col-before" title="إضافة عمود قبل">
+              عمود ←
+            </button>
+            <button class="tb-btn" data-act="col-after" title="إضافة عمود بعد">
+              عمود →
+            </button>
+            <span class="sep"></span>
+            <button
+              class="tb-btn"
+              data-act="toggle-header"
+              title="تبديل صف العنوان"
+            >
+              رأس
+            </button>
+            <span class="sep"></span>
+            <input
+              type="color"
+              id="cellBgPicker"
+              class="tb-color"
+              title="لون خلفية الخلية"
+            />
+            <button class="tb-btn" data-act="cell-bg" title="تطبيق اللون">
+              لون
+            </button>
+            <button class="tb-btn" data-act="cell-bg-clear" title="مسح اللون">
+              مسح
+            </button>
+            <span class="sep"></span>
+            <button class="tb-btn" data-act="del-row" title="حذف الصف">
+              حذف صف
+            </button>
+            <button class="tb-btn" data-act="del-col" title="حذف العمود">
+              حذف عمود
+            </button>
+            <button class="tb-btn" data-act="del-table" title="حذف الجدول">
+              حذف الجدول
+            </button>
           </div>
         </div>
 
@@ -1057,7 +1152,7 @@
       </main>
     </div>
 
-    <!-- New Tab Modal -->
+    <!-- النوافذ -->
     <div class="modal" id="newTabModal">
       <div class="modal-content">
         <div class="modal-header">
@@ -1093,7 +1188,6 @@
       </div>
     </div>
 
-    <!-- Media Modal -->
     <div class="modal" id="mediaModal">
       <div class="modal-content">
         <div class="modal-header">
@@ -1185,7 +1279,6 @@
       </div>
     </div>
 
-    <!-- Link Modal -->
     <div class="modal" id="linkModal">
       <div class="modal-content">
         <div class="modal-header">
@@ -1227,7 +1320,53 @@
       </div>
     </div>
 
-    <!-- Preview -->
+    <div class="modal" id="tableModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">إدراج جدول</h2>
+          <button
+            class="close-modal"
+            onclick="UI.hide(document.getElementById('tableModal'))"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="form-group">
+          <label>عدد الصفوف</label>
+          <input
+            type="number"
+            min="1"
+            max="50"
+            value="3"
+            id="tblRows"
+            class="form-control"
+          />
+        </div>
+        <div class="form-group">
+          <label>عدد الأعمدة</label>
+          <input
+            type="number"
+            min="1"
+            max="20"
+            value="3"
+            id="tblCols"
+            class="form-control"
+          />
+        </div>
+        <div class="form-actions">
+          <button
+            class="btn btn-secondary"
+            onclick="UI.hide(document.getElementById('tableModal'))"
+          >
+            إلغاء
+          </button>
+          <button class="btn btn-primary" onclick="UI.createTable()">
+            إدراج
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div class="final-portfolio" id="finalPortfolio">
       <button class="close-portfolio" onclick="UI.closePreview()">
         &times;
@@ -1251,7 +1390,7 @@
               class="header-btn"
               type="button"
               onclick="UI.exportZIP()"
-              title="حزمة ZIP (للنشر): يجمع الصفحة النهائية وكل الوسائط ضمن مجلد assets"
+              title="حزمة ZIP (للنشر)"
               aria-label="حزمة ZIP (للنشر)"
             >
               حزمة ZIP (للنشر)
@@ -1260,7 +1399,7 @@
               class="header-btn export"
               type="button"
               onclick="UI.exportHTML()"
-              title="تصدير HTML (ملف واحد): مناسب للمشاركة السريعة"
+              title="تصدير HTML (ملف واحد)"
               aria-label="تصدير HTML (ملف واحد)"
             >
               تصدير HTML
@@ -1278,12 +1417,10 @@
       <span id="notificationMessage"></span>
     </div>
 
-    <!-- مكوّن تذييل جاهز -->
     <footer class="footer" dir="rtl">
       <div class="line">
-        <span>برمجة: أ/فاطمة هزازي، أ/عبدالعزيز العبدالجبار</span>
-        <span class="sep">•</span>
-        <span>باستخدام</span>
+        <span>برمجة: أ/فاطمة هزازي، أ/عبدالعزيز العبدالجبار</span
+        ><span class="sep">•</span><span>باستخدام</span>
         <a href="https://chatgpt.com" target="_blank" rel="noopener noreferrer"
           >ChatGPT</a
         >
@@ -1299,8 +1436,7 @@
 
     <script>
       (function () {
-        // Error banner
-        window.onerror = function (msg, src, ln, col, err) {
+        window.onerror = function (msg) {
           const b = document.getElementById("jsError");
           b.textContent = "خطأ: " + msg;
           b.style.display = "block";
@@ -1327,11 +1463,10 @@
             footerText: "",
             logoData: "",
           },
-          blobMap: {},
-          mode: "insert",
-          replaceTarget: null,
           savedRange: null,
           linkContext: null,
+          currentCell: null,
+          pasteMode: "smart",
         };
 
         const el = {
@@ -1345,6 +1480,8 @@
           filePreview: document.getElementById("filePreview"),
           linkUrl: document.getElementById("linkUrl"),
           linkNewTab: document.getElementById("linkNewTab"),
+          tableBubble: document.getElementById("tableBubble"),
+          cellBgPicker: document.getElementById("cellBgPicker"),
         };
 
         function note(msg, type) {
@@ -1382,75 +1519,6 @@
           if (/^(https?:|mailto:|tel:)/i.test(t)) return t;
           return "https://" + t.replace(/^\/+/, "");
         }
-        function sanitizeHTML(html) {
-          try {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, "text/html");
-            const allowed = new Set([
-              "P",
-              "BR",
-              "B",
-              "STRONG",
-              "I",
-              "EM",
-              "U",
-              "A",
-              "UL",
-              "OL",
-              "LI",
-              "H1",
-              "H2",
-              "H3",
-            ]);
-            const walk = (root) => {
-              const nodes = [...root.querySelectorAll("*")];
-              nodes.forEach((n) => {
-                const tag = n.tagName;
-                if (!allowed.has(tag)) {
-                  const parent = n.parentNode;
-                  while (n.firstChild) parent.insertBefore(n.firstChild, n);
-                  parent.removeChild(n);
-                  return;
-                }
-                // strip attributes except href for A
-                [...n.attributes].forEach((a) => {
-                  if (!(tag === "A" && a.name.toLowerCase() === "href"))
-                    n.removeAttribute(a.name);
-                });
-                if (tag === "A") {
-                  const h = n.getAttribute("href") || "";
-                  n.setAttribute("href", sanitizeUrl(h));
-                }
-              });
-            };
-            walk(doc.body);
-            return doc.body.innerHTML;
-          } catch (_) {
-            return html;
-          }
-        }
-        function closest(tag, node) {
-          while (node && node.nodeType === 1) {
-            if (node.tagName === tag) return node;
-            node = node.parentElement;
-          }
-          return null;
-        }
-        function unwrapAnchor(a) {
-          const p = a.parentNode;
-          while (a.firstChild) p.insertBefore(a.firstChild, a);
-          p.removeChild(a);
-        }
-        function wrapWithLink(node, url, newTab) {
-          const a = document.createElement("a");
-          a.href = url;
-          if (newTab) {
-            a.target = "_blank";
-            a.rel = "noopener noreferrer";
-          }
-          node.parentNode.insertBefore(a, node);
-          a.appendChild(node);
-        }
 
         function applySettings() {
           el.editor.style.setProperty(
@@ -1469,14 +1537,13 @@
           );
         }
 
-        // Local storage persistence
-        const STORAGE_KEY = "portfolio_v34";
+        const STORAGE_KEY = "portfolio_v36";
         function saveToStorage() {
           try {
             const a = state.tabs.find((x) => x.id === state.activeTabId);
             if (a) a.content = el.editor.innerHTML;
             const data = {
-              version: "3.4",
+              version: "3.6",
               tabs: state.tabs,
               settings: state.settings,
               portfolio: state.portfolio,
@@ -1505,7 +1572,6 @@
           }
         }
 
-        // Helpers for modern selection editing
         function ensureRangeInEditor() {
           const sel = window.getSelection();
           if (
@@ -1524,346 +1590,6 @@
           }
           return sel.getRangeAt(0);
         }
-
-        function wrapRange(range, tag, styles) {
-          const w = document.createElement(tag || "span");
-          if (styles) Object.assign(w.style, styles);
-          const content = range.extractContents();
-          w.appendChild(content);
-          range.insertNode(w);
-          range.setStartAfter(w);
-          range.collapse(true);
-          const sel = window.getSelection();
-          sel.removeAllRanges();
-          sel.addRange(range);
-          return w;
-        }
-
-        function unwrap(elm) {
-          if (!elm || !elm.parentNode) return;
-          const p = elm.parentNode;
-          while (elm.firstChild) p.insertBefore(elm.firstChild, elm);
-          p.removeChild(elm);
-        }
-
-        function closestTag(tag, node) {
-          while (node && node.nodeType === 1) {
-            if (node.tagName === tag) return node;
-            node = node.parentElement;
-          }
-          return null;
-        }
-
-        function toggleInlineTag(tag) {
-          const range = ensureRangeInEditor();
-          const startEl =
-            range.startContainer.nodeType === 1
-              ? range.startContainer
-              : range.startContainer.parentElement;
-          const anc = closestTag(tag.toUpperCase(), startEl);
-          if (anc && anc.contains(range.endContainer)) {
-            unwrap(anc);
-            return;
-          }
-          if (range.collapsed) {
-            const w = document.createElement(tag);
-            w.appendChild(document.createTextNode("\u200B"));
-            range.insertNode(w);
-            range.setStart(w.firstChild, 1);
-            range.collapse(true);
-            const sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(range);
-            return;
-          }
-          wrapRange(range, tag);
-        }
-
-        function setBlockFormat(tag) {
-          const range = ensureRangeInEditor();
-          const editorEl = el.editor;
-          // apply to each top-level block touched by selection (simple pass)
-          const blocks = new Set();
-          const walker = document.createTreeWalker(
-            editorEl,
-            NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT,
-            {
-              acceptNode(node) {
-                if (node.nodeType === 3 && !node.textContent.trim())
-                  return NodeFilter.FILTER_SKIP;
-                const r = range;
-                const nodeRange = document.createRange();
-                nodeRange.selectNode(node);
-                if (
-                  r.compareBoundaryPoints(Range.END_TO_START, nodeRange) >= 0 ||
-                  r.compareBoundaryPoints(Range.START_TO_END, nodeRange) <= 0
-                ) {
-                  return NodeFilter.FILTER_SKIP;
-                }
-                let cur = node.nodeType === 1 ? node : node.parentElement;
-                while (
-                  cur &&
-                  cur !== editorEl &&
-                  !/^P|DIV|H[1-6]|LI$/i.test(cur.tagName)
-                )
-                  cur = cur.parentElement;
-                if (cur && cur !== editorEl) blocks.add(cur);
-                return NodeFilter.FILTER_SKIP;
-              },
-            }
-          );
-          while (walker.nextNode()) {}
-          if (blocks.size === 0) {
-            // fallback to current block
-            let b =
-              range.startContainer.nodeType === 1
-                ? range.startContainer
-                : range.startContainer.parentElement;
-            while (b && b !== editorEl && !/^P|DIV|H[1-6]$/i.test(b.tagName))
-              b = b.parentElement;
-            if (b && b !== editorEl) blocks.add(b);
-          }
-          blocks.forEach((b) => {
-            if (!b.parentNode) return;
-            const nb = document.createElement(tag);
-            nb.innerHTML = b.innerHTML;
-            b.parentNode.replaceChild(nb, b);
-          });
-        }
-
-        function setTextAlign(dir) {
-          const range = ensureRangeInEditor();
-          let b =
-            range.startContainer.nodeType === 1
-              ? range.startContainer
-              : range.startContainer.parentElement;
-          while (b && b !== el.editor && !/^P|DIV|H[1-6]$/i.test(b.tagName))
-            b = b.parentElement;
-          if (!b || b === el.editor) return;
-          b.style.textAlign =
-            dir === "right" ? "right" : dir === "center" ? "center" : "left";
-        }
-
-        // Lists via Range/Selection
-        function getBlockAncestor(node) {
-          while (node && node !== el.editor) {
-            if (node.nodeType === 1 && /^P|DIV|H[1-6]|LI$/i.test(node.tagName))
-              return node;
-            node = node.parentNode;
-          }
-          return null;
-        }
-        function getListAncestor(node) {
-          while (node && node !== el.editor) {
-            if (node.nodeType === 1 && /^(UL|OL)$/i.test(node.tagName))
-              return node;
-            node = node.parentNode;
-          }
-          return null;
-        }
-        function collectBlocksInRange(range) {
-          const set = new Set();
-          if (range.collapsed) {
-            const b = getBlockAncestor(range.startContainer);
-            if (b) set.add(b);
-            return Array.from(set);
-          }
-          const walker = document.createTreeWalker(
-            el.editor,
-            NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT,
-            {
-              acceptNode(node) {
-                const r = range;
-                const nr = document.createRange();
-                nr.selectNode(node);
-                if (
-                  r.compareBoundaryPoints(Range.END_TO_START, nr) >= 0 ||
-                  r.compareBoundaryPoints(Range.START_TO_END, nr) <= 0
-                ) {
-                  return NodeFilter.FILTER_SKIP;
-                }
-                const b = getBlockAncestor(node);
-                if (b) set.add(b);
-                return NodeFilter.FILTER_SKIP;
-              },
-            }
-          );
-          while (walker.nextNode()) {}
-          return Array.from(set);
-        }
-        function unwrapList(list) {
-          const parent = list.parentNode;
-          const items = [...list.children];
-          items.forEach((li) => {
-            const p = document.createElement("p");
-            p.innerHTML = li.innerHTML;
-            parent.insertBefore(p, list);
-          });
-          parent.removeChild(list);
-        }
-        function replaceListTag(list, newTag) {
-          const nl = document.createElement(newTag);
-          while (list.firstChild) {
-            nl.appendChild(list.firstChild);
-          }
-          list.parentNode.replaceChild(nl, list);
-          return nl;
-        }
-        function wrapBlocksInList(blocks, tag) {
-          if (!blocks.length) return;
-          const list = document.createElement(tag);
-          const first = blocks[0];
-          first.parentNode.insertBefore(list, first);
-          blocks.forEach((b) => {
-            const li = document.createElement("li");
-            li.innerHTML = b.innerHTML;
-            list.appendChild(li);
-            b.parentNode.removeChild(b);
-          });
-        }
-        function toggleList(tag) {
-          const r = ensureRangeInEditor();
-          const blocks = collectBlocksInRange(r);
-          if (blocks.length === 0) return;
-          const lists = blocks.map((b) => getListAncestor(b)).filter(Boolean);
-          const sameList =
-            lists.length && lists.every((x) => x === lists[0])
-              ? lists[0]
-              : null;
-          if (sameList) {
-            if (sameList.tagName.toLowerCase() !== tag) {
-              replaceListTag(sameList, tag);
-            } else {
-              unwrapList(sameList);
-            }
-            return;
-          }
-          wrapBlocksInList(blocks, tag);
-        }
-
-        function renderTabs() {
-          el.tabsContainer.innerHTML = "";
-          state.tabs.forEach((t) => {
-            const b = document.createElement("button");
-            b.className = "tab " + (t.id === state.activeTabId ? "active" : "");
-            b.type = "button";
-            b.innerHTML = `<span>${t.title}</span><div class="tab-actions"><button class="tab-btn" onclick="event.stopPropagation(); UI.renameTab('${t.id}')">✎</button><button class="tab-btn" onclick="event.stopPropagation(); UI.duplicateTab('${t.id}')">⧉</button></div>`;
-            b.onclick = () => UI.setActiveTab(t.id);
-            el.tabsContainer.appendChild(b);
-          });
-        }
-
-        function makeEmbedHTML({
-          fType,
-          src,
-          name,
-          caption,
-          downloadHref,
-          origin,
-        }) {
-          const eid = id();
-          let inner = "";
-          if (fType === "image") {
-            inner = `<div class="embed-media resizable-x" style="width:100%"><img src="${src}" alt="${esc(
-              caption || name || "صورة"
-            )}" /></div>`;
-          } else if (fType === "video") {
-            inner = `<div class="embed-media resizable-both" style="width:100%;height:360px"><video src="${src}" controls></video></div>`;
-          } else if (fType === "pdf") {
-            inner = `<div class="embed-media resizable-both" style="width:100%;height:500px"><iframe src="${src}"></iframe></div>`;
-          } else if (["word", "excel", "powerpoint"].includes(fType)) {
-            inner = `<div class="embed-media resizable-both" style="width:100%;height:500px"><iframe src="${src}"></iframe></div>`;
-          } else {
-            inner = `<div class="embed-media resizable-x" style="width:100%"><p><strong>${esc(
-              caption || name || "ملف مرفق"
-            )}</strong></p></div>`;
-          }
-          const d = downloadHref
-            ? `<a href="${downloadHref}" download class="download-link">تحميل</a>`
-            : "";
-          return `<div class="embed-container" contenteditable="false" data-embed-id="${eid}" data-type="${fType}" data-origin="${
-            origin || ""
-          }" data-name="${esc(name || "")}">
-      <div class="embed-actions">
-        <button class="embed-btn" aria-label="تعديل الوصف" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'edit')">✎</button>
-        <button class="embed-btn" aria-label="استبدال الوسائط" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'replace')">🔁</button>
-        <button class="embed-btn" aria-label="ربط الوسائط" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'link')">🔗</button>
-        <button class="embed-btn" aria-label="فك الرابط" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'unlink')">⛓️</button>
-        <button class="embed-btn" aria-label="تصغير" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'smaller')">−</button>
-        <button class="embed-btn" aria-label="تكبير" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'bigger')">+</button>
-        <button class="embed-btn" aria-label="ملاءمة العرض" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'fit')">100%</button>
-        <button class="embed-btn" aria-label="تعيين العرض" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'setwidth')">↔</button>
-        <button class="embed-btn" aria-label="تعيين الارتفاع" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'setheight')">↕</button>
-        <button class="embed-btn" aria-label="حذف" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'remove')">🗑</button>
-      </div>
-      ${inner}
-      <div class="embed-caption" contenteditable="true" data-placeholder="أدخل وصفًا...">${esc(
-        caption || ""
-      )}</div>
-      ${d}
-    </div>`;
-        }
-
-        function upgradeEmbeds(scope) {
-          scope.querySelectorAll(".embed-container").forEach((c) => {
-            if (!c.querySelector(".embed-actions")) {
-              const bar = document.createElement("div");
-              bar.className = "embed-actions";
-              bar.innerHTML = `
-          <button class="embed-btn" aria-label="تعديل الوصف" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'edit')">✎</button>
-          <button class="embed-btn" aria-label="استبدال الوسائط" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'replace')">🔁</button>
-          <button class="embed-btn" aria-label="ربط الوسائط" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'link')">🔗</button>
-          <button class="embed-btn" aria-label="فك الرابط" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'unlink')">⛓️</button>
-          <button class="embed-btn" aria-label="تصغير" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'smaller')">−</button>
-          <button class="embed-btn" aria-label="تكبير" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'bigger')">+</button>
-          <button class="embed-btn" aria-label="ملاءمة العرض" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'fit')">100%</button>
-          <button class="embed-btn" aria-label="تعيين العرض" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'setwidth')">↔</button>
-          <button class="embed-btn" aria-label="تعيين الارتفاع" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'setheight')">↕</button>
-          <button class="embed-btn" aria-label="حذف" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'remove')">🗑</button>`;
-              c.insertBefore(bar, c.firstChild);
-            }
-            if (!c.querySelector(".embed-media")) {
-              const m = c.querySelector("img,video,iframe");
-              if (m) {
-                const wrap = document.createElement("div");
-                const isImg = m.tagName === "IMG";
-                wrap.className =
-                  "embed-media " + (isImg ? "resizable-x" : "resizable-both");
-                wrap.style.width = "100%";
-                m.style.width = isImg ? "100%" : "100%";
-                m.style.height = isImg ? "auto" : "100%";
-                m.parentNode.insertBefore(wrap, m);
-                wrap.appendChild(m);
-              }
-            }
-            c.setAttribute("contenteditable", "false");
-          });
-        }
-
-        function getFileType(name) {
-          const ext = (name.split(".").pop() || "").toLowerCase();
-          if (["jpg", "jpeg", "png", "gif", "webp", "bmp"].includes(ext))
-            return "image";
-          if (["mp4", "webm", "ogg", "mov", "avi"].includes(ext))
-            return "video";
-          if (ext === "pdf") return "pdf";
-          if (["doc", "docx"].includes(ext)) return "word";
-          if (["xls", "xlsx"].includes(ext)) return "excel";
-          if (["ppt", "pptx"].includes(ext)) return "powerpoint";
-          return "other";
-        }
-        function gdrive(url) {
-          return `https://drive.google.com/viewerng/viewer?embedded=true&url=${encodeURIComponent(
-            url
-          )}`;
-        }
-        function office(url) {
-          return (
-            "https://view.officeapps.live.com/op/embed.aspx?src=" +
-            encodeURIComponent(url)
-          );
-        }
-
         function saveSel() {
           const s = window.getSelection();
           if (s && s.rangeCount > 0 && el.editor.contains(s.anchorNode))
@@ -1875,8 +1601,7 @@
           if (!r) return;
           try {
             const c = r.commonAncestorContainer;
-            if (!document.contains(c) || !el.editor.contains(c))
-              throw new Error("stale range");
+            if (!document.contains(c) || !el.editor.contains(c)) throw 0;
             s.removeAllRanges();
             s.addRange(r);
           } catch (_) {
@@ -1884,48 +1609,259 @@
           }
         }
 
-        // NEW in v3.4 — يضمن وجود المؤشر داخل المحرّر قبل الإدراج
-        function ensureCaretInEditor() {
-          const sel = window.getSelection();
-          if (!sel || !sel.anchorNode || !el.editor.contains(sel.anchorNode)) {
-            el.editor.focus();
-            const r = document.createRange();
-            r.selectNodeContents(el.editor);
-            r.collapse(false); // إلى نهاية المحرّر
-            sel.removeAllRanges();
-            sel.addRange(r);
+        /* === جداول: أدوات === */
+        function getCellFromSelection() {
+          const s = window.getSelection();
+          if (!s || s.rangeCount === 0) return null;
+          let n = s.anchorNode;
+          if (n && n.nodeType === 3) n = n.parentElement;
+          while (n && n !== el.editor) {
+            if (n.tagName === "TD" || n.tagName === "TH") return n;
+            n = n.parentElement;
           }
+          return null;
+        }
+        function tableInfo(td) {
+          if (!td) return null;
+          const tr = td.parentElement;
+          const table = td.closest("table");
+          if (!table) return null;
+          const rows = [...table.rows];
+          const rIndex = tr.rowIndex;
+          const cells = [...tr.cells];
+          let cIndex = cells.indexOf(td);
+          return { table, tr, td, rows, rIndex, cIndex };
+        }
+        function showTableBubbleFor(td) {
+          if (!td) return hideTableBubble();
+          state.currentCell = td;
+          const cur = getComputedStyle(td).backgroundColor;
+          const hex = rgbToHex(cur) || "#ffffff";
+          if (el.cellBgPicker) el.cellBgPicker.value = hex;
+
+          const rect = td.getBoundingClientRect();
+          const host = el.editorWrapper.getBoundingClientRect();
+          const b = el.tableBubble;
+          b.style.top =
+            rect.top -
+            host.top +
+            el.editorWrapper.scrollTop -
+            b.offsetHeight -
+            8 +
+            "px";
+          b.style.left =
+            rect.left - host.left + el.editorWrapper.scrollLeft + "px";
+          b.style.display = "flex";
+        }
+        function hideTableBubble() {
+          el.tableBubble.style.display = "none";
+          state.currentCell = null;
+        }
+        function rgbToHex(rgb) {
+          const m = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(rgb || "");
+          if (!m) return null;
+          const r = Number(m[1]),
+            g = Number(m[2]),
+            b = Number(m[3]);
+          const to = (n) => ("0" + n.toString(16)).slice(-2);
+          return "#" + to(r) + to(g) + to(b);
         }
 
-        // Public API
+        /* === لصق ذكي (Word Tables) === */
+        function sanitizeHTMLBasic(html) {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, "text/html");
+          const allowed = new Set([
+            "P",
+            "BR",
+            "B",
+            "STRONG",
+            "I",
+            "EM",
+            "U",
+            "A",
+            "UL",
+            "OL",
+            "LI",
+            "H1",
+            "H2",
+            "H3",
+          ]);
+          doc.body.querySelectorAll("*").forEach((n) => {
+            const tag = n.tagName;
+            if (!allowed.has(tag)) {
+              const p = n.parentNode;
+              while (n.firstChild) p.insertBefore(n.firstChild, n);
+              p.removeChild(n);
+              return;
+            }
+            [...n.attributes].forEach((a) => {
+              if (!(tag === "A" && a.name.toLowerCase() === "href"))
+                n.removeAttribute(a.name);
+            });
+            if (tag === "A") {
+              const h = n.getAttribute("href") || "";
+              n.setAttribute("href", sanitizeUrl(h));
+            }
+          });
+          doc.body.innerHTML = doc.body.innerHTML.replace(
+            /<\/?o:p[^>]*>/gi,
+            ""
+          );
+          return doc.body.innerHTML;
+        }
+
+        function sanitizeTablesHTML(html) {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, "text/html");
+
+          const allowed = new Set([
+            "P",
+            "BR",
+            "B",
+            "STRONG",
+            "I",
+            "EM",
+            "U",
+            "A",
+            "UL",
+            "OL",
+            "LI",
+            "H1",
+            "H2",
+            "H3",
+            "TABLE",
+            "TBODY",
+            "THEAD",
+            "TR",
+            "TD",
+            "TH",
+            "CAPTION",
+            "COLGROUP",
+            "COL",
+          ]);
+
+          const keepAttrsPerTag = {
+            A: ["href"],
+            TD: ["rowspan", "colspan", "style"],
+            TH: ["rowspan", "colspan", "style"],
+            TABLE: ["style"],
+            P: ["style"],
+            H1: ["style"],
+            H2: ["style"],
+            H3: ["style"],
+            LI: ["style"],
+          };
+
+          const allowStyles = (el) => {
+            const tag = el.tagName;
+            const raw = (el.getAttribute("style") || "").toLowerCase();
+            if (!raw) {
+              el.removeAttribute("style");
+              return;
+            }
+
+            const map = {};
+            raw.split(";").forEach((part) => {
+              const kv = part.split(":");
+              if (kv.length < 2) return;
+              const k = kv[0].trim(),
+                v = kv.slice(1).join(":").trim();
+              if (!k) return;
+              map[k] = v;
+            });
+
+            const out = [];
+            if (tag === "TD" || tag === "TH") {
+              if (map["background"])
+                out.push("background-color:" + map["background"]);
+              if (map["background-color"])
+                out.push("background-color:" + map["background-color"]);
+              if (map["text-align"])
+                out.push("text-align:" + map["text-align"]);
+              if (map["vertical-align"])
+                out.push("vertical-align:" + map["vertical-align"]);
+            } else {
+              if (map["text-align"])
+                out.push("text-align:" + map["text-align"]);
+            }
+            if (out.length) el.setAttribute("style", out.join("; "));
+            else el.removeAttribute("style");
+          };
+
+          [...doc.body.querySelectorAll("*")].forEach((n) => {
+            const tag = n.tagName;
+
+            if (!allowed.has(tag)) {
+              const p = n.parentNode;
+              while (n.firstChild) p.insertBefore(n.firstChild, n);
+              p.removeChild(n);
+              return;
+            }
+
+            const keep = keepAttrsPerTag[tag] || [];
+            [...n.attributes].forEach((a) => {
+              const name = a.name.toLowerCase();
+              if (!keep.includes(a.name)) n.removeAttribute(a.name);
+              if (tag === "A" && name === "href") {
+                n.setAttribute(
+                  "href",
+                  sanitizeUrl(n.getAttribute("href") || "")
+                );
+              }
+            });
+
+            if (keep.includes("style")) allowStyles(n);
+
+            if (tag === "TABLE") {
+              n.className = "rte-table";
+              n.removeAttribute("border");
+              n.removeAttribute("cellpadding");
+              n.removeAttribute("cellspacing");
+            }
+          });
+
+          doc.body.innerHTML = doc.body.innerHTML
+            .replace(/<\/?o:p[^>]*>/gi, "")
+            .replace(/\sclass="?Mso[^"]*"?/gi, "")
+            .replace(/\smso-[^:]+:[^;"]+;?/gi, "");
+
+          if (!doc.body.querySelector("table")) return sanitizeHTMLBasic(html);
+          return doc.body.innerHTML;
+        }
+
+        /* === واجهة المستخدم === */
         window.UI = {
           show,
           hide,
           note,
+          setPasteMode: (m) => {
+            state.pasteMode = m === "plain" ? "plain" : "smart";
+            note(
+              "تم اختيار اللصق: " +
+                (state.pasteMode === "smart" ? "ذكي" : "نصي")
+            );
+          },
           exec: (cmd) => {
-            const c = (cmd || "").toLowerCase();
-            if (c === "bold" || c === "italic" || c === "underline") {
-              toggleInlineTag(c === "bold" ? "b" : c === "italic" ? "i" : "u");
-            } else if (c === "insertunorderedlist") {
-              toggleList("ul");
-            } else if (c === "insertorderedlist") {
-              toggleList("ol");
-            } else if (c === "justifyright") {
-              setTextAlign("right");
-            } else if (c === "justifycenter") {
-              setTextAlign("center");
-            } else if (c === "justifyleft") {
-              setTextAlign("left");
-            } else {
-              try {
-                document.execCommand(cmd, false, null);
-              } catch (_) {}
-            }
-            el.editor.focus();
+            try {
+              ensureRangeInEditor();
+              document.execCommand(cmd, false, null);
+              el.editor.focus();
+              saveToStorage();
+            } catch (_) {}
           },
           format: (tag) => {
-            setBlockFormat(tag);
+            ensureRangeInEditor();
+            const block = tag.toLowerCase() === "p" ? "P" : tag.toUpperCase();
+            try {
+              document.execCommand("formatBlock", false, "<" + block + ">");
+            } catch (_) {
+              try {
+                document.execCommand("formatBlock", false, block);
+              } catch (__) {}
+            }
             el.editor.focus();
+            saveToStorage();
           },
           font: (d) => {
             state.settings.editorFontSize = Math.max(
@@ -1936,21 +1872,12 @@
             saveToStorage();
           },
           color: (val) => {
-            const range = ensureRangeInEditor();
-            if (range.collapsed) {
-              const w = document.createElement("span");
-              w.style.color = val;
-              w.appendChild(document.createTextNode("\u200B"));
-              range.insertNode(w);
-              range.setStart(w.firstChild, 1);
-              range.collapse(true);
-              const s = window.getSelection();
-              s.removeAllRanges();
-              s.addRange(range);
-            } else {
-              wrapRange(range, "span", { color: val });
-            }
+            ensureRangeInEditor();
+            try {
+              document.execCommand("foreColor", false, val);
+            } catch (_) {}
             el.editor.focus();
+            saveToStorage();
           },
           setEditorBg: (v) => {
             state.settings.editorBg = v;
@@ -1994,6 +1921,7 @@
             upgradeEmbeds(el.editor);
             renderTabs();
             saveToStorage();
+            hideTableBubble();
           },
           renameTab: (tid) => {
             const t = state.tabs.find((x) => x.id === tid);
@@ -2038,7 +1966,7 @@
             )
               return;
             try {
-              localStorage.removeItem("portfolio_v34");
+              localStorage.removeItem(STORAGE_KEY);
             } catch (_) {}
             state.tabs = [{ id: id(), title: "الغلاف", content: "" }];
             state.activeTabId = null;
@@ -2061,15 +1989,13 @@
             note("تم بدء مشروع جديد");
           },
 
-          // Media
           openMedia: () => {
-            saveSel(); // مهم: نحفظ موضع المؤشر قبل فتح النافذة
+            saveSel();
             state.mode = "insert";
             state.replaceTarget = null;
             document.getElementById("mediaModalTitle").textContent =
               "إدراج وسائط";
             UI.toggleMediaType("upload");
-            // إعادة تعيين الحقول قبل الفتح
             const fInp = document.getElementById("mediaFile");
             if (fInp) fInp.value = "";
             el.filePreview.innerHTML = "";
@@ -2094,172 +2020,8 @@
             document.getElementById("urlFileSection").style.display =
               t === "url" ? "block" : "none";
           },
+          insertMedia: insertMediaImpl,
 
-          insertMedia: () => {
-            const caption = (
-              document.getElementById("mediaCaption").value || ""
-            ).trim();
-            let html = "";
-            if (state.mediaType === "upload") {
-              const inp = document.getElementById("mediaFile");
-              if (!inp.files || !inp.files[0])
-                return note("اختر ملفًا", "error");
-              const f = inp.files[0];
-              const t = getFileType(f.name || "");
-              const url = URL.createObjectURL(f);
-              const useType = ["image", "video", "pdf"].includes(t)
-                ? t
-                : "other";
-              html = makeEmbedHTML({
-                fType: useType,
-                src: url,
-                name: f.name,
-                caption,
-                downloadHref: url,
-                origin: "upload",
-              });
-            } else {
-              const url = (
-                document.getElementById("mediaUrl").value || ""
-              ).trim();
-              if (!url) return note("أدخل الرابط", "error");
-              let t = document.getElementById("fileType").value;
-              if (t === "auto") {
-                const fake = url.split("?")[0].split("#")[0];
-                t = getFileType(fake);
-              }
-              let preview = url;
-              if (["word", "excel", "powerpoint"].includes(t))
-                preview = office(url);
-              html = makeEmbedHTML({
-                fType: t,
-                src: preview,
-                name: url.split("/").pop(),
-                caption,
-                downloadHref: url,
-                origin: "url",
-              });
-            }
-
-            // استبدال عنصر موجود؟
-            if (state.mode === "replace" && state.replaceTarget) {
-              state.replaceTarget.outerHTML = html;
-              state.mode = "insert";
-              state.replaceTarget = null;
-              hide(document.getElementById("mediaModal"));
-              note("تم الاستبدال");
-              upgradeEmbeds(el.editor);
-              return;
-            }
-
-            // إعادة التحديد وضمان تركيز المؤشر داخل المحرّر ثم إدراج عبر Range
-            restoreSel();
-            ensureCaretInEditor();
-            const sel = window.getSelection();
-            if (sel && sel.rangeCount > 0) {
-              const r = sel.getRangeAt(0);
-              const frag = r.createContextualFragment(html);
-              r.deleteContents();
-              r.insertNode(frag);
-              r.collapse(false);
-              sel.removeAllRanges();
-              sel.addRange(r);
-            } else {
-              el.editor.insertAdjacentHTML("beforeend", html);
-            }
-
-            hide(document.getElementById("mediaModal"));
-            note("تم الإدراج");
-            upgradeEmbeds(el.editor);
-            saveToStorage();
-          },
-
-          // Embed actions
-          embedAction: (btn, action) => {
-            const cont = btn.closest(".embed-container");
-            const media = cont.querySelector(".embed-media");
-            if (action === "remove") {
-              cont.remove();
-              saveToStorage();
-              return note("تم الحذف");
-            }
-            if (action === "edit") {
-              const cap = cont.querySelector(".embed-caption");
-              const cur = (cap && cap.textContent.trim()) || "";
-              const v = prompt("حرّر الوصف:", cur);
-              if (v !== null) {
-                if (cap) cap.textContent = v;
-                const img = cont.querySelector("img");
-                if (img) img.alt = v || img.alt;
-                saveToStorage();
-              }
-              return note("تم التعديل");
-            }
-            if (action === "replace") {
-              state.mode = "replace";
-              state.replaceTarget = cont;
-              document.getElementById("mediaModalTitle").textContent =
-                "استبدال وسائط";
-              UI.toggleMediaType("upload");
-              show(document.getElementById("mediaModal"));
-              return;
-            }
-            if (action === "fit") {
-              media.style.width = "100%";
-              saveToStorage();
-              return note("العرض: 100%");
-            }
-            if (action === "smaller" || action === "bigger") {
-              const pw =
-                (cont.parentElement || el.editor).getBoundingClientRect()
-                  .width || 1;
-              const cw = media.getBoundingClientRect().width || 1;
-              let pct = Math.round((cw / pw) * 100);
-              pct += action === "bigger" ? 10 : -10;
-              pct = Math.max(20, Math.min(100, pct));
-              media.style.width = pct + "%";
-              saveToStorage();
-              return note("العرض: " + pct + "%");
-            }
-            if (action === "setwidth") {
-              let v = prompt("أدخل العرض (مثال: 70% أو 400px):", "80%");
-              if (!v) return;
-              v = v.trim();
-              if (!/%$|px$/.test(v)) v = v + "%";
-              media.style.width = v;
-              saveToStorage();
-              return note("تم ضبط العرض على " + v);
-            }
-            if (action === "setheight") {
-              let v = prompt("الارتفاع بالبكسل (مثال: 420):", "500");
-              if (!v) return;
-              v = v.replace(/[^0-9]/g, "");
-              if (!v) return;
-              media.style.height = v + "px";
-              const vf = media.querySelector("video,iframe");
-              if (vf) vf.style.height = "100%";
-              saveToStorage();
-              return note("تم ضبط الارتفاع على " + v + "px");
-            }
-            if (action === "link") {
-              state.linkContext = media;
-              document.getElementById("linkUrl").value = "";
-              document.getElementById("linkNewTab").checked = true;
-              show(document.getElementById("linkModal"));
-              return;
-            }
-            if (action === "unlink") {
-              const a = closest("A", media.parentElement);
-              if (a) {
-                unwrapAnchor(a);
-                saveToStorage();
-                note("تم فك الرابط");
-              }
-              return;
-            }
-          },
-
-          // Links
           openLinkModalForSelection: () => {
             state.linkContext = null;
             saveSel();
@@ -2288,451 +2050,889 @@
             }
             note("تم فك الرابط");
           },
-          confirmLink: () => {
-            const raw = document.getElementById("linkUrl").value || "";
-            const url = sanitizeUrl(raw);
-            if (!url) return note("أدخل رابطًا صحيحًا", "error");
-            const newTab = document.getElementById("linkNewTab").checked;
-            if (state.linkContext) {
-              const media = state.linkContext;
-              const existing = closest("A", media.parentElement);
-              if (existing) {
-                existing.setAttribute("href", url);
-                if (newTab) {
-                  existing.setAttribute("target", "_blank");
-                  existing.setAttribute("rel", "noopener noreferrer");
-                } else {
-                  existing.removeAttribute("target");
-                  existing.removeAttribute("rel");
-                }
-              } else {
-                wrapWithLink(media, url, newTab);
-              }
-              state.linkContext = null;
-              hide(document.getElementById("linkModal"));
-              saveToStorage();
-              return note("تم ربط الوسائط");
-            }
-            restoreSel();
-            const sel = window.getSelection();
-            if (sel && !sel.isCollapsed) {
-              const r = sel.getRangeAt(0);
-              const a = document.createElement("a");
-              a.href = url;
-              if (newTab) {
-                a.target = "_blank";
-                a.rel = "noopener noreferrer";
-              }
-              const contents = r.extractContents();
-              a.appendChild(contents);
-              r.insertNode(a);
-              r.selectNodeContents(a);
-              sel.removeAllRanges();
-              sel.addRange(r);
-              hide(document.getElementById("linkModal"));
-              saveToStorage();
-              return note("تم إنشاء الرابط");
-            }
-            note("حدّدي نصًا أو استخدمي زر 🔗 على الوسائط", "error");
-          },
+          confirmLink: confirmLinkImpl,
 
-          // Export / Import / Preview / PDF
-          exportProject: () => {
-            const a = state.tabs.find((x) => x.id === state.activeTabId);
-            if (a) a.content = el.editor.innerHTML;
-            const data = {
-              version: "3.4",
-              exportDate: new Date().toISOString(),
-              tabs: state.tabs,
-              settings: state.settings,
-              portfolio: state.portfolio,
-            };
-            const uri =
-              "data:application/json;charset=utf-8," +
-              encodeURIComponent(JSON.stringify(data, null, 2));
-            const link = document.createElement("a");
-            link.href = uri;
-            link.download = "ملف_الإنجاز_v3_4.json";
-            link.click();
-            note("تم التصدير");
+          exportProject,
+          importProject,
+          previewPortfolio,
+          showTab,
+          exportPDF,
+
+          openTableModal: () => {
+            saveSel();
+            show(document.getElementById("tableModal"));
           },
-          importProject: () => {
-            const input = document.createElement("input");
-            input.type = "file";
-            input.accept = ".json";
-            input.onchange = (e) => {
-              const f = e.target.files[0];
-              const r = new FileReader();
-              r.onload = (v) => {
-                try {
-                  const d = JSON.parse(v.target.result);
-                  if (d.tabs && Array.isArray(d.tabs)) {
-                    state.tabs = d.tabs;
-                    state.settings = d.settings || state.settings;
-                    state.portfolio = d.portfolio || state.portfolio;
-                    applySettings();
-                    // مزامنة أدوات الألوان مع الإعدادات
-                    const eb = document.getElementById("editorBgPicker");
-                    if (eb) eb.value = state.settings.editorBg || "#ffffff";
-                    const pb = document.getElementById("pageBgPicker");
-                    if (pb) pb.value = state.settings.pageBg || "#f5f7fb";
-                    UI.setActiveTab(state.tabs[0].id);
-                    note("تم الاستيراد");
-                  } else note("ملف غير صالح", "error");
-                } catch (err) {
-                  note("خطأ في قراءة الملف", "error");
-                }
-              };
-              r.readAsText(f);
-            };
-            input.click();
-          },
-          previewPortfolio: () => {
-            const a = state.tabs.find((x) => x.id === state.activeTabId);
-            if (a) a.content = el.editor.innerHTML;
-            document.getElementById("portfolioHeaderTitle").textContent =
-              (state.portfolio && state.portfolio.title) || "ملف الإنجاز";
-            UI.refreshPortfolioHeaderFooter();
-            UI.buildPortfolioSidebar();
-            state.tabs.forEach((t, i) => {
-              const link = document.createElement("a");
-              link.href = "#tab-" + i;
-              link.textContent = t.title;
-              Object.assign(link.style, {
-                display: "block",
-                padding: "8px 10px",
-                marginBottom: "5px",
-                color: "#333",
-                textDecoration: "none",
-                borderRadius: "5px",
-              });
-              link.onclick = (e) => {
-                e.preventDefault();
-                UI.showTab(i);
-              };
-              el.portfolioSidebar.appendChild(link);
-            });
-            el.portfolioContent.innerHTML = "";
-            state.tabs.forEach((t, i) => {
-              const w = document.createElement("div");
-              w.className = "tab-content";
-              w.id = "tab-" + i;
-              const h2 = document.createElement("h2");
-              h2.textContent = t.title;
-              Object.assign(h2.style, {
-                color: "var(--primary)",
-                borderBottom: "2px solid var(--primary)",
-                paddingBottom: "10px",
-                marginBottom: "20px",
-              });
-              const body = document.createElement("div");
-              body.innerHTML = t.content;
-              body
-                .querySelectorAll(".embed-actions")
-                .forEach((x) => x.remove());
-              w.appendChild(h2);
-              w.appendChild(body);
-              el.portfolioContent.appendChild(w);
-            });
-            const f = document.createElement("div");
-            f.className = "portfolio-footer";
-            f.id = "portfolioFooterBlock";
-            f.setAttribute("contenteditable", "true");
-            f.textContent =
-              (state.portfolio && state.portfolio.footerText) || "";
-            f.addEventListener("input", function () {
-              state.portfolio.footerText = f.textContent || "";
-              saveToStorage();
-            });
-            el.portfolioContent.appendChild(f);
-            // Update export buttons labels and tooltips in Arabic (runtime safe)
-            try {
-              var btnZip = document.querySelector(
-                '.final-portfolio .header-actions [onclick="UI.exportZIP()"]'
-              );
-              if (btnZip) {
-                btnZip.textContent =
-                  "\u062D\u0632\u0645\u0629 ZIP (\u0644\u0644\u0646\u0634\u0631)";
-                btnZip.setAttribute(
-                  "aria-label",
-                  "\u062D\u0632\u0645\u0629 ZIP (\u0644\u0644\u0646\u0634\u0631)"
-                );
-                if (!btnZip.getAttribute("title"))
-                  btnZip.setAttribute(
-                    "title",
-                    "\u064A\u062C\u0645\u0639 \u0627\u0644\u0635\u0641\u062D\u0629 \u0627\u0644\u0646\u0647\u0627\u0626\u064A\u0629 \u0648\u0643\u0644 \u0627\u0644\u0648\u0633\u0627\u0626\u0637 \u0636\u0645\u0646 \u0645\u062C\u0644\u062F assets"
-                  );
+          createTable: () => {
+            restoreSel();
+            ensureRangeInEditor();
+            const r = Math.max(
+              1,
+              Math.min(
+                50,
+                parseInt(document.getElementById("tblRows").value || "3", 10)
+              )
+            );
+            const c = Math.max(
+              1,
+              Math.min(
+                20,
+                parseInt(document.getElementById("tblCols").value || "3", 10)
+              )
+            );
+            const table = document.createElement("table");
+            table.className = "rte-table";
+            const tbody = document.createElement("tbody");
+            for (let i = 0; i < r; i++) {
+              const tr = document.createElement("tr");
+              for (let j = 0; j < c; j++) {
+                const td = document.createElement("td");
+                td.innerHTML = "";
+                tr.appendChild(td);
               }
-              var btnHtml = document.querySelector(
-                '.final-portfolio .header-actions [onclick="UI.exportHTML()"]'
-              );
-              if (btnHtml) {
-                btnHtml.textContent =
-                  "\u062A\u0635\u062F\u064A\u0631 HTML (\u0645\u0644\u0641 \u0648\u0627\u062D\u062F)";
-                btnHtml.setAttribute(
-                  "aria-label",
-                  "\u062A\u0635\u062F\u064A\u0631 HTML (\u0645\u0644\u0641 \u0648\u0627\u062D\u062F)"
-                );
-                if (!btnHtml.getAttribute("title"))
-                  btnHtml.setAttribute(
-                    "title",
-                    "\u0645\u0644\u0641 HTML \u0648\u0627\u062D\u062F: \u0645\u0646\u0627\u0633\u0628 \u0644\u0644\u0645\u0634\u0627\u0631\u0643\u0629 \u0627\u0644\u0633\u0631\u064A\u0639\u0629"
-                  );
-              }
-            } catch (_) {}
-            el.finalPortfolio.style.display = "block";
-            UI.showTab(0);
-          },
-          showTab: (i) => {
-            document
-              .querySelectorAll(".tab-content")
-              .forEach((t) => (t.style.display = "none"));
-            const s = document.getElementById("tab-" + i);
-            if (s) s.style.display = "block";
-            const links = el.portfolioSidebar.querySelectorAll("a");
-            links.forEach((a, idx) => {
-              a.style.backgroundColor = idx === i ? "#4361ee" : "transparent";
-              a.style.color = idx === i ? "#fff" : "#333";
-            });
-          },
-          exportPDF: () => {
-            UI.previewPortfolio();
-            setTimeout(() => {
-              window.print();
-            }, 400);
+              tbody.appendChild(tr);
+            }
+            table.appendChild(tbody);
+            const sel = window.getSelection();
+            const range = sel.getRangeAt(0);
+            range.deleteContents();
+            range.insertNode(table);
+            range.setStart(table.rows[0].cells[0], 0);
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+            hide(document.getElementById("tableModal"));
+            saveToStorage();
+            note("تم إدراج جدول");
           },
         };
 
-        /* UI.exportHTML = async function () {
+        function renderTabs() {
+          el.tabsContainer.innerHTML = "";
+          state.tabs.forEach((t) => {
+            const b = document.createElement("button");
+            b.className = "tab " + (t.id === state.activeTabId ? "active" : "");
+            b.type = "button";
+            b.innerHTML = `<span>${t.title}</span><div class="tab-actions"><button class="tab-btn" onclick="event.stopPropagation(); UI.renameTab('${t.id}')">✎</button><button class="tab-btn" onclick="event.stopPropagation(); UI.duplicateTab('${t.id}')">⧉</button></div>`;
+            b.onclick = () => UI.setActiveTab(t.id);
+            el.tabsContainer.appendChild(b);
+          });
+          enableTabReorder();
+        }
+        function closest(tag, node) {
+          while (node && node.nodeType === 1) {
+            if (node.tagName === tag) return node;
+            node = node.parentElement;
+          }
+          return null;
+        }
+        function unwrapAnchor(a) {
+          const p = a.parentNode;
+          while (a.firstChild) p.insertBefore(a.firstChild, a);
+          p.removeChild(a);
+        }
+        function wrapWithLink(node, url, newTab) {
+          const a = document.createElement("a");
+          a.href = url;
+          if (newTab) {
+            a.target = "_blank";
+            a.rel = "noopener noreferrer";
+          }
+          node.parentNode.insertBefore(a, node);
+          a.appendChild(node);
+        }
+
+        function getFileType(name) {
+          const ext = (name.split(".").pop() || "").toLowerCase();
+          if (["jpg", "jpeg", "png", "gif", "webp", "bmp"].includes(ext))
+            return "image";
+          if (["mp4", "webm", "ogg", "mov", "avi"].includes(ext))
+            return "video";
+          if (ext === "pdf") return "pdf";
+          if (["doc", "docx"].includes(ext)) return "word";
+          if (["xls", "xlsx"].includes(ext)) return "excel";
+          if (["ppt", "pptx"].includes(ext)) return "powerpoint";
+          return "other";
+        }
+        function office(url) {
+          return (
+            "https://view.officeapps.live.com/op/embed.aspx?src=" +
+            encodeURIComponent(url)
+          );
+        }
+        function makeEmbedHTML({
+          fType,
+          src,
+          name,
+          caption,
+          downloadHref,
+          origin,
+        }) {
+          const eid = id();
+          let inner = "";
+          if (fType === "image") {
+            inner = `<div class="embed-media resizable-x" style="width:100%"><img src="${src}" alt="${esc(
+              caption || name || "صورة"
+            )}"/></div>`;
+          } else if (fType === "video") {
+            inner = `<div class="embed-media resizable-both" style="width:100%;height:360px"><video src="${src}" controls></video></div>`;
+          } else if (
+            fType === "pdf" ||
+            ["word", "excel", "powerpoint"].includes(fType)
+          ) {
+            inner = `<div class="embed-media resizable-both" style="width:100%;height:500px"><iframe src="${src}"></iframe></div>`;
+          } else {
+            inner = `<div class="embed-media resizable-x" style="width:100%"><p><strong>${esc(
+              caption || name || "ملف مرفق"
+            )}</strong></p></div>`;
+          }
+          const d = downloadHref
+            ? `<a href="${downloadHref}" download class="download-link">تحميل</a>`
+            : "";
+          return `<div class="embed-container" contenteditable="false" data-embed-id="${eid}" data-type="${fType}" data-origin="${
+            origin || ""
+          }" data-name="${esc(name || "")}">
+                  <div class="embed-actions">
+                    <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'edit')">✎</button>
+                    <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'replace')">🔁</button>
+                    <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'link')">🔗</button>
+                    <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'unlink')">⛓️</button>
+                    <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'smaller')">−</button>
+                    <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'bigger')">+</button>
+                    <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'fit')">100%</button>
+                    <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'setwidth')">↔</button>
+                    <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'setheight')">↕</button>
+                    <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'remove')">🗑</button>
+                  </div>
+                  ${inner}
+                  <div class="embed-caption" contenteditable="true" data-placeholder="أدخل وصفًا...">${esc(
+                    caption || ""
+                  )}</div>
+                  ${d}
+                </div>`;
+        }
+        function upgradeEmbeds(scope) {
+          scope.querySelectorAll(".embed-container").forEach((c) => {
+            if (!c.querySelector(".embed-actions")) {
+              const bar = document.createElement("div");
+              bar.className = "embed-actions";
+              bar.innerHTML = `<button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'edit')">✎</button>
+                      <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'replace')">🔁</button>
+                      <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'link')">🔗</button>
+                      <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'unlink')">⛓️</button>
+                      <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'smaller')">−</button>
+                      <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'bigger')">+</button>
+                      <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'fit')">100%</button>
+                      <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'setwidth')">↔</button>
+                      <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'setheight')">↕</button>
+                      <button class="embed-btn" onclick="event.preventDefault();event.stopPropagation();UI.embedAction(this,'remove')">🗑</button>`;
+              c.insertBefore(bar, c.firstChild);
+            }
+            if (!c.querySelector(".embed-media")) {
+              const m = c.querySelector("img,video,iframe");
+              if (m) {
+                const wrap = document.createElement("div");
+                const isImg = m.tagName === "IMG";
+                wrap.className =
+                  "embed-media " + (isImg ? "resizable-x" : "resizable-both");
+                wrap.style.width = "100%";
+                m.style.width = isImg ? "100%" : "100%";
+                m.style.height = isImg ? "auto" : "100%";
+                m.parentNode.insertBefore(wrap, m);
+                wrap.appendChild(m);
+              }
+            }
+            c.setAttribute("contenteditable", "false");
+          });
+        }
+
+        function insertMediaImpl() {
+          const caption = (
+            document.getElementById("mediaCaption").value || ""
+          ).trim();
+          let html = "";
+          if (state.mediaType === "upload") {
+            const inp = document.getElementById("mediaFile");
+            if (!inp.files || !inp.files[0]) return note("اختر ملفًا", "error");
+            const f = inp.files[0];
+            const t = getFileType(f.name || "");
+            const url = URL.createObjectURL(f);
+            const useType = ["image", "video", "pdf"].includes(t) ? t : "other";
+            html = makeEmbedHTML({
+              fType: useType,
+              src: url,
+              name: f.name,
+              caption,
+              downloadHref: url,
+              origin: "upload",
+            });
+          } else {
+            const url = (
+              document.getElementById("mediaUrl").value || ""
+            ).trim();
+            if (!url) return note("أدخل الرابط", "error");
+
+            let t = document.getElementById("fileType").value;
+            if (t === "auto") {
+              const fake = url.split("?")[0].split("#")[0];
+              t = getFileType(fake);
+            }
+
+            let preview = url;
+            if (["word", "excel", "powerpoint"].includes(t))
+              preview = office(url);
+
+            html = makeEmbedHTML({
+              fType: t,
+              src: preview,
+              name: url.split("/").pop(),
+              caption: caption, // أو اتركها caption فقط إن أردت الاختصار
+              downloadHref: url, // ← كانت خطأ: downloadHref=url
+              origin: "url",
+            });
+          }
+
+          restoreSel();
+          ensureRangeInEditor();
+          const sel = window.getSelection();
+          if (sel && sel.rangeCount > 0) {
+            const r = sel.getRangeAt(0);
+            const frag = r.createContextualFragment(html);
+            r.deleteContents();
+            r.insertNode(frag);
+            r.collapse(false);
+            sel.removeAllRanges();
+            sel.addRange(r);
+          } else {
+            el.editor.insertAdjacentHTML("beforeend", html);
+          }
+          hide(document.getElementById("mediaModal"));
+          note("تم الإدراج");
+          upgradeEmbeds(el.editor);
+          saveToStorage();
+        }
+
+        function confirmLinkImpl() {
+          const raw = document.getElementById("linkUrl").value || "";
+          const url = sanitizeUrl(raw);
+          if (!url) return note("أدخل رابطًا صحيحًا", "error");
+          const newTab = document.getElementById("linkNewTab").checked;
+          if (state.linkContext) {
+            const media = state.linkContext;
+            const existing = closest("A", media.parentElement);
+            if (existing) {
+              existing.setAttribute("href", url);
+              if (newTab) {
+                existing.setAttribute("target", "_blank");
+                existing.setAttribute("rel", "noopener noreferrer");
+              } else {
+                existing.removeAttribute("target");
+                existing.removeAttribute("rel");
+              }
+            } else {
+              wrapWithLink(media, url, newTab);
+            }
+            state.linkContext = null;
+            UI.hide(document.getElementById("linkModal"));
+            saveToStorage();
+            return note("تم ربط الوسائط");
+          }
+          restoreSel();
+          const sel = window.getSelection();
+          if (sel && !sel.isCollapsed) {
+            const r = sel.getRangeAt(0);
+            const a = document.createElement("a");
+            a.href = url;
+            if (newTab) {
+              a.target = "_blank";
+              a.rel = "noopener noreferrer";
+            }
+            const contents = r.extractContents();
+            a.appendChild(contents);
+            r.insertNode(a);
+            r.selectNodeContents(a);
+            sel.removeAllRanges();
+            sel.addRange(r);
+            UI.hide(document.getElementById("linkModal"));
+            saveToStorage();
+            return note("تم إنشاء الرابط");
+          }
+          note("حدّدي نصًا أو استخدمي زر 🔗 على الوسائط", "error");
+        }
+
+        function exportProject() {
+          const a = state.tabs.find((x) => x.id === state.activeTabId);
+          if (a) a.content = el.editor.innerHTML;
+          const data = {
+            version: "3.6",
+            exportDate: new Date().toISOString(),
+            tabs: state.tabs,
+            settings: state.settings,
+            portfolio: state.portfolio,
+          };
+          const uri =
+            "data:application/json;charset=utf-8," +
+            encodeURIComponent(JSON.stringify(data, null, 2));
+          const link = document.createElement("a");
+          link.href = uri;
+          link.download = "ملف_الإنجاز_v3_6.json";
+          link.click();
+          note("تم التصدير");
+        }
+        function importProject() {
+          const input = document.createElement("input");
+          input.type = "file";
+          input.accept = ".json";
+          input.onchange = (e) => {
+            const f = e.target.files[0];
+            const r = new FileReader();
+            r.onload = (v) => {
+              try {
+                const d = JSON.parse(v.target.result);
+                if (d.tabs && Array.isArray(d.tabs)) {
+                  state.tabs = d.tabs;
+                  state.settings = d.settings || state.settings;
+                  state.portfolio = d.portfolio || state.portfolio;
+                  applySettings();
+                  const eb = document.getElementById("editorBgPicker");
+                  if (eb) eb.value = state.settings.editorBg || "#ffffff";
+                  const pb = document.getElementById("pageBgPicker");
+                  if (pb) pb.value = state.settings.pageBg || "#f5f7fb";
+                  UI.setActiveTab(state.tabs[0].id);
+                  note("تم الاستيراد");
+                } else note("ملف غير صالح", "error");
+              } catch (err) {
+                note("خطأ في قراءة الملف", "error");
+              }
+            };
+            r.readAsText(f);
+          };
+          input.click();
+        }
+        function previewPortfolio() {
+          const a = state.tabs.find((x) => x.id === state.activeTabId);
+          if (a) a.content = el.editor.innerHTML;
+          document.getElementById("portfolioHeaderTitle").textContent =
+            (state.portfolio && state.portfolio.title) || "ملف الإنجاز";
+          UI.refreshPortfolioHeaderFooter();
+          UI.buildPortfolioSidebar();
+          el.portfolioSidebar.innerHTML = "<h3>فهرس المحتويات</h3>";
+          state.tabs.forEach((t, i) => {
+            const link = document.createElement("a");
+            link.href = "#tab-" + i;
+            link.textContent = t.title;
+            link.onclick = (e) => {
+              e.preventDefault();
+              UI.showTab(i);
+            };
+            el.portfolioSidebar.appendChild(link);
+          });
+          el.portfolioContent.innerHTML = "";
+          state.tabs.forEach((t, i) => {
+            const w = document.createElement("div");
+            w.className = "tab-content";
+            w.id = "tab-" + i;
+            const h2 = document.createElement("h2");
+            h2.textContent = t.title;
+            Object.assign(h2.style, {
+              color: "var(--primary)",
+              borderBottom: "2px solid var(--primary)",
+              paddingBottom: "10px",
+              marginBottom: "20px",
+            });
+            const body = document.createElement("div");
+            body.innerHTML = t.content;
+            body.querySelectorAll(".embed-actions").forEach((x) => x.remove());
+            w.appendChild(h2);
+            w.appendChild(body);
+            el.portfolioContent.appendChild(w);
+          });
+          const f = document.createElement("div");
+          f.className = "portfolio-footer";
+          f.id = "portfolioFooterBlock";
+          f.setAttribute("contenteditable", "true");
+          f.textContent = (state.portfolio && state.portfolio.footerText) || "";
+          f.addEventListener("input", () => {
+            state.portfolio.footerText = f.textContent || "";
+            saveToStorage();
+          });
+          el.portfolioContent.appendChild(f);
+          el.finalPortfolio.style.display = "block";
+          UI.showTab(0);
+        }
+        // تنقّل بين أقسام المعاينة
+        function showTab(idx) {
+          // أظهر القسم المطلوب و أخفِ الباقي
+          document.querySelectorAll(".tab-content").forEach((sec, i) => {
+            sec.classList.toggle("active", i === idx);
+            // لمن يعتمد العرض/الإخفاء بـ style
+            sec.style.display = i === idx ? "" : "none";
+          });
+
+          // فعِّل الرابط الموافق داخل الفهرس
+          const sb = document.getElementById("portfolioSidebar");
+          if (sb) {
+            const links = [...sb.querySelectorAll('a[href^="#tab-"]')];
+            links.forEach((a, i) => a.classList.toggle("active", i === idx));
+          }
+
+          // ارجع لأعلى المحتوى
+          document
+            .querySelector(".portfolio-content")
+            ?.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        // ربط نقرات الفهرس بالعرض
+        (function bindTOCClicks() {
+          const sb = document.getElementById("portfolioSidebar");
+          if (!sb) return;
+          sb.addEventListener("click", (e) => {
+            const a = e.target.closest('a[href^="#tab-"]');
+            if (!a) return;
+            e.preventDefault();
+            const idx =
+              parseInt(a.getAttribute("href").split("-").pop(), 10) || 0;
+            showTab(idx);
+          });
+        })();
+        function exportPDF() {
+          UI.previewPortfolio();
+          setTimeout(() => {
+            window.print();
+          }, 400);
+        }
+
+        // ==== (B) تصدير صفحة واحدة (HTML) ====
+        UI.exportHTML = async function () {
           try {
-            const a = state.tabs.find((x) => x.id === state.activeTabId);
-            if (a) a.content = el.editor.innerHTML;
-            const container = document.createElement("div");
-            const header = document.createElement("div");
+            // احفظ محتوى التبويب الحالي
+            var active = state.tabs.find(function (x) {
+              return x.id === state.activeTabId;
+            });
+            if (active) active.content = el.editor.innerHTML;
+
+            // مساعد: blob/http -> dataURL
+            async function toDataURL(url) {
+              try {
+                var res = await fetch(url);
+                var blob = await res.blob();
+                return await new Promise(function (resolve) {
+                  var fr = new FileReader();
+                  fr.onload = function () {
+                    resolve(fr.result);
+                  };
+                  fr.readAsDataURL(blob);
+                });
+              } catch (e) {
+                return url; // fallback
+              }
+            }
+
+            // ابنِ الـ DOM النهائي مشابه للمعاينة
+            var container = document.createElement("div");
+
+            // رأس
+            var header = document.createElement("div");
             header.className = "portfolio-header";
             header.innerHTML =
               '<div class="portfolio-header-inner" dir="rtl">' +
-              '<img id="expLogo" class="portfolio-logo" alt="شعار" style="display:none"/>' +
-              '<div class="portfolio-titles"><h1>' +
-              ((state.portfolio && state.portfolio.title) || 'ملف الإنجاز') + 
-              "</h1>" +
-              '<div class="portfolio-subtitle">' +
-              (state.portfolio && state.portfolio.teacherName
-                ? (state.portfolio.teacherLabel || 'المعلم/ـة') +
-                  " / " +
-                  state.portfolio.teacherName
-                : "") +
-              "</div></div></div>";
-            container.appendChild(header); const lg=document.getElementById("expLogo"); if(state.portfolio && state.portfolio.logoData && lg){ lg.src=state.portfolio.logoData; lg.style.display="block"; }
-            state.tabs.forEach((t, i) => {
-              const w = document.createElement("div");
+              '<img id="expLogo" class="portfolio-logo" alt="شعار"/>' +
+              '<div class="portfolio-titles">' +
+              '<h1 id="expTitle"></h1>' +
+              '<div id="expSubtitle" class="portfolio-subtitle"></div>' +
+              "</div>" +
+              '<div class="header-actions">' +
+              '<button class="header-btn export" type="button" onclick="window.print()">طباعة</button>' +
+              "</div>" +
+              "</div>";
+            container.appendChild(header);
+
+            var sidebar = document.createElement("div");
+            sidebar.className = "portfolio-sidebar";
+            var contentRoot = document.createElement("div");
+            contentRoot.className = "portfolio-content";
+
+            // الفهرس + الأقسام
+            state.tabs.forEach(function (t, i) {
+              var link = document.createElement("a");
+              link.href = "#tab-" + i;
+              link.textContent = t.title;
+              sidebar.appendChild(link);
+
+              var w = document.createElement("div");
               w.className = "tab-content";
               w.id = "tab-" + i;
-              const h2 = document.createElement("h2");
+
+              var h2 = document.createElement("h2");
               h2.textContent = t.title;
-              Object.assign(h2.style, {
-                color: "var(--primary)",
-                borderBottom: "2px solid var(--primary)",
-                paddingBottom: "10px",
-                marginBottom: "20px",
+              h2.style.color = "var(--primary)";
+              h2.style.borderBottom = "2px solid var(--primary)";
+              h2.style.paddingBottom = "10px";
+              h2.style.marginBottom = "20px";
+
+              var body = document.createElement("div");
+              body.innerHTML = t.content || "";
+              var bars = body.querySelectorAll(".embed-actions");
+              bars.forEach(function (x) {
+                x.remove();
               });
-              const body = document.createElement("div");
-              body.innerHTML = t.content;
-              body
-                .querySelectorAll(".embed-actions")
-                .forEach((x) => x.remove());
+
               w.appendChild(h2);
               w.appendChild(body);
-              container.appendChild(w);
+              contentRoot.appendChild(w);
             });
-            const f = document.createElement("div");
+
+            // تذييل
+            var f = document.createElement("div");
             f.className = "portfolio-footer";
             f.textContent =
               (state.portfolio && state.portfolio.footerText) || "";
-            container.appendChild(f);
-            const imgs = container.querySelectorAll("img");
-            for (const img of imgs) {
-              if (img.src && img.src.startsWith("blob:")) {
-                const res = await fetch(img.src);
-                const blob = await res.blob();
-                img.src = await new Promise((resolve) => {
-                  const fr = new FileReader();
-                  fr.onload = () => resolve(fr.result);
-                  fr.readAsDataURL(blob);
-                });
+            contentRoot.appendChild(f);
+
+            container.appendChild(sidebar);
+            container.appendChild(contentRoot);
+
+            // عنوان/اسم/صفة/شعار
+            var expTitle = container.querySelector("#expTitle");
+            expTitle.textContent =
+              (state.portfolio && state.portfolio.title) || "ملف الإنجاز";
+            var expSubtitle = container.querySelector("#expSubtitle");
+            var nm = (state.portfolio && state.portfolio.teacherName) || "";
+            var label =
+              (state.portfolio && state.portfolio.teacherLabel) || "المعلم/ـة";
+            expSubtitle.textContent = nm ? label + " / " + nm : "";
+
+            var expLogo = container.querySelector("#expLogo");
+            var logoSrc = (state.portfolio && state.portfolio.logoData) || "";
+            if (!logoSrc) {
+              // أول صورة داخل التبويبات
+              for (var k = 0; k < state.tabs.length; k++) {
+                var tmp = document.createElement("div");
+                tmp.innerHTML = state.tabs[k].content || "";
+                var im = tmp.querySelector("img[src]");
+                if (im) {
+                  logoSrc = im.getAttribute("src");
+                  break;
+                }
               }
             }
-            const css = Array.from(document.querySelectorAll("style"))
-              .map((s) => s.innerHTML)
+            if (logoSrc) expLogo.setAttribute("src", logoSrc);
+
+            // حوّل كل blob → dataURL
+            var medias = container.querySelectorAll("img, video, iframe");
+            for (var i = 0; i < medias.length; i++) {
+              var m = medias[i];
+              var src = m.getAttribute("src") || "";
+              if (/^blob:/i.test(src)) {
+                var data = await toDataURL(src);
+                m.setAttribute("src", data);
+              }
+            }
+            // روابط التحميل داخل العناصر المضمّنة
+            var dlinks = container.querySelectorAll("a.download-link[href]");
+            for (var j = 0; j < dlinks.length; j++) {
+              var a = dlinks[j];
+              var href = a.getAttribute("href") || "";
+              if (/^blob:/i.test(href)) {
+                var data2 = await toDataURL(href);
+                a.setAttribute("href", data2);
+              }
+              if (!/^#/.test(a.getAttribute("href") || "")) {
+                a.setAttribute("target", "_blank");
+                a.setAttribute("rel", "noopener noreferrer");
+              }
+            }
+            // اضبط بقية الروابط الخارجية
+            var anchors = container.querySelectorAll("a[href]");
+            anchors.forEach(function (a) {
+              var href = a.getAttribute("href") || "";
+              if (!/^#/.test(href)) {
+                a.setAttribute("target", "_blank");
+                a.setAttribute("rel", "noopener noreferrer");
+              }
+            });
+
+            // CSS الحالي (يتضمن قواعد الطباعة)
+            var css = Array.prototype.map
+              .call(document.querySelectorAll("style"), function (s) {
+                return s.innerHTML;
+              })
               .join("\n");
-            const html =
-              '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>' +
-              ((state.portfolio && state.portfolio.title) || "ملف الإنجاز") +
-              "</title><style>" +
+            // سكربت صغير لتفعيل تبويب واحد مرئي + تمييز الفهرس
+            var navScript = [
+              "(function(){",
+              " function setActive(id){",
+              "  var secs=document.querySelectorAll('.tab-content');",
+              "  secs.forEach(function(s){ s.classList.remove('active'); });",
+              "  var el=document.getElementById(id); if(el){ el.classList.add('active'); }",
+              "  var links=document.querySelectorAll('.portfolio-sidebar a');",
+              "  links.forEach(function(a){ var on=(a.getAttribute('href')||'')==='#'+id; a.style.backgroundColor=on?'#4361ee':'transparent'; a.style.color=on?'#fff':'#333'; });",
+              " }",
+              " document.addEventListener('DOMContentLoaded', function(){",
+              "  var links=document.querySelectorAll('.portfolio-sidebar a[href^=\"#tab-\"]');",
+              "  links.forEach(function(a){ a.addEventListener('click', function(e){ e.preventDefault(); var id=(this.getAttribute('href')||'').slice(1); setActive(id); }); });",
+              "  if(links[0]){ var first=(links[0].getAttribute('href')||'').slice(1); setActive(first); }",
+              " });",
+              "})();",
+            ].join("");
+
+            var html =
+              '<!DOCTYPE html><html lang="ar" dir="rtl"><head>' +
+              '<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>' +
+              "<title>" +
+              (state.portfolio && state.portfolio.title
+                ? state.portfolio.title
+                : "ملف الإنجاز") +
+              "</title>" +
+              "<style>" +
               css +
               "</style></head><body>" +
               container.innerHTML +
+              "<script>" +
+              navScript.replace(/<\/script>/gi, "<\\/script>") +
+              "<\/script>" +
               "</body></html>";
-            const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-            const url = URL.createObjectURL(blob);
-            const ael = document.createElement("a");
+
+            var blob = new Blob([html], { type: "text/html;charset=utf-8" });
+            var url = URL.createObjectURL(blob);
+            var ael = document.createElement("a");
             ael.href = url;
-            ael.download = "النسخة_النهائية_ملف_الإنجاز.html";
+            ael.download = "ملف_الإنجاز_صفحة_واحدة.html";
             ael.click();
-            setTimeout(() => URL.revokeObjectURL(url), 1500);
-            note("تم تصدير HTML النهائي");
+            setTimeout(function () {
+              URL.revokeObjectURL(url);
+            }, 1500);
+            UI.note("تم تصدير صفحة واحدة بنجاح");
           } catch (err) {
-            note("تعذّر تصدير HTML", "error");
+            UI.note("تعذّر تصدير HTML", "error");
           }
-        }; */
+        };
 
-        // Export a standalone viewer with control panel and print (disabled old version)
-        /* UI.exportStandalone = async function () {
-          try {
-            const a = state.tabs.find((x) => x.id === state.activeTabId);
-            if (a) a.content = el.editor.innerHTML;
+        (function init() {
+          applySettings();
+          const eb = document.getElementById("editorBgPicker");
+          if (eb) eb.value = state.settings.editorBg || "#ffffff";
+          const pb = document.getElementById("pageBgPicker");
+          if (pb) pb.value = state.settings.pageBg || "#f5f7fb";
+          const loadedId = loadFromStorage();
+          renderTabs();
+          UI.setActiveTab(
+            loadedId && state.tabs.find((t) => t.id === loadedId)
+              ? loadedId
+              : state.tabs[0].id
+          );
 
-            const container = document.createElement("div");
-            const header = document.createElement("div");
-            header.className = "portfolio-header";
-            header.innerHTML =
-              '<div class="portfolio-header-inner" dir="rtl">' +
-              '<img id="expLogo" class="portfolio-logo" alt="شعار" style="display:none"/>' +
-              '<div class="portfolio-titles"><h1 id="expTitle">' +
-              ((state.portfolio && state.portfolio.title) || "ملف الإنجاز") +
-              '</h1><div id="expSubtitle" class="portfolio-subtitle"></div></div></div>';
-            container.appendChild(header);
+          ["mouseup", "keyup", "touchend"].forEach((ev) =>
+            el.editor.addEventListener(ev, saveSel)
+          );
 
-            state.tabs.forEach((t, i) => {
-              const w = document.createElement("div");
-              w.className = "tab-content";
-              w.id = "tab-" + i;
-              const h2 = document.createElement("h2");
-              h2.textContent = t.title;
-              Object.assign(h2.style, {
-                color: "var(--primary)",
-                borderBottom: "2px solid var(--primary)",
-                paddingBottom: "10px",
-                marginBottom: "20px",
-              });
-              const body = document.createElement("div");
-              body.innerHTML = t.content;
-              body.querySelectorAll(".embed-actions").forEach((x) => x.remove());
-              w.appendChild(h2);
-              w.appendChild(body);
-              container.appendChild(w);
+          el.editor.addEventListener(
+            "mousedown",
+            (e) => {
+              if (
+                e.target &&
+                e.target.closest &&
+                e.target.closest(".embed-actions")
+              ) {
+                e.preventDefault();
+              }
+            },
+            true
+          );
+
+          document
+            .getElementById("mediaFile")
+            .addEventListener("change", (e) => {
+              el.filePreview.innerHTML = "";
+              el.filePreview.style.display = "block";
+              if (!e.target.files || !e.target.files[0]) return;
+              el.filePreview.textContent = e.target.files[0].name;
             });
 
-            const f = document.createElement("div");
-            f.className = "portfolio-footer";
-            f.id = "portfolioFooterBlock";
-            f.textContent = (state.portfolio && state.portfolio.footerText) || "";
-            container.appendChild(f);
+          el.editor.addEventListener("input", () => {
+            const a = state.tabs.find((x) => x.id === state.activeTabId);
+            if (a) a.content = el.editor.innerHTML;
+            saveToStorage();
+          });
 
-            const imgs = container.querySelectorAll("img");
-            for (const img of imgs) {
-              if (img.src && img.src.startsWith("blob:")) {
-                const res = await fetch(img.src);
-                const blob = await res.blob();
-                img.src = await new Promise((resolve) => {
-                  const fr = new FileReader();
-                  fr.onload = () => resolve(fr.result);
-                  fr.readAsDataURL(blob);
-                });
+          /* ===== لصق: ذكي أو نصي ===== */
+          el.editor.addEventListener("paste", (e) => {
+            e.preventDefault();
+            const html =
+              (e.clipboardData && e.clipboardData.getData("text/html")) || "";
+            const txt =
+              (e.clipboardData && e.clipboardData.getData("text/plain")) || "";
+            let toInsert = "";
+            if (state.pasteMode === "plain") {
+              toInsert = esc(txt).replace(/\r?\n/g, "<br>");
+            } else {
+              if (html) {
+                if (
+                  /<table[\s\S]*?>/i.test(html) ||
+                  /class="?Mso|mso-/i.test(html)
+                ) {
+                  toInsert = sanitizeTablesHTML(html);
+                } else {
+                  toInsert = sanitizeHTMLBasic(html);
+                }
+              } else {
+                toInsert = esc(txt).replace(/\r?\n/g, "<br>");
               }
             }
+            ensureRangeInEditor();
+            const sel = window.getSelection();
+            if (sel && sel.rangeCount > 0) {
+              const r = sel.getRangeAt(0);
+              const frag = r.createContextualFragment(toInsert);
+              r.deleteContents();
+              r.insertNode(frag);
+              r.collapse(false);
+              sel.removeAllRanges();
+              sel.addRange(r);
+            }
+            upgradeEmbeds(el.editor);
+            saveToStorage();
+            note(
+              state.pasteMode === "smart" ? "تم اللصق (ذكي)" : "تم اللصق (نصي)"
+            );
+          });
 
-            const css = Array.from(document.querySelectorAll("style"))
-              .map((s) => s.innerHTML)
-              .join("\n");
-            const extra = `
-.standalone-container{display:flex;gap:16px;margin:16px}
-.control-panel{width:280px;background:#f0f2f5;padding:12px;border-radius:8px}
-.control-panel h3{margin:0 0 8px 0}
-.control-panel label{display:block;margin:6px 0 4px}
-.control-panel .form-control{width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;margin-bottom:6px}
-.control-panel .btn{padding:8px 12px;border:none;border-radius:6px;cursor:pointer;font-weight:600}
-.control-panel .btn-primary{background:var(--primary);color:#fff}
-.control-panel .btn-secondary{background:#e5e7eb;color:#111}
-.standalone-content{flex:1;background:var(--editor-print-bg);padding:16px;border-radius:8px}
-@media print{.control-panel{display:none}body{background:var(--page-print-bg)!important}}
-`;
+          /* سحب وإفلات للوسائط */
+          el.editor.addEventListener("dragover", (e) => e.preventDefault());
+          el.editor.addEventListener("drop", (e) => {
+            e.preventDefault();
+            const dt = e.dataTransfer;
+            if (!dt || !dt.files || !dt.files.length) return;
+            const files = [...dt.files];
+            ensureRangeInEditor();
+            const sel = window.getSelection();
+            const r = sel && sel.rangeCount > 0 ? sel.getRangeAt(0) : null;
+            files.forEach((f) => {
+              const t = getFileType(f.name || "");
+              const url = URL.createObjectURL(f);
+              const useType = ["image", "video", "pdf"].includes(t)
+                ? t
+                : "other";
+              const html = makeEmbedHTML({
+                fType: useType,
+                src: url,
+                name: f.name,
+                caption: "",
+                downloadHref: url,
+                origin: "upload",
+              });
+              if (r) {
+                const frag = r.createContextualFragment(html);
+                r.insertNode(frag);
+                r.collapse(false);
+                sel.removeAllRanges();
+                sel.addRange(r);
+              } else {
+                el.editor.insertAdjacentHTML("beforeend", html);
+              }
+            });
+            upgradeEmbeds(el.editor);
+            saveToStorage();
+          });
 
-            const html =
-              '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>' +
-              '<title>' +
-              ((state.portfolio && state.portfolio.title) || "ملف الإنجاز") +
-              '</title><style>' +
-              css +
-              '\n' +
-              extra +
-              '</style></head><body>' +
-              '<div class="standalone-container">' +
-              '<aside class="control-panel">' +
-              '<h3>لوحة التحكم</h3>' +
-              '<label>العنوان الرئيسي</label><input id="pfTitle" class="form-control" placeholder="مثال: ملف الإنجاز" />' +
-              '<label>الصفة</label><select id="pfLabel" class="form-control"><option>المعلم/ـة</option><option>المعلم</option><option>المعلمة</option></select>' +
-              '<label>الاسم</label><input id="pfName" class="form-control" placeholder="مثال: محمد علي" />' +
-              '<label>الشعار (صورة)</label><input id="pfLogoFile" type="file" accept=".png,.jpg,.jpeg,.webp,.gif" class="form-control" />' +
-              '<div style="display:flex;gap:6px;margin-bottom:6px"><input id="pfLogoUrl" class="form-control" placeholder="رابط الشعار (اختياري)"/><button id="pfLogoUrlBtn" class="btn btn-primary" type="button">تعيين</button></div>' +
-              '<div style="display:flex;gap:6px;margin-bottom:6px"><button id="pfLogoClear" class="btn btn-secondary" type="button">حذف الشعار</button><a id="pfLogoDownload" class="btn btn-secondary" href="#" download="logo.png" style="text-decoration:none;display:none">تحميل الشعار</a></div>' +
-              '<label>نص التذييل</label><textarea id="pfFooter" class="form-control" rows="3" placeholder="اكتب نص التذييل هنا"></textarea>' +
-              '<button id="printBtn" class="btn btn-primary" type="button" style="margin-top:6px">طباعة</button>' +
-              '</aside>' +
-              '<main class="standalone-content" id="contentRoot">' +
-              container.innerHTML +
-              '</main></div>' +
-              '<script>(function(){' +
-              'var state=' +
-              JSON.stringify({
-                title:
-                  (state.portfolio && state.portfolio.title) || "ملف الإنجاز",
-                teacherName: (state.portfolio && state.portfolio.teacherName) || "",
-                teacherLabel: (state.portfolio && state.portfolio.teacherLabel) || "المعلم/ـة",
-                footerText: (state.portfolio && state.portfolio.footerText) || "",
-                logoData: (state.portfolio && state.portfolio.logoData) || "",
-              }) +
-              ';' +
-              'function refresh(){var t=document.getElementById("expTitle");if(t) t.textContent=state.title||"ملف الإنجاز";var s=document.getElementById("expSubtitle");if(s) s.textContent=state.teacherName?((state.teacherLabel||"المعلم/ـة")+" / "+state.teacherName):"";var l=document.getElementById("expLogo");if(l){if(state.logoData){l.src=state.logoData;l.style.display="block";}else{l.style.display="none";}}var fb=document.getElementById("portfolioFooterBlock");if(fb) fb.textContent=state.footerText||"";var d=document.getElementById("pfLogoDownload");if(d){if(state.logoData){d.href=state.logoData;d.style.display="inline-block";}else{d.style.display="none";}}}' +
-              'function save(){try{localStorage.setItem("portfolio_standalone",JSON.stringify(state));}catch(e){}}' +
-              'function load(){try{var raw=localStorage.getItem("portfolio_standalone");if(!raw) return;var obj=JSON.parse(raw);if(obj&&typeof obj==="object"){Object.assign(state,obj);}}catch(e){}}' +
-              'function setLogoFile(f){var fr=new FileReader();fr.onload=function(){state.logoData=fr.result;refresh();save();};fr.readAsDataURL(f);}' +
-              'document.getElementById("pfTitle").addEventListener("input",function(){state.title=this.value||"";refresh();save();});' +
-              'document.getElementById("pfName").addEventListener("input",function(){state.teacherName=this.value||"";refresh();save();});' +
-              'document.getElementById("pfLabel").addEventListener("change",function(){state.teacherLabel=this.value||"المعلم/ـة";refresh();save();});' +
-              'document.getElementById("pfFooter").addEventListener("input",function(){state.footerText=this.value||"";refresh();save();});' +
-              'var f=document.getElementById("pfLogoFile");if(f) f.addEventListener("change",function(e){if(e.target.files&&e.target.files[0]) setLogoFile(e.target.files[0]);});' +
-              'var ub=document.getElementById("pfLogoUrlBtn");if(ub) ub.addEventListener("click",function(){var u=document.getElementById("pfLogoUrl").value.trim();if(u){state.logoData=u;refresh();save();}});' +
-              'var cb=document.getElementById("pfLogoClear");if(cb) cb.addEventListener("click",function(){state.logoData="";refresh();save();});' +
-              'document.getElementById("printBtn").addEventListener("click",function(){window.print();});' +
-              'load();document.getElementById("pfTitle").value=state.title||"";document.getElementById("pfName").value=state.teacherName||"";document.getElementById("pfLabel").value=state.teacherLabel||"المعلم/ـة";document.getElementById("pfFooter").value=state.footerText||"";refresh();' +
-              '})();<\/script>' +
-              '</body></html>';
+          /* ===== أحداث الجداول ===== */
+          document.addEventListener("selectionchange", () => {
+            const td = getCellFromSelection();
+            if (td) showTableBubbleFor(td);
+            else hideTableBubble();
+          });
+          el.editor.addEventListener("scroll", () => {
+            if (state.currentCell) showTableBubbleFor(state.currentCell);
+          });
 
-            const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-            const url = URL.createObjectURL(blob);
-            const ael = document.createElement("a");
-            ael.href = url;
-            ael.download = "ملف_الإنجاز_نسخة_مستقلة.html";
-            ael.click();
-            setTimeout(() => URL.revokeObjectURL(url), 1500);
-            note("تم إنشاء النسخة المستقلة");
-          } catch (err) {
-            note("تعذّر إنشاء النسخة المستقلة", "error");
+          el.tableBubble.addEventListener("mousedown", (e) =>
+            e.preventDefault()
+          );
+          el.tableBubble.addEventListener("click", (e) => {
+            const btn = e.target.closest(".tb-btn");
+            if (!btn) return;
+            const act = btn.getAttribute("data-act");
+            const td = state.currentCell;
+            const info = tableInfo(td);
+            if (!info) return;
+            const { table, rows, rIndex, cIndex } = info;
+
+            if (act === "row-before") {
+              const tr = document.createElement("tr");
+              for (let i = 0; i < table.rows[0].cells.length; i++) {
+                const cell = document.createElement("td");
+                tr.appendChild(cell);
+              }
+              table.tBodies[0].insertBefore(tr, table.rows[rIndex]);
+            } else if (act === "row-after") {
+              const tr = document.createElement("tr");
+              for (let i = 0; i < table.rows[0].cells.length; i++) {
+                const cell = document.createElement("td");
+                tr.appendChild(cell);
+              }
+              const next = table.rows[rIndex].nextSibling;
+              table.tBodies[0].insertBefore(tr, next);
+            } else if (act === "col-before" || act === "col-after") {
+              const addAfter = act === "col-after";
+              rows.forEach((row) => {
+                const ref = row.cells[cIndex];
+                const cell = document.createElement(
+                  row.rowIndex === 0 && table.tHead ? "th" : "td"
+                );
+                if (addAfter) {
+                  ref.after(cell);
+                } else {
+                  row.insertBefore(cell, ref);
+                }
+              });
+            } else if (act === "toggle-header") {
+              const first = rows[0];
+              if (first && first.cells.length) {
+                const isHeader = first.cells[0].tagName === "TH";
+                [...first.cells].forEach((cell) => {
+                  const repl = document.createElement(isHeader ? "td" : "th");
+                  repl.innerHTML = cell.innerHTML;
+                  cell.parentNode.replaceChild(repl, cell);
+                });
+              }
+            } else if (act === "cell-bg") {
+              const color = el.cellBgPicker ? el.cellBgPicker.value : "#ffff99";
+              td.style.backgroundColor = color;
+            } else if (act === "cell-bg-clear") {
+              td.style.removeProperty("background-color");
+            } else if (act === "del-row") {
+              table.deleteRow(rIndex);
+            } else if (act === "del-col") {
+              rows.forEach((row) => {
+                if (row.cells[cIndex]) row.deleteCell(cIndex);
+              });
+            } else if (act === "del-table") {
+              table.remove();
+              hideTableBubble();
+            }
+            if (table.parentNode) {
+              if (table.rows.length === 0 || table.rows[0].cells.length === 0) {
+                table.remove();
+                hideTableBubble();
+              }
+            }
+            saveToStorage();
+          });
+
+          if (el.cellBgPicker) {
+            el.cellBgPicker.addEventListener("input", () => {
+              if (state.currentCell) {
+                state.currentCell.style.backgroundColor = el.cellBgPicker.value;
+                saveToStorage();
+              }
+            });
           }
-        }; */
-
-        // Redirect existing export button if used (handled later)
-        // UI.exportHTML = UI.exportStandalone;
+        })();
 
         UI.closePreview = function () {
           try {
-            el.finalPortfolio.style.display = "none";
-          } catch (_) {
-            var fp = document.getElementById("finalPortfolio");
-            if (fp) fp.style.display = "none";
-          }
-        }; // Portfolio helpers
+            document.getElementById("finalPortfolio").style.display = "none";
+          } catch (_) {}
+        };
         UI.refreshPortfolioHeaderFooter = function () {
           try {
             var subtitleEl = document.getElementById("portfolioHeaderSubtitle");
@@ -2749,7 +2949,6 @@
                 logoEl.src = state.portfolio.logoData;
                 logoEl.style.display = "block";
               } else {
-                // Fallback: pick first image from tabs
                 var found = "";
                 for (var i = 0; i < state.tabs.length; i++) {
                   var t = state.tabs[i];
@@ -2781,6 +2980,585 @@
             }
           } catch (_) {}
         };
+        UI.buildPortfolioSidebar = function () {
+          try {
+            el.portfolioSidebar.innerHTML = "";
+            var box = document.createElement("div");
+            box.innerHTML =
+              "<h3 style='margin-bottom:8px'>إعدادات الغلاف</h3>" +
+              "<label style='display:block;margin-bottom:4px'>الصفة</label>" +
+              "<select id='pfLabel' class='form-control' style='margin-bottom:6px'><option>المعلم/ـة</option><option>المعلم</option><option>المعلمة</option></select>" +
+              "<label style='display:block;margin-bottom:4px'>الاسم</label>" +
+              "<input id='pfName' class='form-control' placeholder='مثال: أحمد محمد' style='margin-bottom:6px'/>" +
+              "<label style='display:block;margin-bottom:4px'>الشعار (رفع)</label>" +
+              "<input id='pfLogoFile' type='file' accept='.png,.jpg,.jpeg,.webp,.gif' class='form-control' style='margin-bottom:6px'/>" +
+              "<div style='margin-bottom:6px'><input id='pfLogoUrl' class='form-control' placeholder='رابط الشعار (اختياري)'/></div>" +
+              "<div style='display:flex;flex-direction:column;gap:6px;margin-bottom:6px'><button id='pfLogoClear' class='btn btn-secondary' type='button'>حذف الشعار</button><a id='pfLogoDownload' class='btn btn-secondary' href='#' download='logo.png' style='text-decoration:none;display:none;text-align:center'>تحميل الشعار</a></div>" +
+              "<label style='display:block;margin-bottom:4px'>تذييل الصفحة</label>" +
+              "<textarea id='pfFooter' class='form-control' rows='3' placeholder='نص يظهر أسفل الصفحة'></textarea>" +
+              "<h3 style='margin-top:12px'>فهرس المحتويات</h3>";
+            el.portfolioSidebar.appendChild(box);
+            var h3s = box.querySelectorAll("h3");
+            var anchor = h3s[h3s.length - 1] || null;
+            var tl = document.createElement("label");
+            tl.style.display = "block";
+            tl.style.marginBottom = "4px";
+            tl.textContent = "عنوان الملف";
+            var ti = document.createElement("input");
+            ti.id = "pfTitle";
+            ti.className = "form-control";
+            ti.placeholder = "مثال: ملف الإنجاز";
+            ti.style.marginBottom = "6px";
+            ti.value = (state.portfolio && state.portfolio.title) || "";
+            ti.addEventListener("input", function () {
+              state.portfolio = state.portfolio || {};
+              state.portfolio.title = this.value || "";
+              UI.refreshPortfolioHeaderFooter();
+              saveToStorage();
+            });
+            if (anchor) {
+              box.insertBefore(tl, anchor);
+              box.insertBefore(ti, anchor);
+            } else {
+              box.appendChild(tl);
+              box.appendChild(ti);
+            }
+            var n = document.getElementById("pfName");
+            if (n)
+              n.value = (state.portfolio && state.portfolio.teacherName) || "";
+            var l = document.getElementById("pfLabel");
+            if (l)
+              l.value =
+                (state.portfolio && state.portfolio.teacherLabel) ||
+                "المعلم/ـة";
+            var ft = document.getElementById("pfFooter");
+            if (ft)
+              ft.value = (state.portfolio && state.portfolio.footerText) || "";
+            var dl = document.getElementById("pfLogoDownload");
+            if (dl) {
+              if (state.portfolio && state.portfolio.logoData) {
+                dl.href = state.portfolio.logoData;
+                dl.style.display = "inline-block";
+              }
+            }
+            if (n)
+              n.addEventListener(
+                "input",
+                UI.updatePortfolioSettingsFromSidebar
+              );
+            if (l)
+              l.addEventListener(
+                "change",
+                UI.updatePortfolioSettingsFromSidebar
+              );
+            if (ft)
+              ft.addEventListener(
+                "input",
+                UI.updatePortfolioSettingsFromSidebar
+              );
+            var f = document.getElementById("pfLogoFile");
+            if (f) f.addEventListener("change", UI.setLogoFile);
+            var urlIn = document.getElementById("pfLogoUrl");
+            if (urlIn) {
+              var applyLogoUrl = function () {
+                var v = (urlIn.value || "").trim();
+                if (!v) return;
+                state.portfolio = state.portfolio || {};
+                state.portfolio.logoData = v;
+                UI.refreshPortfolioHeaderFooter();
+                var d = document.getElementById("pfLogoDownload");
+                if (d) {
+                  d.href = state.portfolio.logoData;
+                  d.style.display = "inline-flex";
+                }
+                saveToStorage();
+              };
+              urlIn.addEventListener("change", applyLogoUrl);
+              urlIn.addEventListener("blur", applyLogoUrl);
+              urlIn.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  applyLogoUrl();
+                }
+              });
+              urlIn.addEventListener("paste", function () {
+                setTimeout(applyLogoUrl, 0);
+              });
+            }
+            var cb = document.getElementById("pfLogoClear");
+            if (cb) cb.addEventListener("click", UI.clearLogo);
+          } catch (_) {}
+        };
+
+        // ==== (A) معاينة الإنجاز بلوحة إدخال الغلاف =====
+        UI.previewPortfolio = function () {
+          try {
+            // خزّن تبويبك الحالي
+            var active = state.tabs.find(function (x) {
+              return x.id === state.activeTabId;
+            });
+            if (active) active.content = el.editor.innerHTML;
+
+            // نظّف منطقة المعاينة
+            el.portfolioSidebar.innerHTML = "";
+            el.portfolioContent.innerHTML = "";
+
+            // عنوان الرأس
+            var title =
+              (state.portfolio && state.portfolio.title) || "ملف الإنجاز";
+            document.getElementById("portfolioHeaderTitle").textContent = title;
+
+            // حدّث الشعار والاسم/الصفة
+            UI.refreshPortfolioHeaderFooter();
+
+            // ابنِ لوحة إعدادات الغلاف + فهرس المحتويات
+            UI.buildPortfolioSidebar();
+
+            // أنشئ الأقسام
+            state.tabs.forEach(function (t, i) {
+              // رابط في الفهرس
+              var link = document.createElement("a");
+              link.href = "#tab-" + i;
+              link.textContent = t.title;
+              el.portfolioSidebar.appendChild(link);
+
+              // حاوية القسم
+              var wrap = document.createElement("div");
+              wrap.className = "tab-content";
+              wrap.id = "tab-" + i;
+
+              var h2 = document.createElement("h2");
+              h2.textContent = t.title;
+              h2.style.color = "var(--primary)";
+              h2.style.borderBottom = "2px solid var(--primary)";
+              h2.style.paddingBottom = "10px";
+              h2.style.marginBottom = "20px";
+
+              var body = document.createElement("div");
+              body.innerHTML = t.content || "";
+              var bars = body.querySelectorAll(".embed-actions");
+              bars.forEach(function (x) {
+                x.remove();
+              });
+
+              wrap.appendChild(h2);
+              wrap.appendChild(body);
+              el.portfolioContent.appendChild(wrap);
+            });
+
+            // تذييل قابل للتحرير في المعاينة
+            var f = document.createElement("div");
+            f.className = "portfolio-footer";
+            f.id = "portfolioFooterBlock";
+            f.contentEditable = "true";
+            f.textContent =
+              (state.portfolio && state.portfolio.footerText) || "";
+            f.addEventListener("input", function () {
+              state.portfolio.footerText = f.textContent || "";
+              try {
+                localStorage.setItem(
+                  "portfolio_v34",
+                  JSON.stringify({
+                    version: "3.4",
+                    tabs: state.tabs,
+                    settings: state.settings,
+                    portfolio: state.portfolio,
+                    activeTabId: state.activeTabId,
+                  })
+                );
+              } catch (_) {}
+            });
+            el.portfolioContent.appendChild(f);
+
+            // أظهر المعاينة
+            el.finalPortfolio.style.display = "block";
+
+            // فعّل أول تبويب
+            UI.showTab(0);
+          } catch (err) {
+            UI.note("تعذّرت المعاينة", "error");
+          }
+        };
+
+        // ==== (C) تصدير ZIP (index.html + assets/) ====
+        UI.exportZIP = async function () {
+          try {
+            // احفظ تبويبك
+            var active = state.tabs.find(function (x) {
+              return x.id === state.activeTabId;
+            });
+            if (active) active.content = el.editor.innerHTML;
+
+            // تحميل JSZip إن لم يكن موجوداً
+            async function ensureJSZip() {
+              if (window.JSZip) return window.JSZip;
+              await new Promise(function (resolve, reject) {
+                var s = document.createElement("script");
+                s.src =
+                  "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js";
+                s.onload = resolve;
+                s.onerror = reject;
+                document.head.appendChild(s);
+              });
+              return window.JSZip;
+            }
+            var JSZipLib = await ensureJSZip();
+
+            // أدوات اسم الملف
+            function sanitizeFilename(name) {
+              name = (name || "")
+                .replace(/[\\\/:*?"<>|]+/g, "_")
+                .replace(/\s+/g, " ")
+                .trim();
+              return name || "file";
+            }
+            function extFromType(type) {
+              var map = {
+                "image/png": "png",
+                "image/jpeg": "jpg",
+                "image/webp": "webp",
+                "image/gif": "gif",
+                "image/svg+xml": "svg",
+                "application/pdf": "pdf",
+                "video/mp4": "mp4",
+                "video/webm": "webm",
+                "audio/mpeg": "mp3",
+              };
+              return map[type] || "";
+            }
+            function extFromUrl(url) {
+              try {
+                var u = (url || "").split("?")[0];
+                var m = /\.([a-z0-9]+)$/i.exec(u);
+                return m ? m[1].toLowerCase() : "";
+              } catch (_) {
+                return "";
+              }
+            }
+            function nameFromUrl(url) {
+              try {
+                var u = (url || "").split("?")[0];
+                var p = u.split("/");
+                return sanitizeFilename(
+                  decodeURIComponent(p[p.length - 1] || "file")
+                );
+              } catch (_) {
+                return "file";
+              }
+            }
+            function dataUrlToBlob(dataUrl) {
+              var arr = (dataUrl || "").split(",");
+              var m = arr[0].match(/:(.*?);/);
+              var mime = m ? m[1] : "application/octet-stream";
+              var bstr = atob(arr[1] || "");
+              var u8 = new Uint8Array(bstr.length);
+              for (var i = 0; i < bstr.length; i++) u8[i] = bstr.charCodeAt(i);
+              return new Blob([u8], { type: mime });
+            }
+            async function blobFromUrl(url) {
+              var res = await fetch(url);
+              if (!res.ok) throw new Error("fetch failed");
+              return await res.blob();
+            }
+
+            // ابنِ الـ DOM النهائي
+            var container = document.createElement("div");
+            var header = document.createElement("div");
+            header.className = "portfolio-header";
+            header.innerHTML =
+              '<div class="portfolio-header-inner" dir="rtl">' +
+              '<img id="expLogo" class="portfolio-logo" alt="الشعار"/>' +
+              '<div class="portfolio-titles"><h1 id="expTitle"></h1><div id="expSubtitle" class="portfolio-subtitle"></div></div>' +
+              "</div>";
+            container.appendChild(header);
+
+            var sidebar = document.createElement("div");
+            sidebar.className = "portfolio-sidebar";
+            sidebar.id = "expSidebar";
+            var contentRoot = document.createElement("div");
+            contentRoot.className = "portfolio-content";
+            contentRoot.id = "expContent";
+
+            state.tabs.forEach(function (t, i) {
+              var link = document.createElement("a");
+              link.href = "#tab-" + i;
+              link.textContent = t.title;
+              sidebar.appendChild(link);
+
+              var w = document.createElement("div");
+              w.className = "tab-content";
+              w.id = "tab-" + i;
+
+              var h2 = document.createElement("h2");
+              h2.textContent = t.title;
+              h2.style.color = "var(--primary)";
+              h2.style.borderBottom = "2px solid var(--primary)";
+              h2.style.paddingBottom = "10px";
+              h2.style.marginBottom = "20px";
+
+              var body = document.createElement("div");
+              body.innerHTML = t.content || "";
+              var bars = body.querySelectorAll(".embed-actions");
+              bars.forEach(function (x) {
+                x.remove();
+              });
+
+              w.appendChild(h2);
+              w.appendChild(body);
+              contentRoot.appendChild(w);
+            });
+
+            var f = document.createElement("div");
+            f.className = "portfolio-footer";
+            f.id = "portfolioFooterBlock";
+            f.textContent =
+              (state.portfolio && state.portfolio.footerText) || "";
+            contentRoot.appendChild(f);
+
+            container.appendChild(sidebar);
+            container.appendChild(contentRoot);
+
+            // العنوان/الصفة/الاسم/الشعار
+            var expTitle = container.querySelector("#expTitle");
+            expTitle.textContent =
+              (state.portfolio && state.portfolio.title) || "ملف الإنجاز";
+            var expSubtitle = container.querySelector("#expSubtitle");
+            var nm = (state.portfolio && state.portfolio.teacherName) || "";
+            var label =
+              (state.portfolio && state.portfolio.teacherLabel) || "المعلم/ـة";
+            expSubtitle.textContent = nm ? label + " / " + nm : "";
+
+            var expLogo = container.querySelector("#expLogo");
+            var logoSrc = (state.portfolio && state.portfolio.logoData) || "";
+            if (!logoSrc) {
+              for (var k = 0; k < state.tabs.length; k++) {
+                var tmp = document.createElement("div");
+                tmp.innerHTML = state.tabs[k].content || "";
+                var im = tmp.querySelector("img[src]");
+                if (im) {
+                  logoSrc = im.getAttribute("src");
+                  break;
+                }
+              }
+            }
+            if (logoSrc) expLogo.setAttribute("src", logoSrc);
+
+            // اجمع الأصول واكتبها في assets/
+            var usedNames = {};
+            function uniqueName(base) {
+              base = sanitizeFilename(base || "file");
+              var name = base,
+                i = 2;
+              while (usedNames[name]) {
+                var dot = base.lastIndexOf(".");
+                name =
+                  dot > 0
+                    ? base.slice(0, dot) + "-" + i + base.slice(dot)
+                    : base + "-" + i;
+                i++;
+              }
+              usedNames[name] = true;
+              return name;
+            }
+            var assets = []; // {name, blob}
+            async function addAssetFrom(url, preferName, element, attr) {
+              try {
+                if (!url) return null;
+                var blob = null;
+                if (/^data:/i.test(url)) blob = dataUrlToBlob(url);
+                else if (/^blob:/i.test(url)) {
+                  try {
+                    blob = await blobFromUrl(url);
+                  } catch (_) {
+                    blob = null;
+                  }
+                } else if (/^https?:/i.test(url)) {
+                  try {
+                    blob = await blobFromUrl(url);
+                  } catch (_) {
+                    blob = null;
+                  } // قد تفشل CORS، لا بأس
+                } else {
+                  return null;
+                }
+                if (!blob) return null;
+                var baseName = sanitizeFilename(preferName || nameFromUrl(url));
+                if (!/\.[a-z0-9]+$/i.test(baseName)) {
+                  var ext = extFromType(blob.type) || extFromUrl(url) || "bin";
+                  baseName = baseName + "." + ext;
+                }
+                var finalName = uniqueName(baseName);
+                assets.push({ name: finalName, blob: blob });
+                if (element && attr)
+                  element.setAttribute(attr, "assets/" + finalName);
+                return finalName;
+              } catch (_) {
+                return null;
+              }
+            }
+
+            // الشعار
+            if (expLogo) {
+              var ls = expLogo.getAttribute("src") || "";
+              if (ls) {
+                await addAssetFrom(ls, "logo", expLogo, "src");
+              }
+            }
+
+            // الوسائط
+            var mediaNodes = container.querySelectorAll(
+              ".embed-container .embed-media img, .embed-container .embed-media video, .embed-container .embed-media iframe"
+            );
+            for (var i = 0; i < mediaNodes.length; i++) {
+              var m = mediaNodes[i];
+              var src = m.getAttribute("src") || "";
+              var prefer =
+                (m.closest(".embed-container") &&
+                  m.closest(".embed-container").getAttribute("data-name")) ||
+                "";
+              await addAssetFrom(src, prefer, m, "src");
+            }
+            // روابط التحميل المضمّنة
+            var dlinks = container.querySelectorAll(
+              ".embed-container a.download-link[href]"
+            );
+            for (var j = 0; j < dlinks.length; j++) {
+              var a = dlinks[j];
+              var href = a.getAttribute("href") || "";
+              var prefer =
+                a.getAttribute("download") ||
+                (a.closest(".embed-container")
+                  ? a.closest(".embed-container").getAttribute("data-name")
+                  : "");
+              var nm2 = await addAssetFrom(href, prefer, a, "href");
+              if (nm2) {
+                a.removeAttribute("download");
+                a.setAttribute("target", "_blank");
+                a.setAttribute("rel", "noopener noreferrer");
+              }
+            }
+            // بقية الروابط
+            var anchors = container.querySelectorAll("a[href]");
+            anchors.forEach(function (a) {
+              var href = a.getAttribute("href") || "";
+              if (!/^#/.test(href)) {
+                a.setAttribute("target", "_blank");
+                a.setAttribute("rel", "noopener noreferrer");
+              }
+            });
+
+            // CSS + سكربت التنقّل
+            var css = Array.prototype.map
+              .call(document.querySelectorAll("style"), function (s) {
+                return s.innerHTML;
+              })
+              .join("\n");
+            var navScript = [
+              "(function(){",
+              " function setActive(id){",
+              "  var secs=document.querySelectorAll('.tab-content');",
+              "  secs.forEach(function(s){ s.classList.remove('active'); });",
+              "  var el=document.getElementById(id); if(el){ el.classList.add('active'); }",
+              "  var links=document.querySelectorAll('.portfolio-sidebar a');",
+              "  links.forEach(function(a){ var on=(a.getAttribute('href')||'')==='#'+id; a.style.backgroundColor=on?'#4361ee':'transparent'; a.style.color=on?'#fff':'#333'; });",
+              " }",
+              " document.addEventListener('DOMContentLoaded', function(){",
+              "  var links=document.querySelectorAll('.portfolio-sidebar a[href^=\"#tab-\"]');",
+              "  links.forEach(function(a){ a.addEventListener('click', function(e){ e.preventDefault(); var id=(this.getAttribute('href')||'').slice(1); setActive(id); }); });",
+              "  if(links[0]){ var first=(links[0].getAttribute('href')||'').slice(1); setActive(first); }",
+              " });",
+              "})();",
+            ].join("");
+
+            var html =
+              '<!DOCTYPE html><html lang="ar" dir="rtl"><head>' +
+              '<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>' +
+              "<title>" +
+              (state.portfolio && state.portfolio.title
+                ? state.portfolio.title
+                : "ملف الإنجاز") +
+              "</title>" +
+              "<style>" +
+              css +
+              "</style></head><body>" +
+              container.innerHTML +
+              "<script>" +
+              navScript.replace(/<\/script>/gi, "<\\/script>") +
+              "<\/script>" +
+              "</body></html>";
+
+            // أنشئ الأرشيف
+            var zip = new JSZipLib();
+            zip.file("index.html", html);
+            var af = zip.folder("assets");
+            for (var z = 0; z < assets.length; z++) {
+              var it = assets[z];
+              var ab = await it.blob.arrayBuffer();
+              af.file(it.name, ab);
+            }
+            var zblob = await zip.generateAsync({ type: "blob" });
+            var url = URL.createObjectURL(zblob);
+            var ael = document.createElement("a");
+            var fname =
+              (state.portfolio && state.portfolio.title
+                ? state.portfolio.title
+                : "portfolio") + "_package.zip";
+            ael.href = url;
+            ael.download = fname;
+            ael.click();
+            setTimeout(function () {
+              URL.revokeObjectURL(url);
+            }, 1500);
+            UI.note("تم إنشاء ملف ZIP بنجاح وتم تنزيله");
+          } catch (err) {
+            UI.note("تعذّر إنشاء ملف ZIP", "error");
+          }
+        };
+
+        function enableTabReorder() {
+          const wrap = document.getElementById("tabsContainer");
+          if (!wrap) return;
+          const items = [...wrap.children]; // يفترض أن كل طفل يمثل تبويبًا
+          let src = -1;
+
+          items.forEach((item, idx) => {
+            item.setAttribute("draggable", "true");
+
+            item.addEventListener("dragstart", (e) => {
+              src = idx;
+              item.classList.add("dragging");
+              // تحسين: شفافية أثناء السحب
+              e.dataTransfer.effectAllowed = "move";
+              try {
+                e.dataTransfer.setData("text/plain", String(idx));
+              } catch (_) {}
+            });
+
+            item.addEventListener("dragover", (e) => {
+              e.preventDefault(); // يسمح بالإسقاط
+            });
+
+            item.addEventListener("drop", (e) => {
+              e.preventDefault();
+              const dest = [...wrap.children].indexOf(item);
+              if (src === -1 || dest === -1 || dest === src) return;
+
+              // حرّك العنصر في state.tabs
+              const moved = state.tabs.splice(src, 1)[0];
+              state.tabs.splice(dest, 0, moved);
+
+              // أعِد الرسم واحفظ وفعِّل التبويب المنقول
+              renderTabs();
+              saveToStorage();
+              UI.setActiveTab(state.tabs[dest].id);
+            });
+
+            item.addEventListener("dragend", () => {
+              item.classList.remove("dragging");
+            });
+          });
+        }
+
         UI.updatePortfolioSettingsFromSidebar = function () {
           try {
             var nameEl = document.getElementById("pfName");
@@ -2851,939 +3629,11 @@
             saveToStorage();
           } catch (_) {}
         };
-        UI.buildPortfolioSidebar = function () {
-          try {
-            el.portfolioSidebar.innerHTML = "";
-            var box = document.createElement("div");
-            box.innerHTML =
-              "<h3 style='margin-bottom:8px'>إعدادات الغلاف</h3>" +
-              "<label style='display:block;margin-bottom:4px'>الصفة</label>" +
-              "<select id='pfLabel' class='form-control' style='margin-bottom:6px'><option>المعلم/ـة</option><option>المعلم</option><option>المعلمة</option></select>" +
-              "<label style='display:block;margin-bottom:4px'>الاسم</label>" +
-              "<input id='pfName' class='form-control' placeholder='مثال: أحمد محمد' style='margin-bottom:6px'/>" +
-              "<label style='display:block;margin-bottom:4px'>الشعار (رفع)</label>" +
-              "<input id='pfLogoFile' type='file' accept='.png,.jpg,.jpeg,.webp,.gif' class='form-control' style='margin-bottom:6px'/>" +
-              "<div style='margin-bottom:6px'><input id='pfLogoUrl' class='form-control' placeholder='رابط الشعار (اختياري)'/></div>" +
-              "<div style='display:flex;flex-direction:column;gap:6px;margin-bottom:6px'><button id='pfLogoClear' class='btn btn-secondary' type='button'>حذف الشعار</button><a id='pfLogoDownload' class='btn btn-secondary' href='#' download='logo.png' style='text-decoration:none;display:none'>تحميل الشعار</a></div>" +
-              "<label style='display:block;margin-bottom:4px'>تذييل الصفحة</label>" +
-              "<textarea id='pfFooter' class='form-control' rows='3' placeholder='نص يظهر أسفل الصفحة'></textarea>" +
-              "<h3 style='margin-top:12px'>فهرس المحتويات</h3>";
-            el.portfolioSidebar.appendChild(box);
-            var h3s = box.querySelectorAll("h3");
-            var anchor = h3s[h3s.length - 1] || null;
-            var tl = document.createElement("label");
-            tl.style.display = "block";
-            tl.style.marginBottom = "4px";
-            tl.textContent = "عنوان الملف";
-            var ti = document.createElement("input");
-            ti.id = "pfTitle";
-            ti.className = "form-control";
-            ti.placeholder = "مثال: ملف الإنجاز";
-            ti.style.marginBottom = "6px";
-            ti.value = (state.portfolio && state.portfolio.title) || "";
-            ti.addEventListener("input", function () {
-              state.portfolio = state.portfolio || {};
-              state.portfolio.title = this.value || "";
-              UI.refreshPortfolioHeaderFooter();
-              saveToStorage();
-            });
-            if (anchor) {
-              box.insertBefore(tl, anchor);
-              box.insertBefore(ti, anchor);
-            } else {
-              box.appendChild(tl);
-              box.appendChild(ti);
-            }
-            var n = document.getElementById("pfName");
-            if (n)
-              n.value = (state.portfolio && state.portfolio.teacherName) || "";
-            var l = document.getElementById("pfLabel");
-            if (l)
-              l.value =
-                (state.portfolio && state.portfolio.teacherLabel) ||
-                "المعلم/ـة";
-            var ft = document.getElementById("pfFooter");
-            if (ft)
-              ft.value = (state.portfolio && state.portfolio.footerText) || "";
-            var dl = document.getElementById("pfLogoDownload");
-            if (dl) {
-              if (state.portfolio && state.portfolio.logoData) {
-                dl.href = state.portfolio.logoData;
-                dl.style.display = "inline-block";
-              }
-            }
-            if (n)
-              n.addEventListener(
-                "input",
-                UI.updatePortfolioSettingsFromSidebar
-              );
-            if (l)
-              l.addEventListener(
-                "change",
-                UI.updatePortfolioSettingsFromSidebar
-              );
-            if (ft)
-              ft.addEventListener(
-                "input",
-                UI.updatePortfolioSettingsFromSidebar
-              );
-            var f = document.getElementById("pfLogoFile");
-            if (f) f.addEventListener("change", UI.setLogoFile);
-            // اجعل إدخال رابط الشعار يطبّق تلقائياً دون الحاجة لزر "تعيين"
-            var urlIn = document.getElementById("pfLogoUrl");
-            if (urlIn) {
-              var applyLogoUrl = function () {
-                var v = (urlIn.value || "").trim();
-                if (!v) return;
-                state.portfolio = state.portfolio || {};
-                state.portfolio.logoData = v;
-                UI.refreshPortfolioHeaderFooter();
-                var d = document.getElementById("pfLogoDownload");
-                if (d) {
-                  d.href = state.portfolio.logoData;
-                  d.style.display = "inline-flex";
-                }
-                saveToStorage();
-              };
-              urlIn.addEventListener("change", applyLogoUrl);
-              urlIn.addEventListener("blur", applyLogoUrl);
-              urlIn.addEventListener("keydown", function (e) {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  applyLogoUrl();
-                }
-              });
-              urlIn.addEventListener("paste", function () {
-                setTimeout(applyLogoUrl, 0);
-              });
-            }
-            var cb = document.getElementById("pfLogoClear");
-            if (cb) cb.addEventListener("click", UI.clearLogo);
-          } catch (_) {}
+
+        // مكان للعمليات الإضافية (embedAction/… إن احتجتها لاحقًا)
+        UI.embedAction = function (btn, action) {
+          /* اختياري: نفس التنفيذ السابق إن رغبت */
         };
-        // init
-        (function init() {
-          applySettings();
-          // مزامنة أدوات الألوان عند البدء
-          const eb = document.getElementById("editorBgPicker");
-          if (eb) eb.value = state.settings.editorBg || "#ffffff";
-          const pb = document.getElementById("pageBgPicker");
-          if (pb) pb.value = state.settings.pageBg || "#f5f7fb";
-          const loadedId = loadFromStorage();
-          renderTabs();
-          UI.setActiveTab(
-            loadedId && state.tabs.find((t) => t.id === loadedId)
-              ? loadedId
-              : state.tabs[0].id
-          );
-          // save selection continually
-          ["mouseup", "keyup", "touchend"].forEach((ev) =>
-            el.editor.addEventListener(ev, saveSel)
-          );
-          // prevent selection/focus shift when clicking embed action buttons
-          el.editor.addEventListener(
-            "mousedown",
-            (e) => {
-              if (
-                e.target &&
-                e.target.closest &&
-                e.target.closest(".embed-actions")
-              ) {
-                e.preventDefault();
-              }
-            },
-            true
-          );
-          // file preview name
-          document
-            .getElementById("mediaFile")
-            .addEventListener("change", (e) => {
-              el.filePreview.innerHTML = "";
-              el.filePreview.style.display = "block";
-              if (!e.target.files || !e.target.files[0]) return;
-              el.filePreview.textContent = e.target.files[0].name;
-            });
-          // Auto-save on input
-          el.editor.addEventListener("input", () => {
-            const a = state.tabs.find((x) => x.id === state.activeTabId);
-            if (a) a.content = el.editor.innerHTML;
-            saveToStorage();
-          });
-          // Sanitize paste
-          el.editor.addEventListener("paste", (e) => {
-            e.preventDefault();
-            const html =
-              (e.clipboardData && e.clipboardData.getData("text/html")) || "";
-            const text =
-              (e.clipboardData && e.clipboardData.getData("text/plain")) || "";
-            const toInsert = html
-              ? sanitizeHTML(html)
-              : text
-              ? text
-                  .replace(
-                    /[&<>"']/g,
-                    (m) =>
-                      ({
-                        "&": "&amp;",
-                        "<": "&lt;",
-                        ">": "&gt;",
-                        '"': "&quot;",
-                        "'": "&#39;",
-                      }[m])
-                  )
-                  .replace(/\r?\n/g, "<br>")
-              : "";
-            ensureCaretInEditor();
-            const sel = window.getSelection();
-            if (sel && sel.rangeCount > 0) {
-              const r = sel.getRangeAt(0);
-              const frag = r.createContextualFragment(toInsert);
-              r.deleteContents();
-              r.insertNode(frag);
-              r.collapse(false);
-              sel.removeAllRanges();
-              sel.addRange(r);
-            }
-          });
-          // Drag & Drop files
-          el.editor.addEventListener("dragover", (e) => {
-            e.preventDefault();
-          });
-          el.editor.addEventListener("drop", (e) => {
-            e.preventDefault();
-            const dt = e.dataTransfer;
-            if (!dt || !dt.files || !dt.files.length) return;
-            const files = [...dt.files];
-            ensureCaretInEditor();
-            const sel = window.getSelection();
-            const r = sel && sel.rangeCount > 0 ? sel.getRangeAt(0) : null;
-            files.forEach((f) => {
-              const t = getFileType(f.name || "");
-              const url = URL.createObjectURL(f);
-              const useType = ["image", "video", "pdf"].includes(t)
-                ? t
-                : "other";
-              const html = makeEmbedHTML({
-                fType: useType,
-                src: url,
-                name: f.name,
-                caption: "",
-                downloadHref: url,
-                origin: "upload",
-              });
-              if (r) {
-                const frag = r.createContextualFragment(html);
-                r.insertNode(frag);
-                r.collapse(false);
-                sel.removeAllRanges();
-                sel.addRange(r);
-              } else {
-                el.editor.insertAdjacentHTML("beforeend", html);
-              }
-            });
-            upgradeEmbeds(el.editor);
-            saveToStorage();
-          });
-
-          // Override export to build a clean standalone (index + print, no controls)
-          UI.exportStandalone = async function () {
-            try {
-              const a = state.tabs.find((x) => x.id === state.activeTabId);
-              if (a) a.content = el.editor.innerHTML;
-
-              let base = (state.portfolio && state.portfolio.baseUrl) || "";
-              base =
-                prompt(
-                  "أدخل الرابط الأساسي للملفات المرفوعة (اختياري، مثال: https://example.com/assets/):",
-                  base || ""
-                ) || "";
-              if (state.portfolio) state.portfolio.baseUrl = base;
-
-              const container = document.createElement("div");
-              const header = document.createElement("div");
-              header.className = "portfolio-header";
-              header.innerHTML =
-                '<div class="portfolio-header-inner" dir="rtl">' +
-                '<img id="expLogo" class="portfolio-logo" alt="شعار" />' +
-                '<div class="portfolio-titles"><h1 id="expTitle">' +
-                ((state.portfolio && state.portfolio.title) || "ملف الإنجاز") +
-                '</h1><div id="expSubtitle" class="portfolio-subtitle"></div></div>' +
-                '<div class="header-actions"><button class="header-btn export" type="button" onclick="window.print()">طباعة</button></div>' +
-                "</div>";
-              container.appendChild(header);
-
-              const sidebar = document.createElement("div");
-              sidebar.className = "portfolio-sidebar";
-              sidebar.id = "expSidebar";
-              const contentRoot = document.createElement("div");
-              contentRoot.className = "portfolio-content";
-              contentRoot.id = "expContent";
-
-              state.tabs.forEach((t, i) => {
-                const link = document.createElement("a");
-                link.href = "#tab-" + i;
-                link.textContent = t.title;
-                Object.assign(link.style, {
-                  display: "block",
-                  padding: "8px 10px",
-                  marginBottom: "5px",
-                  color: "#333",
-                  textDecoration: "none",
-                  borderRadius: "5px",
-                });
-                sidebar.appendChild(link);
-
-                const w = document.createElement("div");
-                w.className = "tab-content";
-                w.id = "tab-" + i;
-                const h2 = document.createElement("h2");
-                h2.textContent = t.title;
-                Object.assign(h2.style, {
-                  color: "var(--primary)",
-                  borderBottom: "2px solid var(--primary)",
-                  paddingBottom: "10px",
-                  marginBottom: "20px",
-                });
-                const body = document.createElement("div");
-                body.innerHTML = t.content;
-                body
-                  .querySelectorAll(".embed-actions")
-                  .forEach((x) => x.remove());
-                w.appendChild(h2);
-                w.appendChild(body);
-                contentRoot.appendChild(w);
-              });
-
-              const f = document.createElement("div");
-              f.className = "portfolio-footer";
-              f.id = "portfolioFooterBlock";
-              f.textContent =
-                (state.portfolio && state.portfolio.footerText) || "";
-              contentRoot.appendChild(f);
-
-              container.appendChild(sidebar);
-              container.appendChild(contentRoot);
-
-              const lg = container.querySelector("#expLogo");
-              if (lg) {
-                if (state.portfolio && state.portfolio.logoData) {
-                  lg.src = state.portfolio.logoData;
-                  lg.style.display = "block";
-                } else {
-                  // Fallback: first image found in tabs
-                  let found = "";
-                  for (const t of state.tabs) {
-                    const tmp = document.createElement("div");
-                    tmp.innerHTML = t.content || "";
-                    const im = tmp.querySelector("img");
-                    if (im && im.getAttribute("src")) {
-                      found = im.getAttribute("src");
-                      break;
-                    }
-                  }
-                  if (found) {
-                    lg.src = found;
-                    lg.style.display = "block";
-                  }
-                }
-              }
-              const sub = container.querySelector("#expSubtitle");
-              if (sub) {
-                const nm =
-                  (state.portfolio && state.portfolio.teacherName) || "";
-                const label =
-                  (state.portfolio && state.portfolio.teacherLabel) ||
-                  "المعلم/ـة";
-                sub.textContent = nm ? label + " / " + nm : "";
-              }
-
-              function office(url) {
-                return (
-                  "https://view.officeapps.live.com/op/embed.aspx?src=" +
-                  encodeURIComponent(url)
-                );
-              }
-              function isOfficeName(n) {
-                const e = (n.split(".").pop() || "").toLowerCase();
-                return ["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(
-                  e
-                );
-              }
-              async function toDataUrl(url) {
-                try {
-                  const res = await fetch(url);
-                  const b = await res.blob();
-                  return await new Promise((r) => {
-                    const fr = new FileReader();
-                    fr.onload = () => r(fr.result);
-                    fr.readAsDataURL(b);
-                  });
-                } catch (_) {
-                  return url;
-                }
-              }
-
-              const embeds = container.querySelectorAll(".embed-container");
-              for (const c of embeds) {
-                const origin = c.getAttribute("data-origin") || "";
-                const name = c.getAttribute("data-name") || "";
-                const media = c.querySelector(
-                  ".embed-media img, .embed-media video, .embed-media iframe"
-                );
-                const dlink = c.querySelector("a.download-link");
-                if (media) {
-                  let src = media.getAttribute("src") || "";
-                  if (src.startsWith("blob:")) {
-                    if (base && origin === "upload" && name) {
-                      const abs = base + encodeURIComponent(name);
-                      if (isOfficeName(name)) {
-                        const frame = c.querySelector("iframe");
-                        if (frame) frame.setAttribute("src", office(abs));
-                        else {
-                          const wrap = c.querySelector(".embed-media");
-                          if (wrap)
-                            wrap.innerHTML = `<iframe src="${office(
-                              abs
-                            )}" style="width:100%;height:500px"></iframe>`;
-                        }
-                      } else {
-                        media.setAttribute("src", abs);
-                      }
-                    } else {
-                      const data = await toDataUrl(src);
-                      media.setAttribute("src", data);
-                    }
-                  }
-                }
-                if (dlink) {
-                  let href = dlink.getAttribute("href") || "";
-                  if (href.startsWith("blob:")) {
-                    if (base && origin === "upload" && name) {
-                      dlink.setAttribute(
-                        "href",
-                        base + encodeURIComponent(name)
-                      );
-                      dlink.removeAttribute("download");
-                      dlink.setAttribute("target", "_blank");
-                      dlink.setAttribute("rel", "noopener noreferrer");
-                    } else {
-                      const data = await toDataUrl(href);
-                      dlink.setAttribute("href", data);
-                    }
-                  }
-                }
-              }
-
-              const css = Array.from(document.querySelectorAll("style"))
-                .map((s) => s.innerHTML)
-                .join("\n");
-              const extra = `
-.final-portfolio{display:block;position:static}
-.portfolio-sidebar{width:250px;background:#f0f2f5;height:100vh;position:fixed;top:0;right:0;padding:20px;overflow-y:auto}
-.portfolio-content{margin-right:250px;padding:20px;background:var(--editor-print-bg)}
-.portfolio-logo:not([src]), .portfolio-logo[src=""]{display:none}
-.portfolio-header{padding-right:280px}
-.tab-content{display:none}
-.tab-content.active{display:block}
-.header-actions{display:flex;gap:8px;margin-top:10px}
-  .header-btn{background:#ffffff;border:none;color:#1f2937;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600}
-  .header-btn.export{background:#111827;color:#fff}
-  /* Framed tab sections */
-  .tab-content{border:2px dashed #e5e7eb;border-radius:10px;padding:16px;background:#fff;margin-bottom:16px}
-  .portfolio-content .tab-content:nth-of-type(6n+1){border-color:#1d4ed8}
-  .portfolio-content .tab-content:nth-of-type(6n+2){border-color:#047857}
-  .portfolio-content .tab-content:nth-of-type(6n+3){border-color:#b45309}
-  .portfolio-content .tab-content:nth-of-type(6n+4){border-color:#b91c1c}
-  .portfolio-content .tab-content:nth-of-type(6n+5){border-color:#0e7490}
-  .portfolio-content .tab-content:nth-of-type(6n){border-color:#6b21a8}
-  /* Alternating colors for sidebar links */
-.portfolio-sidebar a{display:block;padding:8px 10px;margin-bottom:5px;text-decoration:none;border-radius:6px;color:#fff !important;transition:filter .2s ease}
-.portfolio-sidebar a:hover{filter:brightness(1.06)}
- .portfolio-sidebar a:nth-of-type(6n+1){background:linear-gradient(135deg,#3b82f6,#1d4ed8)}
- .portfolio-sidebar a:nth-of-type(6n+2){background:linear-gradient(135deg,#10b981,#047857)}
- .portfolio-sidebar a:nth-of-type(6n+3){background:linear-gradient(135deg,#f59e0b,#b45309)}
- .portfolio-sidebar a:nth-of-type(6n+4){background:linear-gradient(135deg,#ef4444,#b91c1c)}
- .portfolio-sidebar a:nth-of-type(6n+5){background:linear-gradient(135deg,#06b6d4,#0e7490)}
- .portfolio-sidebar a:nth-of-type(6n){background:linear-gradient(135deg,#a855f7,#6b21a8)}
-@media print{.portfolio-sidebar{display:none}.portfolio-content{margin:0!important}.header-actions{display:none}.tab-content{display:block!important}.portfolio-header{padding-right:20px!important;padding-left:20px!important}.portfolio-header-inner{justify-content:flex-start!important}}
-`;
-
-              // Normalize anchors: make external links open in new tab, convert relative to absolute if base provided
-              const anchors = container.querySelectorAll("a[href]");
-              anchors.forEach((a) => {
-                let href = a.getAttribute("href") || "";
-                if (!href) return;
-                if (/^blob:/i.test(href)) {
-                  if (base) {
-                    const name =
-                      a.getAttribute("download") || a.textContent.trim() || "";
-                    if (name)
-                      a.setAttribute("href", base + encodeURIComponent(name));
-                  }
-                } else if (!/^(https?:|mailto:|tel:|#)/i.test(href)) {
-                  if (base)
-                    a.setAttribute("href", base + href.replace(/^\.?\//, ""));
-                }
-                if (!/^#/.test(href)) {
-                  a.setAttribute("target", "_blank");
-                  a.setAttribute("rel", "noopener noreferrer");
-                }
-              });
-
-              // Ensure header logo is resolvable (convert blob -> data, or take first non-blob image after rewrite)
-              const expLogo = container.querySelector("#expLogo");
-              if (expLogo) {
-                let ls = expLogo.getAttribute("src") || "";
-                if (!ls) {
-                  const fi = container.querySelector(".embed-media img");
-                  if (fi && fi.getAttribute("src")) {
-                    expLogo.setAttribute("src", fi.getAttribute("src"));
-                    expLogo.style.display = "block";
-                    ls = expLogo.getAttribute("src") || "";
-                  }
-                }
-                if (ls && /^blob:/i.test(ls)) {
-                  if (base) {
-                    const fi2 = container.querySelector(
-                      '.embed-media img[src]:not([src^="blob:"])'
-                    );
-                    if (fi2) {
-                      expLogo.setAttribute("src", fi2.getAttribute("src"));
-                      expLogo.style.display = "block";
-                    } else {
-                      const data = await toDataUrl(ls);
-                      expLogo.setAttribute("src", data);
-                      expLogo.style.display = "block";
-                    }
-                  } else {
-                    const data = await toDataUrl(ls);
-                    expLogo.setAttribute("src", data);
-                    expLogo.style.display = "block";
-                  }
-                }
-              }
-
-              // Inject a small script into the exported HTML to switch sections (one at a time)
-              const switchScriptEl = document.createElement("script");
-              switchScriptEl.textContent = `
-                (function(){
-                  function setActive(id){
-                    var secs=document.querySelectorAll('.tab-content');
-                    secs.forEach(function(s){ s.classList.remove('active');});
-                    var el=document.getElementById(id); if(el){ el.classList.add('active'); }
-                    var links=document.querySelectorAll('.portfolio-sidebar a');
-                    links.forEach(function(a){ var on=(a.getAttribute('href')||'')==='#'+id; a.style.backgroundColor=on?'#4361ee':'transparent'; a.style.color=on?'#fff':'#333'; });
-                  }
-                  document.addEventListener('DOMContentLoaded', function(){
-                    var links=document.querySelectorAll('.portfolio-sidebar a[href^="#tab-"]');
-                    links.forEach(function(a){ a.addEventListener('click', function(e){ e.preventDefault(); var id=(this.getAttribute('href')||'').slice(1); setActive(id); }, {passive:false}); });
-                    if(links[0]){ var first=(links[0].getAttribute('href')||'').slice(1); setActive(first); }
-                  }, {passive:true});
-                })();
-              `;
-              container.appendChild(switchScriptEl);
-
-              // Small script to handle index highlighting and smooth scroll
-              const navScript =
-                "<script>(function(){function act(id){var links=document.querySelectorAll('.portfolio-sidebar a');links.forEach(function(a){var on=(a.getAttribute('href')||'')==='#'+id; a.style.backgroundColor=on?'#4361ee':'transparent'; a.style.color=on?'#fff':'#333';});}var links=document.querySelectorAll('.portfolio-sidebar a[href^=\"#tab-\"]');links.forEach(function(a){a.addEventListener('click',function(e){e.preventDefault(); var id=(this.getAttribute('href')||'').slice(1); var el=document.getElementById(id); if(el){ el.scrollIntoView({behavior:'smooth', block:'start'}); act(id);} });}); if(links[0]){ var first=(links[0].getAttribute('href')||'').slice(1); act(first);} })();<\/script>";
-
-              const html =
-                '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>' +
-                "<title>" +
-                ((state.portfolio && state.portfolio.title) || "ملف الإنجاز") +
-                "</title><style>" +
-                css +
-                "\n" +
-                extra +
-                "</style></head><body>" +
-                container.innerHTML +
-                navScript +
-                "</body></html>";
-
-              const blob = new Blob([html], {
-                type: "text/html;charset=utf-8",
-              });
-              const url = URL.createObjectURL(blob);
-              const ael = document.createElement("a");
-              ael.href = url;
-              ael.download = "ملف_الإنجاز_نسخة_مستقلة.html";
-              ael.click();
-              setTimeout(() => URL.revokeObjectURL(url), 1500);
-              note(
-                "\u062A\u0645 \u0625\u0646\u0634\u0627\u0621 \u0645\u0644\u0641 ZIP \u0628\u0646\u062C\u0627\u062D \u0648\u062A\u0645 \u062A\u0646\u0632\u064A\u0644\u0647"
-              );
-            } catch (err) {
-              note(
-                "\u062A\u0639\u0630\u0631 \u0625\u0646\u0634\u0627\u0621 \u0645\u0644\u0641 ZIP",
-                "error"
-              );
-            }
-          };
-          // إنشاء حزمة ZIP تحتوي على index.html + مجلد assets
-          UI.exportZIP = async function () {
-            try {
-              const a = state.tabs.find((x) => x.id === state.activeTabId);
-              if (a) a.content = el.editor.innerHTML;
-
-              // بناء الصفحة النهائية (نفس منطق التصدير)
-              const container = document.createElement("div");
-              const header = document.createElement("div");
-              header.className = "portfolio-header";
-              header.innerHTML =
-                '<div class="portfolio-header-inner" dir="rtl">' +
-                '<img id="expLogo" class="portfolio-logo" alt="الشعار" />' +
-                '<div class="portfolio-titles"><h1 id="expTitle">' +
-                ((state.portfolio && state.portfolio.title) || "��� ��뤟�") +
-                '</h1><div id="expSubtitle" class="portfolio-subtitle"></div></div>' +
-                "</div>";
-              container.appendChild(header);
-
-              const sidebar = document.createElement("div");
-              sidebar.className = "portfolio-sidebar";
-              sidebar.id = "expSidebar";
-              const contentRoot = document.createElement("div");
-              contentRoot.className = "portfolio-content";
-              contentRoot.id = "expContent";
-
-              state.tabs.forEach((t, i) => {
-                const link = document.createElement("a");
-                link.href = "#tab-" + i;
-                link.textContent = t.title;
-                Object.assign(link.style, {
-                  display: "block",
-                  padding: "8px 10px",
-                  marginBottom: "5px",
-                  color: "#333",
-                  textDecoration: "none",
-                  borderRadius: "5px",
-                });
-                sidebar.appendChild(link);
-
-                const w = document.createElement("div");
-                w.className = "tab-content";
-                w.id = "tab-" + i;
-                const h2 = document.createElement("h2");
-                h2.textContent = t.title;
-                Object.assign(h2.style, {
-                  color: "var(--primary)",
-                  borderBottom: "2px solid var(--primary)",
-                  paddingBottom: "10px",
-                  marginBottom: "20px",
-                });
-                const body = document.createElement("div");
-                body.innerHTML = t.content;
-                body
-                  .querySelectorAll(".embed-actions")
-                  .forEach((x) => x.remove());
-                w.appendChild(h2);
-                w.appendChild(body);
-                contentRoot.appendChild(w);
-              });
-
-              const f = document.createElement("div");
-              f.className = "portfolio-footer";
-              f.id = "portfolioFooterBlock";
-              f.textContent =
-                (state.portfolio && state.portfolio.footerText) || "";
-              contentRoot.appendChild(f);
-
-              container.appendChild(sidebar);
-              container.appendChild(contentRoot);
-
-              // ترويسة: شعار وعنوان فرعي
-              const lg = container.querySelector("#expLogo");
-              if (lg) {
-                if (state.portfolio && state.portfolio.logoData) {
-                  lg.src = state.portfolio.logoData;
-                  lg.style.display = "block";
-                } else {
-                  let found = "";
-                  for (const t of state.tabs) {
-                    const tmp = document.createElement("div");
-                    tmp.innerHTML = t.content || "";
-                    const im = tmp.querySelector("img");
-                    if (im && im.getAttribute("src")) {
-                      found = im.getAttribute("src");
-                      break;
-                    }
-                  }
-                  if (found) {
-                    lg.src = found;
-                    lg.style.display = "block";
-                  }
-                }
-              }
-              const sub = container.querySelector("#expSubtitle");
-              if (sub) {
-                const nm =
-                  (state.portfolio && state.portfolio.teacherName) || "";
-                const label =
-                  (state.portfolio && state.portfolio.teacherLabel) ||
-                  "������/��";
-                sub.textContent = nm ? label + " / " + nm : "";
-              }
-
-              // CSS + طبقة أنماط إضافية للطباعة
-              const css = Array.from(document.querySelectorAll("style"))
-                .map((s) => s.innerHTML)
-                .join("\n");
-              const extra = `
-.final-portfolio{display:block;position:static}
-.portfolio-sidebar{width:250px;background:#f0f2f5;height:100vh;position:fixed;top:0;right:0;padding:20px;overflow-y:auto}
-.portfolio-content{margin-right:250px;padding:20px;background:var(--editor-print-bg)}
-.portfolio-logo:not([src]), .portfolio-logo[src=""]{display:none}
-.portfolio-header{padding-right:280px}
-.tab-content{display:none}
-.tab-content.active{display:block}
-.header-actions{display:flex;gap:8px;margin-top:10px}
-  .header-btn{background:#ffffff;border:none;color:#1f2937;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600}
-  .header-btn.export{background:#111827;color:#fff}
-  /* Framed tab sections */
-  .tab-content{border:2px dashed #e5e7eb;border-radius:10px;padding:16px;background:#fff;margin-bottom:16px}
-  .portfolio-content .tab-content:nth-of-type(6n+1){border-color:#1d4ed8}
-  .portfolio-content .tab-content:nth-of-type(6n+2){border-color:#047857}
-  .portfolio-content .tab-content:nth-of-type(6n+3){border-color:#b45309}
-  .portfolio-content .tab-content:nth-of-type(6n+4){border-color:#b91c1c}
-  .portfolio-content .tab-content:nth-of-type(6n+5){border-color:#0e7490}
-  .portfolio-content .tab-content:nth-of-type(6n){border-color:#6b21a8}
-  /* Alternating colors for sidebar links */
-.portfolio-sidebar a{display:block;padding:8px 10px;margin-bottom:5px;text-decoration:none;border-radius:6px;color:#fff !important;transition:filter .2s ease}
-.portfolio-sidebar a:hover{filter:brightness(1.06)}
- .portfolio-sidebar a:nth-of-type(6n+1){background:linear-gradient(135deg,#3b82f6,#1d4ed8)}
- .portfolio-sidebar a:nth-of-type(6n+2){background:linear-gradient(135deg,#10b981,#047857)}
- .portfolio-sidebar a:nth-of-type(6n+3){background:linear-gradient(135deg,#f59e0b,#b45309)}
- .portfolio-sidebar a:nth-of-type(6n+4){background:linear-gradient(135deg,#ef4444,#b91c1c)}
- .portfolio-sidebar a:nth-of-type(6n+5){background:linear-gradient(135deg,#06b6d4,#0e7490)}
- .portfolio-sidebar a:nth-of-type(6n){background:linear-gradient(135deg,#a855f7,#6b21a8)}
-@media print{.portfolio-sidebar{display:none}.portfolio-content{margin:0!important}.header-actions{display:none}.tab-content{display:block!important}.portfolio-header{padding-right:20px!important;padding-left:20px!important}.portfolio-header-inner{justify-content:flex-start!important}}
-`;
-
-              // أدوات مساعدة لتجميع الأصول
-              function sanitizeFilename(name) {
-                name = (name || "")
-                  .replace(/[\\\/:*?"<>|]+/g, "_")
-                  .replace(/\s+/g, " ")
-                  .trim();
-                return name || "file";
-              }
-              function extFromType(type) {
-                const map = {
-                  "image/png": "png",
-                  "image/jpeg": "jpg",
-                  "image/webp": "webp",
-                  "image/gif": "gif",
-                  "image/svg+xml": "svg",
-                  "application/pdf": "pdf",
-                  "video/mp4": "mp4",
-                  "video/webm": "webm",
-                  "audio/mpeg": "mp3",
-                };
-                return map[type] || "";
-              }
-              function extFromUrl(url) {
-                try {
-                  const u = (url || "").split("?")[0];
-                  const m = /\.([a-z0-9]+)$/i.exec(u);
-                  return m ? m[1].toLowerCase() : "";
-                } catch (_) {
-                  return "";
-                }
-              }
-              function nameFromUrl(url) {
-                try {
-                  const u = (url || "").split("?")[0];
-                  const p = u.split("/");
-                  return sanitizeFilename(
-                    decodeURIComponent(p[p.length - 1] || "file")
-                  );
-                } catch (_) {
-                  return "file";
-                }
-              }
-              function dataUrlToBlob(dataUrl) {
-                const arr = (dataUrl || "").split(",");
-                const m = arr[0].match(/:(.*?);/);
-                const mime = m ? m[1] : "application/octet-stream";
-                const bstr = atob(arr[1] || "");
-                const u8 = new Uint8Array(bstr.length);
-                for (let i = 0; i < bstr.length; i++)
-                  u8[i] = bstr.charCodeAt(i);
-                return new Blob([u8], { type: mime });
-              }
-              async function blobFromUrl(url) {
-                const res = await fetch(url);
-                if (!res.ok) throw new Error("fetch failed");
-                return await res.blob();
-              }
-              async function ensureJSZip() {
-                if (window.JSZip) return window.JSZip;
-                await new Promise((resolve, reject) => {
-                  const s = document.createElement("script");
-                  s.src =
-                    "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js";
-                  s.onload = resolve;
-                  s.onerror = reject;
-                  document.head.appendChild(s);
-                });
-                return window.JSZip;
-              }
-              const usedNames = new Set();
-              function uniqueName(base) {
-                base = sanitizeFilename(base || "file");
-                let name = base,
-                  i = 2;
-                while (usedNames.has(name)) {
-                  const dot = base.lastIndexOf(".");
-                  name =
-                    dot > 0
-                      ? base.slice(0, dot) + "-" + i + base.slice(dot)
-                      : base + "-" + i;
-                  i++;
-                }
-                usedNames.add(name);
-                return name;
-              }
-              const assets = [];
-              async function addAssetFrom(url, preferName, element, attr) {
-                try {
-                  if (!url) return null;
-                  let blob = null;
-                  if (/^data:/i.test(url)) blob = dataUrlToBlob(url);
-                  else if (/^blob:/i.test(url) || /^https?:/i.test(url)) {
-                    try {
-                      blob = await blobFromUrl(url);
-                    } catch (_) {
-                      blob = null;
-                    }
-                  } else {
-                    return null;
-                  }
-                  if (!blob) return null;
-                  let baseName = sanitizeFilename(
-                    preferName || nameFromUrl(url)
-                  );
-                  if (!/\.[a-z0-9]+$/i.test(baseName)) {
-                    const ext =
-                      extFromType(blob.type) || extFromUrl(url) || "bin";
-                    baseName = baseName + "." + ext;
-                  }
-                  const finalName = uniqueName(baseName);
-                  assets.push({ name: finalName, blob });
-                  if (element && attr)
-                    element.setAttribute(attr, "assets/" + finalName);
-                  return finalName;
-                } catch (_) {
-                  return null;
-                }
-              }
-
-              // الشعار
-              const expLogo = container.querySelector("#expLogo");
-              if (expLogo) {
-                const ls = expLogo.getAttribute("src") || "";
-                if (ls) await addAssetFrom(ls, "logo", expLogo, "src");
-              }
-
-              // الوسائط داخل المحتوى
-              const embeds = container.querySelectorAll(".embed-container");
-              for (const c of embeds) {
-                const name = c.getAttribute("data-name") || "";
-                const media = c.querySelector(
-                  ".embed-media img, .embed-media video, .embed-media iframe"
-                );
-                const dlink = c.querySelector("a.download-link");
-                if (media) {
-                  const src = media.getAttribute("src") || "";
-                  await addAssetFrom(src, name, media, "src");
-                }
-                if (dlink) {
-                  const href = dlink.getAttribute("href") || "";
-                  const nm = await addAssetFrom(
-                    href,
-                    dlink.getAttribute("download") || name,
-                    dlink,
-                    "href"
-                  );
-                  if (nm) {
-                    dlink.removeAttribute("download");
-                    dlink.setAttribute("target", "_blank");
-                    dlink.setAttribute("rel", "noopener noreferrer");
-                  }
-                }
-              }
-
-              // أعد ضبط خصائص الروابط العامة
-              const anchors = container.querySelectorAll("a[href]");
-              anchors.forEach((a) => {
-                const href = a.getAttribute("href") || "";
-                if (!/^#/.test(href)) {
-                  a.setAttribute("target", "_blank");
-                  a.setAttribute("rel", "noopener noreferrer");
-                }
-              });
-
-              // مبدّل الأقسام + تمييز التنقل
-              const switchScriptEl = document.createElement("script");
-              switchScriptEl.textContent = `
-                (function(){
-                  function setActive(id){
-                    var secs=document.querySelectorAll('.tab-content');
-                    secs.forEach(function(s){ s.classList.remove('active');});
-                    var el=document.getElementById(id); if(el){ el.classList.add('active'); }
-                    var links=document.querySelectorAll('.portfolio-sidebar a');
-                    links.forEach(function(a){ var on=(a.getAttribute('href')||'')==='#'+id; a.style.backgroundColor=on?'#4361ee':'transparent'; a.style.color=on?'#fff':'#333'; });
-                  }
-                  document.addEventListener('DOMContentLoaded', function(){
-                    var links=document.querySelectorAll('.portfolio-sidebar a[href^="#tab-"]');
-                    links.forEach(function(a){ a.addEventListener('click', function(e){ e.preventDefault(); var id=(this.getAttribute('href')||'').slice(1); setActive(id); }, {passive:false}); });
-                    if(links[0]){ var first=(links[0].getAttribute('href')||'').slice(1); setActive(first); }
-                  }, {passive:true});
-                })();
-              `;
-              container.appendChild(switchScriptEl);
-
-              const navScript =
-                "<script>(function(){function act(id){var links=document.querySelectorAll('.portfolio-sidebar a');links.forEach(function(a){var on=(a.getAttribute('href')||'')==='#'+id; a.style.backgroundColor=on?'#4361ee':'transparent'; a.style.color=on?'#fff':'#333';});}var links=document.querySelectorAll('.portfolio-sidebar a[href^=\\\"#tab-\\\"]');links.forEach(function(a){a.addEventListener('click',function(e){e.preventDefault(); var id=(this.getAttribute('href')||'').slice(1); var el=document.getElementById(id); if(el){ el.scrollIntoView({behavior:'smooth', block:'start'}); act(id);} });}); if(links[0]){ var first=(links[0].getAttribute('href')||'').slice(1); act(first);} })();<\\/script>";
-
-              const html =
-                '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>' +
-                "<title>" +
-                ((state.portfolio && state.portfolio.title) || "��� ��뤟�") +
-                "</title><style>" +
-                css +
-                "\n" +
-                extra +
-                "</style></head><body>" +
-                container.innerHTML +
-                navScript +
-                "</body></html>";
-
-              await ensureJSZip();
-              const zip = new JSZip();
-              zip.file("index.html", html);
-              const af = zip.folder("assets");
-              for (const it of assets) {
-                const ab = await it.blob.arrayBuffer();
-                af.file(it.name, ab);
-              }
-              const zblob = await zip.generateAsync({ type: "blob" });
-              const url = URL.createObjectURL(zblob);
-              const ael = document.createElement("a");
-              const fname =
-                ((state.portfolio && state.portfolio.title) || "portfolio") +
-                "_package.zip";
-              ael.href = url;
-              ael.download = fname;
-              ael.click();
-              setTimeout(() => URL.revokeObjectURL(url), 1500);
-              note("تم إنشاء ملف ZIP بنجاح وتم تنزيله");
-            } catch (err) {
-              note("تعذر إنشاء ملف ZIP", "error");
-            }
-          };
-
-          UI.exportHTML = UI.exportStandalone;
-        })();
       })();
     </script>
   </body>
