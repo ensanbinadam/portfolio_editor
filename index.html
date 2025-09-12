@@ -1287,6 +1287,13 @@
           >
             رابط خارجي
           </button>
+          <button
+            class="toolbar-btn"
+            onclick="UI.toggleMediaType('gdrive')"
+            id="btnGdrive"
+          >
+            🔗 رابط Drive
+          </button>
         </div>
         <div id="uploadFileSection">
           <div class="form-group">
@@ -1325,6 +1332,33 @@
               <option value="word">Word</option>
               <option value="excel">Excel</option>
               <option value="powerpoint">PowerPoint</option>
+            </select>
+          </div>
+        </div>
+        <div id="gdriveFileSection" style="display: none">
+          <div class="form-group">
+            <label for="gdriveUrl">ألصق رابط المشاركة من جوجل درايف هنا</label>
+            <input
+              type="text"
+              class="form-control"
+              id="gdriveUrl"
+              placeholder="https://drive.google.com/file/d/..."
+            />
+            <small
+              >سيتم تحويل الرابط تلقائيًا إلى رابط مباشر للعرض والتحميل.</small
+            >
+          </div>
+          <div class="form-group">
+            <label for="gdriveFileType">نوع الملف (مهم للعرض الصحيح)</label>
+            <select class="form-control" id="gdriveFileType">
+              <option value="auto">تحديد تلقائي (غير دقيق)</option>
+              <option value="image">صورة</option>
+              <option value="video">فيديو</option>
+              <option value="pdf">PDF</option>
+              <option value="word">Word</option>
+              <option value="excel">Excel</option>
+              <option value="powerpoint">PowerPoint</option>
+              <option value="other">ملف آخر (للتحميل فقط)</option>
             </select>
           </div>
         </div>
@@ -2075,6 +2109,10 @@
             if (uInp) uInp.value = "";
             const fType = document.getElementById("fileType");
             if (fType) fType.value = "auto";
+            const gInp = document.getElementById("gdriveUrl");
+            if (gInp) gInp.value = "";
+            const gType = document.getElementById("gdriveFileType");
+            if (gType) gType.value = "auto";
             const cap = document.getElementById("mediaCaption");
             if (cap) cap.value = "";
             show(document.getElementById("mediaModal"));
@@ -2090,6 +2128,8 @@
               t === "upload" ? "block" : "none";
             document.getElementById("urlFileSection").style.display =
               t === "url" ? "block" : "none";
+            document.getElementById("gdriveFileSection").style.display =
+              t === "gdrive" ? "block" : "none";
           },
           insertMedia: insertMediaImpl,
 
@@ -2341,7 +2381,7 @@
               downloadHref: url,
               origin: "upload",
             });
-          } else {
+          } else if (state.mediaType === "url") {
             const url = (
               document.getElementById("mediaUrl").value || ""
             ).trim();
@@ -2364,6 +2404,40 @@
               caption: caption, // أو اتركها caption فقط إن أردت الاختصار
               downloadHref: url, // ← كانت خطأ: downloadHref=url
               origin: "url",
+            });
+          } else if (state.mediaType === "gdrive") {
+            const shareUrl = (
+              document.getElementById("gdriveUrl").value || ""
+            ).trim();
+            if (!shareUrl)
+              return note("أدخل رابط المشاركة من جوجل درايف", "error");
+
+            const match = shareUrl.match(
+              /drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/
+            );
+            if (!match || !match[1]) {
+              return note(
+                "رابط جوجل درايف غير صالح. تأكد من أنه رابط مشاركة ملف.",
+                "error"
+              );
+            }
+            const fileId = match[1];
+            const directViewUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
+            const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+
+            let t = document.getElementById("gdriveFileType").value;
+            if (t === "auto") t = "other";
+            let previewSrc = directViewUrl;
+            if (["word", "excel", "powerpoint"].includes(t))
+              previewSrc = office(downloadUrl);
+
+            html = makeEmbedHTML({
+              fType: t,
+              src: previewSrc,
+              name: "ملف من Google Drive",
+              caption: caption,
+              downloadHref: downloadUrl,
+              origin: "gdrive",
             });
           }
 
