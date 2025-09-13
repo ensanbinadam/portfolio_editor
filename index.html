@@ -2712,9 +2712,9 @@
         }) {
           const eid = id();
           let inner = "";
-          const useIframeForMedia =
+          const useIframeForMedia = // استخدم الإطار فقط لفيديو جوجل درايف
             origin === "gdrive" &&
-            (fType === "video" || fType === "image" || fType === "auto");
+            fType === "video";
 
           if (fType === "image" && !useIframeForMedia) {
             inner = `<div class="embed-media resizable-x" style="width:100%">
@@ -2876,17 +2876,22 @@
             );
 
             if (isGoogleDoc || t === "word") {
-              previewSrc = `https://docs.google.com/document/d/${fileId}/preview`;
+              previewSrc = `https://docs.google.com/document/d/${fileId}/embed`;
               fType = "word";
             } else if (isGoogleSheet || t === "excel") {
-              previewSrc = `https://docs.google.com/spreadsheets/d/${fileId}/preview`;
+              previewSrc = `https://docs.google.com/spreadsheets/d/${fileId}/htmlview`;
               fType = "excel";
             } else if (isGoogleSlide || t === "powerpoint") {
-              previewSrc = `https://docs.google.com/presentation/d/${fileId}/embed?start=false&loop=false&delayms=3000`;
+              previewSrc = `https://docs.google.com/presentation/d/${fileId}/preview`;
               fType = "powerpoint";
-            } else if (t !== "other") {
-              // This handles 'auto', 'image', 'video', 'pdf'
-              previewSrc = `https://drive.google.com/file/d/${fileId}/preview`;
+            } else if (t === "video") {
+              previewSrc = `https://drive.google.com/file/d/${fileId}/embed`;
+              fType = "video";
+            } else if (t === "image" || t === "auto") {
+              previewSrc = `https://drive.google.com/uc?export=view&id=${fileId}`;
+              fType = "image"; // تعامل مع "تلقائي" كصورة للتضمين
+            } else if (t === "pdf") {
+              previewSrc = `https://drive.google.com/file/d/${fileId}/embed`;
             } else {
               // This is for 'other'
               previewSrc = "";
