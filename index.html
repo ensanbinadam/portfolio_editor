@@ -2507,6 +2507,7 @@
                 "tab " + (t.id === state.activeTabId ? "active" : "");
               b.type = "button";
               b.dataset.tabId = t.id;
+              b.draggable = true;
               b.style.paddingRight = `${15 + level * 20}px`;
 
               let toggleIcon = "";
@@ -3285,11 +3286,17 @@
 
             // Prevent dropping a tab into its own descendant
             const isDescendant = (childId, parentId) => {
-              let currentId = parentId;
-              while (currentId) {
-                if (currentId === childId) return true;
-                const parent = state.tabs.find((t) => t.id === currentId);
-                currentId = parent ? parent.parentId : null;
+              let currentTab = state.tabs.find((t) => t.id === childId);
+              while (currentTab) {
+                if (currentTab.parentId === parentId) {
+                  return true;
+                }
+                if (!currentTab.parentId) {
+                  return false;
+                }
+                currentTab = state.tabs.find(
+                  (t) => t.id === currentTab.parentId
+                );
               }
               return false;
             };
