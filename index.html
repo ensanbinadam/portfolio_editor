@@ -1635,8 +1635,7 @@
         >
       </div>
     </footer>
-
-    <script>
+<script>
       (function () {
         window.onerror = function (msg) {
           const b = document.getElementById("jsError");
@@ -3564,9 +3563,11 @@
           initTableResizing();
 
           if (el.tableToolbar) {
-            el.tableToolbar.addEventListener("mousedown", (e) =>
-            e.preventDefault()
-          );
+            el.tableToolbar.addEventListener("mousedown", (e) => {
+              // لا تمنع سلوك عناصر النموذج الافتراضي (مثل القوائم المنسدلة وحقول الإدخال)
+              if (e.target.closest("input, select")) return;
+              e.preventDefault();
+            });
             el.tableToolbar.addEventListener("click", (e) => {
             const btn = e.target.closest(".tb-btn");
             if (!btn) return;
@@ -3668,21 +3669,43 @@
                   return note("لا يمكن دمج هذه الخلية للأسفل", "warning");
                 }
               } else if (act === "split-cell") {
-                if (!coords) return;
                 const colSpan = td.colSpan;
                 const rowSpan = td.rowSpan;
-                if (colSpan <= 1 && rowSpan <= 1) return note("الخلية غير مدمجة", "warning");
+            
+                if (colSpan <= 1 && rowSpan <= 1) {
+                  return note("الخلية غير مدمجة", "warning");
+                }
+            
                 td.colSpan = 1;
                 td.rowSpan = 1;
-                for (let j = 1; j < colSpan; j++) td.insertAdjacentElement("afterend", document.createElement("td"));
+            
+                // Add cells for colSpan in the current row
+                let anchorCell = td;
+                for (let j = 1; j < colSpan; j++) {
+                  const newCell = document.createElement(td.tagName);
+                  anchorCell.after(newCell);
+                  anchorCell = newCell;
+                }
+            
+                // Add cells for rowSpan in subsequent rows
                 for (let i = 1; i < rowSpan; i++) {
                   const targetRow = table.rows[coords.r + i];
                   if (!targetRow) continue;
-                  const refCell = map[coords.r + i]?.[coords.c];
+            
+                  let insertBeforeCell = null;
+                  for (const cell of targetRow.cells) {
+                    const cellCoords = getCoordsOfCell(cell, map);
+                    if (cellCoords && cellCoords.c >= coords.c) {
+                      insertBeforeCell = cell;
+                      break;
+                    }
+                  }
+            
                   for (let j = 0; j < colSpan; j++) {
-                    targetRow.insertBefore(document.createElement("td"), refCell || null);
+                    targetRow.insertBefore(document.createElement(td.tagName), insertBeforeCell);
                   }
                 }
+                note("تم تقسيم الخلية بنجاح");
               } else if (act === "cell-bg-row") {
                 const color = el.cellBgPicker.value;
                 const tr = td.closest("tr");
