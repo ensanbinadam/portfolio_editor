@@ -419,64 +419,85 @@
       .rte-table th:focus {
         outline: 2px solid rgba(67, 97, 238, 0.35);
       }
-      .table-bubble {
-        position: absolute;
-        display: none;
-        z-index: 1200;
-        background: #111827;
-        color: #fff;
+      /* ===== شريط أدوات الجدول ===== */
+      .table-toolbar {
+        width: 100%;
+        display: flex; /* Will be toggled by JS */
+        flex-direction: column;
+        gap: 6px;
+        background: #eef2ff;
+        padding: 8px;
         border-radius: 8px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-        padding: 6px;
+        margin-top: 8px;
+        border: 1px solid #dbeafe;
+      }
+      .table-toolbar .tb-row {
+        display: flex;
         gap: 6px;
         align-items: center;
       }
-      .table-bubble .tb-btn {
-        border: none;
+      .table-toolbar .tb-btn {
+        border: 1px solid #ccc;
         border-radius: 6px;
-        background: #1f2937;
-        color: #fff;
+        background: #fff;
+        color: #333;
         padding: 6px 8px;
         cursor: pointer;
         font-size: 12px;
+        transition: background-color 0.2s;
       }
-      .table-bubble .tb-label {
+      .table-toolbar .tb-btn:hover {
+        background: #f0f2f5;
+      }
+      .table-toolbar .tb-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: #f9fafb;
+      }
+      .table-toolbar .tb-label {
         font-size: 12px;
         margin-left: 4px;
-        color: #ccc;
+        color: #4b5563;
+        font-weight: 500;
       }
-      .table-bubble .tb-input {
+      .table-toolbar .tb-input {
         width: 45px;
-        background: #1f2937;
-        color: #fff;
-        border: 1px solid #444;
+        background: #fff;
+        color: #333;
+        border: 1px solid #ccc;
         border-radius: 6px;
         padding: 4px;
         text-align: center;
         -moz-appearance: textfield;
       }
-      .table-bubble .tb-input::-webkit-outer-spin-button,
-      .table-bubble .tb-input::-webkit-inner-spin-button {
+      .table-toolbar .tb-input::-webkit-outer-spin-button,
+      .table-toolbar .tb-input::-webkit-inner-spin-button {
         -webkit-appearance: none;
         margin: 0;
       }
-      .table-bubble .tb-btn:hover {
-        background: #374151;
-      }
-      .table-bubble .sep {
+      .table-toolbar .sep {
         width: 1px;
         height: 20px;
-        background: rgba(255, 255, 255, 0.18);
+        background: #d1d5db;
         margin: 0 4px;
       }
-      .table-bubble .tb-color {
+      .table-toolbar .tb-color {
         width: 30px;
         height: 30px;
-        border: 1px solid #444;
+        border: 1px solid #ccc;
         border-radius: 6px;
         background: #fff;
         cursor: pointer;
         padding: 0;
+      }
+      .table-toolbar .tb-select {
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        background: #fff;
+        color: #333;
+        padding: 4px;
+        font-size: 12px;
+        margin: 0 2px;
       }
 
       /* ===== Notification ===== */
@@ -1195,6 +1216,48 @@
               جدول
             </button>
           </div>
+
+          <div id="tableToolbar" class="table-toolbar" style="display: none;">
+            <div class="tb-row">
+              <button class="tb-btn" data-act="row-before" title="إضافة صف قبل">صف ↑</button>
+              <button class="tb-btn" data-act="row-after" title="إضافة صف بعد">صف ↓</button>
+              <button class="tb-btn" data-act="col-before" title="إضافة عمود قبل">عمود ←</button>
+              <button class="tb-btn" data-act="col-after" title="إضافة عمود بعد">عمود →</button>
+              <span class="sep"></span>
+              <button class="tb-btn" data-act="del-row" title="حذف الصف">حذف صف</button>
+              <button class="tb-btn" data-act="del-col" title="حذف العمود">حذف عمود</button>
+              <button class="tb-btn" data-act="del-table" title="حذف الجدول">حذف جدول</button>
+            </div>
+            <div class="tb-row">
+              <button class="tb-btn" data-act="merge-right" title="دمج يمين">دمج ↔</button>
+              <button class="tb-btn" data-act="merge-down" title="دمج أسفل">دمج ↕</button>
+              <button class="tb-btn" data-act="split-cell" title="تقسيم الخلية">تقسيم</button>
+              <span class="sep"></span>
+              <button class="tb-btn" data-act="toggle-header" title="تبديل صف العنوان">رأس</button>
+              <button class="tb-btn" data-act="autofit-table" title="ضبط تلقائي لعرض الجدول">↔ ضبط</button>
+              <span class="sep"></span>
+              <button class="tb-btn" data-act="valign-top" title="محاذاة للأعلى">أعلى</button>
+              <button class="tb-btn" data-act="valign-middle" title="توسيط عمودي">وسط</button>
+              <button class="tb-btn" data-act="valign-bottom" title="محاذاة للأسفل">أسفل</button>
+            </div>
+            <div class="tb-row">
+              <label class="tb-label">حدود:</label>
+              <input type="number" id="tblBorderWidth" min="0" max="10" value="1" class="tb-input" title="حجم الحد (px)"/>
+              <select id="tblBorderStyle" class="tb-select" title="نمط الحد">
+                <option value="solid">صلب</option>
+                <option value="dashed">متقطع</option>
+                <option value="dotted">منقط</option>
+              </select>
+              <input type="color" id="tblBorderColor" class="tb-color" title="لون الحد"/>
+              <span class="sep"></span>
+              <label class="tb-label">خلفية:</label>
+              <input type="color" id="cellBgPicker" class="tb-color" title="لون الخلفية"/>
+              <button class="tb-btn" data-act="cell-bg-cell" title="تطبيق على الخلية">خلية</button>
+              <button class="tb-btn" data-act="cell-bg-row" title="تطبيق على الصف">صف</button>
+              <button class="tb-btn" data-act="cell-bg-col" title="تطبيق على العمود">عمود</button>
+              <button class="tb-btn" data-act="cell-bg-clear" title="مسح اللون">مسح</button>
+            </div>
+          </div>
         </div>
 
         <div class="editor" id="editorWrapper">
@@ -1207,68 +1270,6 @@
           </div>
 
           <!-- شريط تحكم الجداول العائم -->
-          <div class="table-bubble" id="tableBubble" dir="rtl">
-            <button class="tb-btn" data-act="row-before" title="إضافة صف قبل">
-              صف ↑
-            </button>
-            <button class="tb-btn" data-act="row-after" title="إضافة صف بعد">
-              صف ↓
-            </button>
-            <span class="sep"></span>
-            <button class="tb-btn" data-act="col-before" title="إضافة عمود قبل">
-              عمود ←
-            </button>
-            <button class="tb-btn" data-act="col-after" title="إضافة عمود بعد">
-              عمود →
-            </button>
-            <span class="sep"></span>
-            <button
-              class="tb-btn"
-              data-act="toggle-header"
-              title="تبديل صف العنوان"
-            >
-              رأس
-            </button>
-            <span class="sep"></span>
-            <label class="tb-label" for="tblBorderWidth">الحدود:</label>
-            <input
-              type="number"
-              id="tblBorderWidth"
-              min="0"
-              max="10"
-              value="1"
-              class="tb-input"
-              title="حجم الحد (px)"
-            />
-            <input
-              type="color"
-              id="tblBorderColor"
-              class="tb-color"
-              title="لون الحد"
-            />
-            <span class="sep"></span>
-            <input
-              type="color"
-              id="cellBgPicker"
-              class="tb-color"
-              title="لون خلفية الخلية"
-            />
-            <button class="tb-btn" data-act="cell-bg" title="تطبيق اللون">
-              لون
-            </button>
-            <button class="tb-btn" data-act="cell-bg-clear" title="مسح اللون">
-              مسح
-            </button>
-            <span class="sep"></span>
-            <button class="tb-btn" data-act="del-row" title="حذف الصف">
-              حذف صف
-            </button>
-            <button class="tb-btn" data-act="del-col" title="حذف العمود">
-              حذف عمود
-            </button>
-            <button class="tb-btn" data-act="del-table" title="حذف الجدول">
-              حذف الجدول
-            </button>
           </div>
         </div>
 
@@ -1612,14 +1613,11 @@
     <!-- مكوّن تذييل جاهز -->
     <footer class="footer" dir="rtl">
       <div class="line">
-        <span>برمجة: أ/فاطمة هزازي، أ/عبدالعزيز العبدالجبار</span>
+        <span>تطوير: أ/عبدالعزيز العبدالجبار</span>
         <span class="sep">•</span>
-        <span>باستخدام</span>
-        <a href="https://chatgpt.com" target="_blank" rel="noopener noreferrer"
-          >ChatGPT</a
-        >
+        <span>بمساعدة</span>
         <a
-          href="https://gemini.google.com/"
+          href="https://gemini.google.com"
           target="_blank"
           rel="noopener noreferrer"
           >Gemini</a
@@ -1683,7 +1681,7 @@
           filePreview: document.getElementById("filePreview"),
           linkUrl: document.getElementById("linkUrl"),
           linkNewTab: document.getElementById("linkNewTab"),
-          tableBubble: document.getElementById("tableBubble"),
+          tableToolbar: document.getElementById("tableToolbar"),
           cellBgPicker: document.getElementById("cellBgPicker"),
           formatPainterBtn: document.getElementById("formatPainterBtn"),
         };
@@ -1842,44 +1840,57 @@
           let cIndex = cells.indexOf(td);
           return { table, tr, td, rows, rIndex, cIndex };
         }
-        function showTableBubbleFor(td) {
-          if (!td) return hideTableBubble();
+        function showTableToolbar(td) {
+          if (!td) return hideTableToolbar();
           state.currentCell = td;
-          const cur = getComputedStyle(td).backgroundColor;
-          const hex = rgbToHex(cur) || "#ffffff";
-          if (el.cellBgPicker) el.cellBgPicker.value = hex;
+          const b = el.tableToolbar;
+          if (!b) return;
 
+          // Update UI state from the selected cell
           const table = td.closest("table");
           if (table) {
+            const cur = getComputedStyle(td).backgroundColor;
+            const hex = rgbToHex(cur) || "#ffffff";
+            if (el.cellBgPicker) el.cellBgPicker.value = hex;
+
             const borderWidthInput = document.getElementById("tblBorderWidth");
             const borderColorInput = document.getElementById("tblBorderColor");
             const sampleCell = table.querySelector("td, th") || td;
+            const borderStyleInput = document.getElementById("tblBorderStyle");
 
             const computedStyle = window.getComputedStyle(sampleCell);
             const width = parseInt(computedStyle.borderWidth, 10);
             const color = rgbToHex(computedStyle.borderColor);
+            const style = computedStyle.borderTopStyle;
 
-            if (borderWidthInput)
-              borderWidthInput.value = isNaN(width) ? 1 : width;
+            if (borderWidthInput) borderWidthInput.value = isNaN(width) ? 1 : width;
             if (borderColorInput) borderColorInput.value = color || "#e5e7eb";
-          }
+            if (borderStyleInput) borderStyleInput.value = style || "solid";
 
-          const rect = td.getBoundingClientRect();
-          const host = el.editorWrapper.getBoundingClientRect();
-          const b = el.tableBubble;
-          b.style.top =
-            rect.top -
-            host.top +
-            el.editorWrapper.scrollTop -
-            b.offsetHeight -
-            8 +
-            "px";
-          b.style.left =
-            rect.left - host.left + el.editorWrapper.scrollLeft + "px";
+            const splitBtn = b.querySelector('[data-act="split-cell"]');
+            if (splitBtn)
+              splitBtn.disabled = td.rowSpan <= 1 && td.colSpan <= 1;
+            const mergeRightBtn = b.querySelector('[data-act="merge-right"]');
+            if (mergeRightBtn)
+              mergeRightBtn.disabled =
+                !td.nextElementSibling ||
+                td.nextElementSibling.rowSpan !== td.rowSpan;
+
+            const map = buildTableMap(table);
+            const coords = getCoordsOfCell(td, map);
+            const mergeDownBtn = b.querySelector('[data-act="merge-down"]');
+            if (mergeDownBtn) {
+              if (!coords) mergeDownBtn.disabled = true;
+              else {
+                const belowCell = map[coords.r + td.rowSpan]?.[coords.c];
+                mergeDownBtn.disabled = !belowCell || belowCell.colSpan !== td.colSpan || getCoordsOfCell(belowCell, map)?.c !== coords.c;
+              }
+            }
+          }
           b.style.display = "flex";
         }
-        function hideTableBubble() {
-          el.tableBubble.style.display = "none";
+        function hideTableToolbar() {
+          if (el.tableToolbar) el.tableToolbar.style.display = "none";
           state.currentCell = null;
         }
         function rgbToHex(rgb) {
@@ -2249,7 +2260,7 @@
             upgradeEmbeds(el.editor);
             renderTabs();
             saveToStorage();
-            hideTableBubble();
+            hideTableToolbar();
           },
           renameTab: (tid) => {
             const t = state.tabs.find((x) => x.id === tid);
@@ -2463,6 +2474,14 @@
             );
             const table = document.createElement("table");
             table.className = "rte-table";
+            table.style.width = "100%";
+            const colgroup = document.createElement("colgroup");
+            for (let j = 0; j < c; j++) {
+              const col = document.createElement("col");
+              col.setAttribute('data-col-index', j);
+              colgroup.appendChild(col);
+            }
+            table.appendChild(colgroup);
             const tbody = document.createElement("tbody");
             for (let i = 0; i < r; i++) {
               const tr = document.createElement("tr");
@@ -2569,6 +2588,40 @@
           }
           node.parentNode.insertBefore(a, node);
           a.appendChild(node);
+        }
+
+        function buildTableMap(table) {
+          const map = [];
+          const rows = table.rows;
+          for (let i = 0; i < rows.length; i++) {
+            if (!map[i]) map[i] = [];
+          }
+
+          for (let r = 0; r < rows.length; r++) {
+            for (let c = 0; c < rows[r].cells.length; c++) {
+              const cell = rows[r].cells[c];
+              let map_c = 0;
+              while (map[r][map_c]) {
+                map_c++;
+              }
+              for (let i = 0; i < cell.rowSpan; i++) {
+                for (let j = 0; j < cell.colSpan; j++) {
+                  if (!map[r + i]) map[r + i] = [];
+                  map[r + i][map_c + j] = cell;
+                }
+              }
+            }
+          }
+          return map;
+        }
+
+        function getCoordsOfCell(cell, map) {
+          for (let r = 0; r < map.length; r++) {
+            for (let c = 0; c < (map[r] || []).length; c++) {
+              if (map[r][c] === cell) return { r, c };
+            }
+          }
+          return null;
         }
 
         function buildToc(tabs, forExport = false) {
@@ -3286,18 +3339,27 @@
 
             // Prevent dropping a tab into its own descendant
             const isDescendant = (childId, parentId) => {
-              let currentTab = state.tabs.find((t) => t.id === childId);
-              while (currentTab) {
+              // A tab cannot be a descendant of itself.
+              if (childId === parentId) return true;
+
+              // Create a map for O(1) lookups, which is more efficient and safer.
+              const tabMap = new Map(state.tabs.map((t) => [t.id, t]));
+
+              let currentTab = tabMap.get(childId);
+
+              // Traverse up the hierarchy from the child.
+              // The loop counter is a safeguard against infinite loops from corrupted data.
+              for (let i = 0; i < state.tabs.length && currentTab; i++) {
+                // If we find the parentId in the ancestry, then it's a descendant.
                 if (currentTab.parentId === parentId) {
                   return true;
                 }
-                if (!currentTab.parentId) {
-                  return false;
-                }
-                currentTab = state.tabs.find(
-                  (t) => t.id === currentTab.parentId
-                );
+
+                // Move up to the parent for the next iteration.
+                currentTab = tabMap.get(currentTab.parentId);
               }
+
+              // If the loop completes without finding the parent, it's not a descendant.
               return false;
             };
             if (dropZone === "inside" && isDescendant(targetId, draggedId)) {
@@ -3489,98 +3551,168 @@
           /* ===== أحداث الجداول ===== */
           document.addEventListener("selectionchange", () => {
             const td = getCellFromSelection();
-            if (td) showTableBubbleFor(td);
-            else hideTableBubble();
+            if (td) showTableToolbar(td);
+            else hideTableToolbar();
           });
           el.editor.addEventListener("scroll", () => {
-            if (state.currentCell) showTableBubbleFor(state.currentCell);
+            if (state.currentCell) showTableToolbar(state.currentCell);
           });
+          initTableResizing();
 
-          el.tableBubble.addEventListener("mousedown", (e) =>
+          if (el.tableToolbar) {
+            el.tableToolbar.addEventListener("mousedown", (e) =>
             e.preventDefault()
           );
-          el.tableBubble.addEventListener("click", (e) => {
+            el.tableToolbar.addEventListener("click", (e) => {
             const btn = e.target.closest(".tb-btn");
             if (!btn) return;
             const act = btn.getAttribute("data-act");
             const td = state.currentCell;
-            const info = tableInfo(td);
-            if (!info) return;
-            const { table, rows, rIndex, cIndex } = info;
-
-            if (act === "row-before") {
-              const tr = document.createElement("tr");
-              for (let i = 0; i < table.rows[0].cells.length; i++) {
-                const cell = document.createElement("td");
-                tr.appendChild(cell);
-              }
-              table.tBodies[0].insertBefore(tr, table.rows[rIndex]);
-            } else if (act === "row-after") {
-              const tr = document.createElement("tr");
-              for (let i = 0; i < table.rows[0].cells.length; i++) {
-                const cell = document.createElement("td");
-                tr.appendChild(cell);
-              }
-              const next = table.rows[rIndex].nextSibling;
-              table.tBodies[0].insertBefore(tr, next);
-            } else if (act === "col-before" || act === "col-after") {
-              const addAfter = act === "col-after";
-              rows.forEach((row) => {
-                const ref = row.cells[cIndex];
-                const cell = document.createElement(
-                  row.rowIndex === 0 && table.tHead ? "th" : "td"
-                );
-                if (addAfter) {
-                  ref.after(cell);
-                } else {
-                  row.insertBefore(cell, ref);
-                }
-              });
-            } else if (act === "toggle-header") {
-              const first = rows[0];
-              if (first && first.cells.length) {
-                const isHeader = first.cells[0].tagName === "TH";
-                [...first.cells].forEach((cell) => {
-                  const repl = document.createElement(isHeader ? "td" : "th");
-                  repl.innerHTML = cell.innerHTML;
-                  cell.parentNode.replaceChild(repl, cell);
-                });
-              }
-            } else if (act === "cell-bg") {
-              const color = el.cellBgPicker ? el.cellBgPicker.value : "#ffff99";
-              td.style.backgroundColor = color;
+            if (!td) return;
+            const table = td.closest("table");
+            if (!table) return;
+            // Simple actions that don't need the table map
+            if (act.startsWith("valign-")) {
+              td.style.verticalAlign = act.split("-")[1];
+            } else if (act === "cell-bg-cell") {
+              td.style.backgroundColor = el.cellBgPicker.value;
             } else if (act === "cell-bg-clear") {
               td.style.removeProperty("background-color");
-            } else if (act === "del-row") {
-              table.deleteRow(rIndex);
-            } else if (act === "del-col") {
-              rows.forEach((row) => {
-                if (row.cells[cIndex]) row.deleteCell(cIndex);
-              });
             } else if (act === "del-table") {
               table.remove();
-              hideTableBubble();
-            }
-            if (table.parentNode) {
-              if (table.rows.length === 0 || table.rows[0].cells.length === 0) {
-                table.remove();
-                hideTableBubble();
+              hideTableToolbar();
+            } else if (act === "autofit-table") {
+                table.style.width = 'auto';
+                table.style.tableLayout = 'auto';
+                note("تم ضبط عرض الجدول تلقائياً");
+            } else {
+              // Complex actions that need the table map
+              const map = buildTableMap(table);
+              const coords = getCoordsOfCell(td, map);
+              const rIndex = td.parentElement.rowIndex;
+
+              if (act === "row-before") {
+                const newRow = table.insertRow(rIndex);
+                for (let i = 0; i < (map[0] || []).length; i++) newRow.insertCell();
+              } else if (act === "row-after") {
+                const newRow = table.insertRow(rIndex + td.rowSpan);
+                for (let i = 0; i < (map[0] || []).length; i++) newRow.insertCell();
+              } else if (act === "del-row") {
+                table.deleteRow(rIndex);
+              } else if (act === "col-before" || act === "col-after") {
+                if (!coords) return;
+                const addAfter = act === "col-after";
+                const insertAt = coords.c + (addAfter ? td.colSpan : 0);
+                for (let r = 0; r < map.length; ) {
+                  const cellOnLeft = map[r][insertAt - 1];
+                  if (cellOnLeft && getCoordsOfCell(cellOnLeft, map).c + cellOnLeft.colSpan > insertAt) {
+                    cellOnLeft.colSpan++;
+                    r += cellOnLeft.rowSpan;
+                  } else {
+                    const newCell = document.createElement('td');
+                    const refCell = map[r][insertAt];
+                    if (table.rows[r]) {
+                      table.rows[r].insertBefore(newCell, refCell || null);
+                    }
+                    r++;
+                  }
+                }
+              } else if (act === "del-col") {
+                if (!coords) return;
+                for (let r = 0; r < map.length; ) {
+                  const cell = map[r][coords.c];
+                  if (cell) {
+                    if (cell.colSpan > 1) cell.colSpan--;
+                    else cell.remove();
+                    r += cell.rowSpan;
+                  } else {
+                    r++;
+                  }
+                }
+              } else if (act === "toggle-header") {
+                const firstRow = table.rows[0];
+                if (firstRow) {
+                  const isHeader = firstRow.cells[0]?.tagName === "TH";
+                  [...firstRow.cells].forEach((cell) => {
+                    const repl = document.createElement(isHeader ? "td" : "th");
+                    repl.innerHTML = cell.innerHTML;
+                    for(const attr of ['rowspan', 'colspan', 'style']) {
+                        if(cell.hasAttribute(attr)) repl.setAttribute(attr, cell.getAttribute(attr));
+                    }
+                    cell.parentNode.replaceChild(repl, cell);
+                  });
+                }
+              } else if (act === "merge-right") {
+                const rightCell = td.nextElementSibling;
+                if (rightCell && rightCell.rowSpan === td.rowSpan) {
+                  const contentToMove = rightCell.innerHTML;
+                  td.colSpan += rightCell.colSpan;
+                  if (contentToMove.trim() && contentToMove !== "<br>") td.innerHTML += " " + contentToMove;
+                  rightCell.remove();
+                } else {
+                  return note("لا يمكن دمج هذه الخلية يميناً", "warning");
+                }
+              } else if (act === "merge-down") {
+                if (!coords) return;
+                const belowCell = map[coords.r + td.rowSpan]?.[coords.c];
+                if (belowCell && belowCell.colSpan === td.colSpan && getCoordsOfCell(belowCell, map).c === coords.c) {
+                  const contentToMove = belowCell.innerHTML;
+                  td.rowSpan += belowCell.rowSpan;
+                  if (contentToMove.trim() && contentToMove !== "<br>") td.innerHTML += "<br>" + contentToMove;
+                  belowCell.remove();
+                } else {
+                  return note("لا يمكن دمج هذه الخلية للأسفل", "warning");
+                }
+              } else if (act === "split-cell") {
+                if (!coords) return;
+                const colSpan = td.colSpan;
+                const rowSpan = td.rowSpan;
+                if (colSpan <= 1 && rowSpan <= 1) return note("الخلية غير مدمجة", "warning");
+                td.colSpan = 1;
+                td.rowSpan = 1;
+                for (let j = 1; j < colSpan; j++) td.insertAdjacentElement("afterend", document.createElement("td"));
+                for (let i = 1; i < rowSpan; i++) {
+                  const targetRow = table.rows[coords.r + i];
+                  if (!targetRow) continue;
+                  const refCell = map[coords.r + i]?.[coords.c];
+                  for (let j = 0; j < colSpan; j++) {
+                    targetRow.insertBefore(document.createElement("td"), refCell || null);
+                  }
+                }
+              } else if (act === "cell-bg-row") {
+                const color = el.cellBgPicker.value;
+                const tr = td.closest("tr");
+                if (tr) [...tr.cells].forEach((cell) => (cell.style.backgroundColor = color));
+              } else if (act === "cell-bg-col") {
+                if (!coords) return;
+                const color = el.cellBgPicker.value;
+                const cellsToColor = new Set();
+                for (let r = 0; r < map.length; r++) {
+                  const cellInCol = map[r][coords.c];
+                  if (cellInCol) cellsToColor.add(cellInCol);
+                }
+                cellsToColor.forEach((cell) => (cell.style.backgroundColor = color));
               }
             }
+
+            // Final cleanup and save
+            if (table.parentNode) {
+              if (table.rows.length === 0 || (table.rows[0] && table.rows[0].cells.length === 0)) {
+                table.remove();
+                hideTableToolbar();
+              } else if (document.body.contains(table)) {
+                const newTd = table.contains(td) ? td : table.querySelector('td, th');
+                if (newTd) showTableToolbar(newTd);
+                else hideTableToolbar();
+              }
+            }
+
             saveToStorage();
           });
 
-          if (el.cellBgPicker) {
-            el.cellBgPicker.addEventListener("input", () => {
-              if (state.currentCell) {
-                state.currentCell.style.backgroundColor = el.cellBgPicker.value;
-                saveToStorage();
-              }
-            });
-          }
-
           const tblBorderWidth = document.getElementById("tblBorderWidth");
           const tblBorderColor = document.getElementById("tblBorderColor");
+          const tblBorderStyle = document.getElementById("tblBorderStyle");
           const applyTableBorders = () => {
             if (!state.currentCell) return;
             const table = state.currentCell.closest("table");
@@ -3588,25 +3720,97 @@
 
             const width = tblBorderWidth.value;
             const color = tblBorderColor.value;
+            const style = tblBorderStyle.value;
 
             table.classList.remove("no-border");
 
             const cells = table.querySelectorAll("th, td");
             cells.forEach((cell) => {
-              cell.style.border = `${width}px solid ${color}`;
+              cell.style.border = `${width}px ${style} ${color}`;
             });
             saveToStorage();
           };
-          if (tblBorderWidth && tblBorderColor) {
+          if (tblBorderWidth && tblBorderColor && tblBorderStyle) {
             tblBorderWidth.addEventListener("input", applyTableBorders);
             tblBorderColor.addEventListener("input", applyTableBorders);
+            tblBorderStyle.addEventListener("change", applyTableBorders);
           }
+        }
         })();
 
         UI.closePreview = function () {
           try {
             document.getElementById("finalPortfolio").style.display = "none";
           } catch (_) {}
+        };
+        function initTableResizing() {
+            const handle = document.createElement('div');
+            handle.className = 'col-resize-handle';
+            el.editorWrapper.appendChild(handle);
+
+            let targetCol = null;
+            let table = null;
+            let startX = 0;
+            let startWidth = 0;
+
+            const onMouseMove = (e) => {
+                if (!targetCol) return;
+                const width = startWidth + (e.clientX - startX);
+                if (width > 20) { // Minimum width
+                    targetCol.style.width = width + 'px';
+                    table.style.width = 'auto'; 
+                    table.style.tableLayout = 'fixed';
+                }
+            };
+
+            const onMouseUp = () => {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+                handle.classList.remove('active');
+                handle.classList.remove('visible');
+                targetCol = null;
+                table = null;
+                saveToStorage();
+            };
+
+            handle.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                table = state.currentCell.closest('table');
+                if(!table) return;
+                targetCol = table.querySelector(`col[data-col-index="${handle.dataset.colIndex}"]`);
+                if (!targetCol) return;
+
+                startX = e.clientX;
+                startWidth = targetCol.offsetWidth;
+                handle.classList.add('active');
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+
+            el.editor.addEventListener('mousemove', (e) => {
+                if (handle.classList.contains('active')) return;
+                const cell = e.target.closest('td, th');
+                if (!cell) {
+                    handle.classList.remove('visible');
+                    return;
+                }
+                const rect = cell.getBoundingClientRect();
+                if (Math.abs(rect.right - e.clientX) < 5) {
+                    const tableRect = cell.closest('table').getBoundingClientRect();
+                    const editorRect = el.editorWrapper.getBoundingClientRect();
+                    const map = buildTableMap(cell.closest('table'));
+                    const coords = getCoordsOfCell(cell, map);
+                    if (!coords) return;
+                    handle.style.left = (rect.right - editorRect.left - 3 + el.editorWrapper.scrollLeft) + 'px';
+                    handle.style.top = (tableRect.top - editorRect.top + el.editorWrapper.scrollTop) + 'px';
+                    handle.style.height = tableRect.height + 'px';
+                    handle.dataset.colIndex = coords.c + cell.colSpan - 1;
+                    handle.classList.add('visible');
+                } else {
+                    handle.classList.remove('visible');
+                }
+            });
         };
         UI.refreshPortfolioHeaderFooter = function () {
           try {
