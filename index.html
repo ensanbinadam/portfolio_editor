@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
   <head>
@@ -83,6 +82,22 @@
         outline: 2px solid rgba(255, 255, 255, 0.7);
         outline-offset: -2px;
         transform: translateY(-1px);
+      }
+      .tab-title-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        overflow: hidden;
+        pointer-events: none; /* لتمرير الأحداث للزر الأب */
+      }
+      .tab-toggle {
+        cursor: pointer;
+        user-select: none;
+        width: 16px;
+        text-align: center;
+        flex-shrink: 0;
+        pointer-events: all; /* لجعله قابل للنقر */
+        font-size: 12px;
       }
       .tabs-container .tab:nth-child(6n + 1) {
         background: linear-gradient(135deg, #3b82f6, #1d4ed8);
@@ -177,6 +192,11 @@
       .toolbar-btn:hover {
         background: #f0f2f5;
         border-color: #ccc;
+      }
+      .toolbar-btn.active {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
       }
       .toolbar-select {
         padding: 8px 12px;
@@ -387,6 +407,10 @@
         background: #fff;
         vertical-align: top;
       }
+      .rte-table.no-border th,
+      .rte-table.no-border td {
+        border: 1px solid transparent;
+      }
       .rte-table th {
         background: #f8fafc;
         font-weight: 700;
@@ -415,6 +439,26 @@
         padding: 6px 8px;
         cursor: pointer;
         font-size: 12px;
+      }
+      .table-bubble .tb-label {
+        font-size: 12px;
+        margin-left: 4px;
+        color: #ccc;
+      }
+      .table-bubble .tb-input {
+        width: 45px;
+        background: #1f2937;
+        color: #fff;
+        border: 1px solid #444;
+        border-radius: 6px;
+        padding: 4px;
+        text-align: center;
+        -moz-appearance: textfield;
+      }
+      .table-bubble .tb-input::-webkit-outer-spin-button,
+      .table-bubble .tb-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
       }
       .table-bubble .tb-btn:hover {
         background: #374151;
@@ -813,6 +857,21 @@
         z-index: 10000;
         pointer-events: auto;
       }
+      .tab.dragging {
+        opacity: 0.4;
+      }
+      .tab.drop-parent {
+        outline: 2px dashed var(--success);
+        outline-offset: 2px;
+      }
+      .drop-indicator {
+        position: absolute;
+        height: 4px;
+        background: var(--success);
+        border-radius: 2px;
+        pointer-events: none;
+        z-index: 10;
+      }
     </style>
   </head>
   <body>
@@ -825,7 +884,7 @@
         </div>
         <div class="tabs-container" id="tabsContainer"></div>
         <div class="sidebar-actions">
-          <button class="sidebar-btn" type="button" onclick="UI.addTab()">
+          <button class="sidebar-btn" type="button" onclick="UI.addTab(null)">
             تبويب جديد
           </button>
           <button
@@ -856,6 +915,18 @@
               <option value="h3">عنوان ثانوي</option>
               <option value="blockquote">اقتباس</option>
             </select>
+          </div>
+
+          <div class="toolbar-group">
+            <button
+              class="toolbar-btn"
+              type="button"
+              id="formatPainterBtn"
+              title="نسخ التنسيق"
+              onclick="UI.toggleFormatPainter()"
+            >
+              🖌️
+            </button>
           </div>
 
           <div class="toolbar-group">
@@ -1158,6 +1229,23 @@
             >
               رأس
             </button>
+            <span class="sep"></span>
+            <label class="tb-label" for="tblBorderWidth">الحدود:</label>
+            <input
+              type="number"
+              id="tblBorderWidth"
+              min="0"
+              max="10"
+              value="1"
+              class="tb-input"
+              title="حجم الحد (px)"
+            />
+            <input
+              type="color"
+              id="tblBorderColor"
+              class="tb-color"
+              title="لون الحد"
+            />
             <span class="sep"></span>
             <input
               type="color"
@@ -1521,12 +1609,20 @@
       <span id="notificationMessage"></span>
     </div>
 
+    <!-- مكوّن تذييل جاهز -->
     <footer class="footer" dir="rtl">
       <div class="line">
-        <span>برمجة: أ/فاطمة هزازي، أ/عبدالعزيز العبدالجبار</span
-        ><span class="sep">•</span><span>باستخدام</span>
+        <span>برمجة: أ/فاطمة هزازي، أ/عبدالعزيز العبدالجبار</span>
+        <span class="sep">•</span>
+        <span>باستخدام</span>
         <a href="https://chatgpt.com" target="_blank" rel="noopener noreferrer"
           >ChatGPT</a
+        >
+        <a
+          href="https://gemini.google.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Gemini</a
         >
       </div>
       <div class="line">جميع الحقوق محفوظة لملتقى معلمي ومعلمات الرياضيات</div>
@@ -1572,6 +1668,9 @@
           currentCell: null,
           pasteMode: "smart",
         };
+        state.formatPainterActive = false;
+        state.copiedFormats = null;
+        state.newTabParentId = null;
 
         const el = {
           tabsContainer: document.getElementById("tabsContainer"),
@@ -1586,6 +1685,7 @@
           linkNewTab: document.getElementById("linkNewTab"),
           tableBubble: document.getElementById("tableBubble"),
           cellBgPicker: document.getElementById("cellBgPicker"),
+          formatPainterBtn: document.getElementById("formatPainterBtn"),
         };
 
         function note(msg, type) {
@@ -1641,7 +1741,7 @@
           );
         }
 
-        const STORAGE_KEY = "portfolio_v36";
+        const STORAGE_KEY = "portfolio_v37";
         function saveToStorage() {
           try {
             const a = state.tabs.find((x) => x.id === state.activeTabId);
@@ -1663,6 +1763,12 @@
             const d = JSON.parse(raw);
             if (!d || !Array.isArray(d.tabs) || !d.tabs.length) return null;
             state.tabs = d.tabs;
+            // Migration for sub-tabs
+            state.tabs.forEach((t) => {
+              if (t.isCollapsed === undefined) t.isCollapsed = false;
+              if (t.parentId === undefined) t.parentId = null;
+            });
+
             state.settings = d.settings || state.settings;
             state.portfolio = d.portfolio || state.portfolio;
             applySettings();
@@ -1742,6 +1848,21 @@
           const cur = getComputedStyle(td).backgroundColor;
           const hex = rgbToHex(cur) || "#ffffff";
           if (el.cellBgPicker) el.cellBgPicker.value = hex;
+
+          const table = td.closest("table");
+          if (table) {
+            const borderWidthInput = document.getElementById("tblBorderWidth");
+            const borderColorInput = document.getElementById("tblBorderColor");
+            const sampleCell = table.querySelector("td, th") || td;
+
+            const computedStyle = window.getComputedStyle(sampleCell);
+            const width = parseInt(computedStyle.borderWidth, 10);
+            const color = rgbToHex(computedStyle.borderColor);
+
+            if (borderWidthInput)
+              borderWidthInput.value = isNaN(width) ? 1 : width;
+            if (borderColorInput) borderColorInput.value = color || "#e5e7eb";
+          }
 
           const rect = td.getBoundingClientRect();
           const host = el.editorWrapper.getBoundingClientRect();
@@ -1946,6 +2067,91 @@
                 (state.pasteMode === "smart" ? "ذكي" : "نصي")
             );
           },
+          toggleFormatPainter: () => {
+            if (state.formatPainterActive) {
+              state.formatPainterActive = false;
+              state.copiedFormats = null;
+              el.formatPainterBtn.classList.remove("active");
+              el.editor.style.cursor = "";
+              note("تم إيقاف نسخ التنسيق");
+              return;
+            }
+
+            const sel = window.getSelection();
+            if (
+              !sel ||
+              sel.isCollapsed ||
+              !el.editor.contains(sel.anchorNode)
+            ) {
+              return note("حدد نصًا لنسخ تنسيقه أولاً", "error");
+            }
+
+            const formats = {};
+            const inlineFormats = [
+              "bold",
+              "italic",
+              "underline",
+              "strikeThrough",
+              "superscript",
+              "subscript",
+            ];
+            inlineFormats.forEach((cmd) => {
+              if (document.queryCommandState(cmd)) formats[cmd] = true;
+            });
+
+            formats.foreColor = document.queryCommandValue("foreColor");
+            formats.formatBlock = document.queryCommandValue("formatBlock");
+
+            const parentA = sel.anchorNode.parentElement.closest("a");
+            if (parentA) {
+              formats.link = {
+                href: parentA.getAttribute("href"),
+                target: parentA.getAttribute("target"),
+              };
+            }
+
+            state.copiedFormats = formats;
+            state.formatPainterActive = true;
+            el.formatPainterBtn.classList.add("active");
+            el.editor.style.cursor = "copy";
+            note("تم نسخ التنسيق. حدد نصًا آخر لتطبيقه.");
+          },
+
+          applyCopiedFormat: () => {
+            if (!state.formatPainterActive || !state.copiedFormats) return;
+            const sel = window.getSelection();
+            if (!sel || sel.isCollapsed) return UI.toggleFormatPainter();
+
+            ensureRangeInEditor();
+            const formats = state.copiedFormats;
+            [
+              "bold",
+              "italic",
+              "underline",
+              "strikeThrough",
+              "superscript",
+              "subscript",
+            ].forEach((cmd) => {
+              if (!!formats[cmd] !== document.queryCommandState(cmd))
+                document.execCommand(cmd, false, null);
+            });
+            if (
+              (formats.formatBlock || "p").toLowerCase() !==
+              document.queryCommandValue("formatBlock").toLowerCase()
+            )
+              UI.format(formats.formatBlock);
+            document.execCommand(
+              "foreColor",
+              false,
+              formats.foreColor || "#000000"
+            );
+            document.execCommand("unlink", false, null);
+            if (formats.link)
+              document.execCommand("createLink", false, formats.link.href);
+
+            UI.toggleFormatPainter();
+            note("تم تطبيق التنسيق");
+          },
 
           exec: (cmd) => {
             try {
@@ -2002,13 +2208,30 @@
             saveToStorage();
           },
 
-          addTab: () => {
+          toggleTabCollapse: (tabId) => {
+            const tab = state.tabs.find((t) => t.id === tabId);
+            if (tab) {
+              tab.isCollapsed = !tab.isCollapsed;
+              renderTabs();
+              saveToStorage();
+            }
+          },
+
+          addTab: (parentId = null) => {
+            state.newTabParentId = parentId;
+            document.getElementById("tabTitle").value = "";
             show(document.getElementById("newTabModal"));
           },
           createTab: () => {
             const t = document.getElementById("tabTitle").value.trim();
             if (!t) return note("أدخل اسم التبويب", "error");
-            const nt = { id: id(), title: t, content: "" };
+            const nt = {
+              id: id(),
+              title: t,
+              content: "",
+              parentId: state.newTabParentId,
+              isCollapsed: false,
+            };
             state.tabs.push(nt);
             UI.setActiveTab(nt.id);
             hide(document.getElementById("newTabModal"));
@@ -2053,12 +2276,60 @@
             note("تم النسخ");
           },
           deleteActive: () => {
-            if (state.tabs.length <= 1)
-              return note("لا يمكن حذف جميع التبويبات", "error");
-            const i = state.tabs.findIndex((x) => x.id === state.activeTabId);
-            if (confirm(`حذف التبويب "${state.tabs[i].title}"؟`)) {
-              state.tabs.splice(i, 1);
-              UI.setActiveTab(state.tabs[Math.max(0, i - 1)].id);
+            if (!state.activeTabId) return;
+            const activeTab = state.tabs.find(
+              (t) => t.id === state.activeTabId
+            );
+            if (!activeTab) return;
+
+            const getDescendants = (parentId) => {
+              const children = state.tabs.filter(
+                (t) => t.parentId === parentId
+              );
+              return [
+                ...children,
+                ...children.flatMap((c) => getDescendants(c.id)),
+              ];
+            };
+            const descendants = getDescendants(activeTab.id);
+            const idsToDelete = new Set([
+              activeTab.id,
+              ...descendants.map((d) => d.id),
+            ]);
+
+            if (
+              !activeTab.parentId &&
+              state.tabs.filter((t) => !t.parentId).length <= 1
+            ) {
+              return note("لا يمكن حذف آخر تبويب رئيسي", "error");
+            }
+
+            let confirmMsg = `حذف التبويب "${activeTab.title}"؟`;
+            if (descendants.length > 0) {
+              confirmMsg += `\nسيتم حذف ${descendants.length} تبويب فرعي معه.`;
+            }
+
+            if (confirm(confirmMsg)) {
+              const currentIndex = state.tabs.findIndex(
+                (t) => t.id === activeTab.id
+              );
+              state.tabs = state.tabs.filter((t) => !idsToDelete.has(t.id));
+
+              let newActiveTab = null;
+              if (state.tabs.length > 0) {
+                const prevTab = state.tabs[currentIndex - 1];
+                const parentTab = state.tabs.find(
+                  (t) => t.id === activeTab.parentId
+                );
+                newActiveTab = prevTab || parentTab || state.tabs[0];
+              }
+
+              if (newActiveTab) {
+                UI.setActiveTab(newActiveTab.id);
+              } else {
+                el.editor.innerHTML = "";
+                renderTabs();
+              }
               saveToStorage();
               note("تم الحذف");
             }
@@ -2219,15 +2490,62 @@
 
         function renderTabs() {
           el.tabsContainer.innerHTML = "";
-          state.tabs.forEach((t) => {
-            const b = document.createElement("button");
-            b.className = "tab " + (t.id === state.activeTabId ? "active" : "");
-            b.type = "button";
-            b.innerHTML = `<span>${t.title}</span><div class="tab-actions"><button class="tab-btn" onclick="event.stopPropagation(); UI.renameTab('${t.id}')">✎</button><button class="tab-btn" onclick="event.stopPropagation(); UI.duplicateTab('${t.id}')">⧉</button></div>`;
-            b.onclick = () => UI.setActiveTab(t.id);
-            el.tabsContainer.appendChild(b);
-          });
-          enableTabReorder();
+          const tabsByParent = state.tabs.reduce((acc, tab) => {
+            const parentId = tab.parentId || "root";
+            if (!acc[parentId]) acc[parentId] = [];
+            acc[parentId].push(tab);
+            return acc;
+          }, {});
+
+          const renderLevel = (tabs, level) => {
+            tabs.forEach((t) => {
+              const children = tabsByParent[t.id] || [];
+              const hasChildren = children.length > 0;
+
+              const b = document.createElement("button");
+              b.className =
+                "tab " + (t.id === state.activeTabId ? "active" : "");
+              b.type = "button";
+              b.dataset.tabId = t.id;
+              b.style.paddingRight = `${15 + level * 20}px`;
+
+              let toggleIcon = "";
+              if (hasChildren) {
+                toggleIcon = `<span class="tab-toggle" onclick="event.stopPropagation(); UI.toggleTabCollapse('${
+                  t.id
+                }')">${t.isCollapsed ? "▶" : "▼"}</span>`;
+              } else {
+                toggleIcon = `<span class="tab-toggle"></span>`; // for alignment
+              }
+
+              const prefix = level > 0 ? " " : "";
+              b.innerHTML = `
+                <div class="tab-title-wrapper">
+                    ${toggleIcon}
+                    <span>${prefix}${esc(t.title)}</span>
+                </div>
+                <div class="tab-actions">
+                    <button class="tab-btn" title="إضافة تبويب فرعي" onclick="event.stopPropagation(); UI.addTab('${
+                      t.id
+                    }')">+</button>
+                    <button class="tab-btn" title="تعديل" onclick="event.stopPropagation(); UI.renameTab('${
+                      t.id
+                    }')">✎</button>
+                    <button class="tab-btn" title="نسخ" onclick="event.stopPropagation(); UI.duplicateTab('${
+                      t.id
+                    }')">⧉</button>
+                </div>`;
+
+              b.onclick = () => UI.setActiveTab(t.id);
+              el.tabsContainer.appendChild(b);
+
+              if (hasChildren && !t.isCollapsed) {
+                renderLevel(children, level + 1);
+              }
+            });
+          };
+          renderLevel(tabsByParent["root"] || [], 0);
+          enableDragAndDrop();
         }
         function closest(tag, node) {
           while (node && node.nodeType === 1) {
@@ -2250,6 +2568,43 @@
           }
           node.parentNode.insertBefore(a, node);
           a.appendChild(node);
+        }
+
+        function buildToc(tabs, forExport = false) {
+          const tocFragment = document.createDocumentFragment();
+          const tabsByParent = tabs.reduce((acc, tab) => {
+            const parentId = tab.parentId || "root";
+            if (!acc[parentId]) acc[parentId] = [];
+            acc[parentId].push(tab);
+            return acc;
+          }, {});
+
+          const createLink = (tab) => {
+            const link = document.createElement("a");
+            link.href = "#tab-" + tab.id;
+            link.textContent = tab.title;
+            if (!forExport) {
+              link.onclick = (e) => (e.preventDefault(), UI.showTab(tab.id));
+            }
+            return link;
+          };
+
+          const buildLevel = (levelTabs, container) => {
+            if (!levelTabs) return;
+            levelTabs.forEach((tab) => {
+              container.appendChild(createLink(tab));
+              const children = tabsByParent[tab.id];
+              if (children && children.length > 0) {
+                const subContainer = document.createElement("div");
+                subContainer.style.paddingRight = "20px";
+                buildLevel(children, subContainer);
+                container.appendChild(subContainer);
+              }
+            });
+          };
+
+          buildLevel(tabsByParent["root"], tocFragment);
+          return tocFragment;
         }
 
         function getFileType(name) {
@@ -2281,20 +2636,26 @@
         }) {
           const eid = id();
           let inner = "";
-          if (fType === "image") {
+          const useIframeForMedia =
+            origin === "gdrive" &&
+            (fType === "video" || fType === "image" || fType === "auto");
+
+          if (fType === "image" && !useIframeForMedia) {
             inner = `<div class="embed-media resizable-x" style="width:100%">
                      <img src="${src}" alt="${esc(caption || name || "صورة")}"/>
                    </div>`;
-          } else if (fType === "video") {
+          } else if (fType === "video" && !useIframeForMedia) {
             inner = `<div class="embed-media resizable-both" style="width:100%;height:360px">
                      <video src="${src}" controls></video>
                    </div>`;
           } else if (
+            useIframeForMedia ||
             fType === "pdf" ||
             ["word", "excel", "powerpoint"].includes(fType)
           ) {
-            inner = `<div class="embed-media resizable-both" style="width:100%;height:500px">
-                     <iframe src="${src}"></iframe>
+            const height = useIframeForMedia ? "420px" : "500px";
+            inner = `<div class="embed-media resizable-both" style="width:100%;height:${height}">
+                     <iframe src="${src}" allow="autoplay; fullscreen" style="border:0;"></iframe>
                    </div>`;
           } else {
             inner = `<div class="embed-media resizable-x" style="width:100%">
@@ -2412,9 +2773,11 @@
             if (!shareUrl)
               return note("أدخل رابط المشاركة من جوجل درايف", "error");
 
-            const match = shareUrl.match(
-              /drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/
-            );
+            let match = shareUrl.match(/\/d\/([a-zA-Z0-9_-]{25,})/);
+            if (!match) {
+              match = shareUrl.match(/id=([a-zA-Z0-9_-]{25,})/);
+            }
+
             if (!match || !match[1]) {
               return note(
                 "رابط جوجل درايف غير صالح. تأكد من أنه رابط مشاركة ملف.",
@@ -2422,17 +2785,39 @@
               );
             }
             const fileId = match[1];
-            const directViewUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
             const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
 
             let t = document.getElementById("gdriveFileType").value;
-            if (t === "auto") t = "other";
-            let previewSrc = directViewUrl;
-            if (["word", "excel", "powerpoint"].includes(t))
-              previewSrc = office(downloadUrl);
+            let fType = t;
+            let previewSrc;
+
+            const isGoogleDoc = /docs\.google\.com\/document/i.test(shareUrl);
+            const isGoogleSheet = /docs\.google\.com\/spreadsheets/i.test(
+              shareUrl
+            );
+            const isGoogleSlide = /docs\.google\.com\/presentation/i.test(
+              shareUrl
+            );
+
+            if (isGoogleDoc || t === "word") {
+              previewSrc = `https://docs.google.com/document/d/${fileId}/preview`;
+              fType = "word";
+            } else if (isGoogleSheet || t === "excel") {
+              previewSrc = `https://docs.google.com/spreadsheets/d/${fileId}/preview`;
+              fType = "excel";
+            } else if (isGoogleSlide || t === "powerpoint") {
+              previewSrc = `https://docs.google.com/presentation/d/${fileId}/embed?start=false&loop=false&delayms=3000`;
+              fType = "powerpoint";
+            } else if (t !== "other") {
+              // This handles 'auto', 'image', 'video', 'pdf'
+              previewSrc = `https://drive.google.com/file/d/${fileId}/preview`;
+            } else {
+              // This is for 'other'
+              previewSrc = "";
+            }
 
             html = makeEmbedHTML({
-              fType: t,
+              fType: fType,
               src: previewSrc,
               name: "ملف من Google Drive",
               caption: caption,
@@ -2564,31 +2949,20 @@
           document.getElementById("portfolioHeaderTitle").textContent =
             (state.portfolio && state.portfolio.title) || "ملف الإنجاز";
           UI.refreshPortfolioHeaderFooter();
-          UI.buildPortfolioSidebar();
-          el.portfolioSidebar.innerHTML = "<h3>فهرس المحتويات</h3>";
-          state.tabs.forEach((t, i) => {
-            const link = document.createElement("a");
-            link.href = "#tab-" + i;
-            link.textContent = t.title;
-            link.onclick = (e) => {
-              e.preventDefault();
-              UI.showTab(i);
-            };
-            el.portfolioSidebar.appendChild(link);
-          });
+          UI.buildPortfolioSidebar(); // يبني إعدادات الغلاف + عنوان الفهرس
+          const tocFragment = buildToc(state.tabs, false);
+          el.portfolioSidebar.appendChild(tocFragment);
+
           el.portfolioContent.innerHTML = "";
-          state.tabs.forEach((t, i) => {
+          state.tabs.forEach((t) => {
             const w = document.createElement("div");
             w.className = "tab-content";
-            w.id = "tab-" + i;
+            w.id = "tab-" + t.id;
             const h2 = document.createElement("h2");
             h2.textContent = t.title;
-            Object.assign(h2.style, {
-              color: "var(--primary)",
-              borderBottom: "2px solid var(--primary)",
-              paddingBottom: "10px",
-              marginBottom: "20px",
-            });
+            h2.style.cssText =
+              "color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 20px;";
+
             const body = document.createElement("div");
             body.innerHTML = t.content;
             body.querySelectorAll(".embed-actions").forEach((x) => x.remove());
@@ -2607,43 +2981,30 @@
           });
           el.portfolioContent.appendChild(f);
           el.finalPortfolio.style.display = "block";
-          UI.showTab(0);
+          if (state.tabs.length > 0) UI.showTab(state.tabs[0].id);
         }
         // تنقّل بين أقسام المعاينة
-        function showTab(idx) {
-          // أظهر القسم المطلوب و أخفِ الباقي
-          document.querySelectorAll(".tab-content").forEach((sec, i) => {
-            sec.classList.toggle("active", i === idx);
-            // لمن يعتمد العرض/الإخفاء بـ style
-            sec.style.display = i === idx ? "" : "none";
+        function showTab(tabId) {
+          document.querySelectorAll(".tab-content").forEach((sec) => {
+            const isActive = sec.id === "tab-" + tabId;
+            sec.classList.toggle("active", isActive);
+            sec.style.display = isActive ? "block" : "none";
           });
 
-          // فعِّل الرابط الموافق داخل الفهرس
           const sb = document.getElementById("portfolioSidebar");
           if (sb) {
-            const links = [...sb.querySelectorAll('a[href^="#tab-"]')];
-            links.forEach((a, i) => a.classList.toggle("active", i === idx));
+            [...sb.querySelectorAll("a[href^='#tab-']")].forEach((a) => {
+              a.classList.toggle(
+                "active",
+                a.getAttribute("href") === "#tab-" + tabId
+              );
+            });
           }
-
-          // ارجع لأعلى المحتوى
           document
             .querySelector(".portfolio-content")
             ?.scrollTo({ top: 0, behavior: "smooth" });
         }
 
-        // ربط نقرات الفهرس بالعرض
-        (function bindTOCClicks() {
-          const sb = document.getElementById("portfolioSidebar");
-          if (!sb) return;
-          sb.addEventListener("click", (e) => {
-            const a = e.target.closest('a[href^="#tab-"]');
-            if (!a) return;
-            e.preventDefault();
-            const idx =
-              parseInt(a.getAttribute("href").split("-").pop(), 10) || 0;
-            showTab(idx);
-          });
-        })();
         function exportPDF() {
           UI.previewPortfolio();
           setTimeout(() => {
@@ -2702,16 +3063,11 @@
             contentRoot.className = "portfolio-content";
 
             // الفهرس + الأقسام
-            state.tabs.forEach(function (t, i) {
-              var link = document.createElement("a");
-              link.href = "#tab-" + i;
-              link.textContent = t.title;
-              sidebar.appendChild(link);
-
+            sidebar.appendChild(buildToc(state.tabs, true));
+            state.tabs.forEach(function (t) {
               var w = document.createElement("div");
               w.className = "tab-content";
-              w.id = "tab-" + i;
-
+              w.id = "tab-" + t.id;
               var h2 = document.createElement("h2");
               h2.textContent = t.title;
               h2.style.color = "var(--primary)";
@@ -2809,20 +3165,18 @@
               .join("\n");
             // سكربت صغير لتفعيل تبويب واحد مرئي + تمييز الفهرس
             var navScript = [
-              "(function(){",
-              " function setActive(id){",
-              "  var secs=document.querySelectorAll('.tab-content');",
-              "  secs.forEach(function(s){ s.classList.remove('active'); });",
-              "  var el=document.getElementById(id); if(el){ el.classList.add('active'); }",
-              "  var links=document.querySelectorAll('.portfolio-sidebar a');",
-              "  links.forEach(function(a){ var on=(a.getAttribute('href')||'')==='#'+id; a.style.backgroundColor=on?'#4361ee':'transparent'; a.style.color=on?'#fff':'#333'; });",
-              " }",
-              " document.addEventListener('DOMContentLoaded', function(){",
-              "  var links=document.querySelectorAll('.portfolio-sidebar a[href^=\"#tab-\"]');",
-              "  links.forEach(function(a){ a.addEventListener('click', function(e){ e.preventDefault(); var id=(this.getAttribute('href')||'').slice(1); setActive(id); }); });",
-              "  if(links[0]){ var first=(links[0].getAttribute('href')||'').slice(1); setActive(first); }",
-              " });",
-              "})();",
+              "(function(){" +
+                " function setActive(id){" +
+                "  document.querySelectorAll('.tab-content').forEach(function(s){ s.style.display='none'; s.classList.remove('active'); });" +
+                "  var el=document.getElementById(id); if(el){ el.style.display='block'; el.classList.add('active'); }" +
+                "  document.querySelectorAll('.portfolio-sidebar a').forEach(function(a){ a.classList.remove('active'); if((a.getAttribute('href')||'')==='#'+id) a.classList.add('active'); });" +
+                " }" +
+                " document.addEventListener('DOMContentLoaded', function(){" +
+                "  document.querySelectorAll('.portfolio-sidebar a[href^=\"#tab-\"]').forEach(function(a){ a.addEventListener('click', function(e){ e.preventDefault(); var id=(this.getAttribute('href')||'').slice(1); setActive(id); }); });" +
+                "  var firstTab = document.querySelector('.portfolio-sidebar a');" +
+                "  if(firstTab){ setActive((firstTab.getAttribute('href')||'').slice(1)); }" +
+                " });" +
+                "})();",
             ].join("");
 
             var html =
@@ -2857,6 +3211,125 @@
           }
         };
 
+        function enableDragAndDrop() {
+          const container = el.tabsContainer;
+          let draggedId = null;
+          let dropIndicator = document.getElementById("dropIndicator");
+          if (!dropIndicator) {
+            dropIndicator = document.createElement("div");
+            dropIndicator.id = "dropIndicator";
+            dropIndicator.className = "drop-indicator";
+            container.appendChild(dropIndicator);
+          }
+
+          container.ondragstart = (e) => {
+            const target = e.target.closest(".tab");
+            if (!target) return;
+            draggedId = target.dataset.tabId;
+            e.dataTransfer.setData("text/plain", draggedId);
+            e.dataTransfer.effectAllowed = "move";
+            setTimeout(() => target.classList.add("dragging"), 0);
+          };
+
+          container.ondragover = (e) => {
+            e.preventDefault();
+            const target = e.target.closest(".tab");
+            if (!target || target.dataset.tabId === draggedId) {
+              return;
+            }
+
+            const rect = target.getBoundingClientRect();
+            const offset = e.clientY - rect.top;
+            const zoneHeight = rect.height / 3;
+
+            dropIndicator.style.display = "block";
+            target.classList.remove("drop-parent");
+
+            if (offset < zoneHeight) {
+              // Drop Before
+              dropIndicator.style.top = target.offsetTop + "px";
+              target.dataset.dropZone = "before";
+            } else if (offset > rect.height - zoneHeight) {
+              // Drop After
+              dropIndicator.style.top = target.offsetTop + rect.height + "px";
+              target.dataset.dropZone = "after";
+            } else {
+              // Drop Inside
+              dropIndicator.style.display = "none";
+              target.classList.add("drop-parent");
+              target.dataset.dropZone = "inside";
+            }
+          };
+
+          container.ondragleave = (e) => {
+            const target = e.target.closest(".tab");
+            if (target) {
+              target.classList.remove("drop-parent");
+              target.removeAttribute("data-drop-zone");
+            }
+          };
+
+          container.ondrop = (e) => {
+            e.preventDefault();
+            if (!draggedId) return;
+
+            const targetEl = e.target.closest(".tab");
+            if (!targetEl) return;
+
+            const targetId = targetEl.dataset.tabId;
+            const dropZone = targetEl.dataset.dropZone;
+
+            const draggedTab = state.tabs.find((t) => t.id === draggedId);
+            const targetTab = state.tabs.find((t) => t.id === targetId);
+            if (!draggedTab || !targetTab || draggedId === targetId) return;
+
+            // Prevent dropping a tab into its own descendant
+            const isDescendant = (childId, parentId) => {
+              let currentId = parentId;
+              while (currentId) {
+                if (currentId === childId) return true;
+                const parent = state.tabs.find((t) => t.id === currentId);
+                currentId = parent ? parent.parentId : null;
+              }
+              return false;
+            };
+            if (dropZone === "inside" && isDescendant(targetId, draggedId)) {
+              return note("لا يمكن نقل تبويب إلى أحد فروعه", "error");
+            }
+
+            const draggedIndex = state.tabs.findIndex(
+              (t) => t.id === draggedId
+            );
+            const [movedTab] = state.tabs.splice(draggedIndex, 1);
+
+            if (dropZone === "inside") {
+              movedTab.parentId = targetId;
+              state.tabs.push(movedTab); // Add to end to become last child
+            } else {
+              movedTab.parentId = targetTab.parentId;
+              const newTargetIndex = state.tabs.findIndex(
+                (t) => t.id === targetId
+              );
+              state.tabs.splice(
+                newTargetIndex + (dropZone === "after" ? 1 : 0),
+                0,
+                movedTab
+              );
+            }
+
+            renderTabs();
+            saveToStorage();
+          };
+
+          container.ondragend = (e) => {
+            draggedId = null;
+            dropIndicator.style.display = "none";
+            document
+              .querySelectorAll(".tab.dragging, .tab.drop-parent")
+              .forEach((el) => el.classList.remove("dragging", "drop-parent"));
+          };
+        }
+
         (function init() {
           applySettings();
           const eb = document.getElementById("editorBgPicker");
@@ -2874,6 +3347,18 @@
           ["mouseup", "keyup", "touchend"].forEach((ev) =>
             el.editor.addEventListener(ev, saveSel)
           );
+
+          el.editor.addEventListener("mouseup", (e) => {
+            if (e.target.closest("#formatPainterBtn")) return;
+            if (state.formatPainterActive) {
+              const sel = window.getSelection();
+              if (sel && !sel.isCollapsed) {
+                setTimeout(() => {
+                  if (state.formatPainterActive) UI.applyCopiedFormat();
+                }, 50);
+              }
+            }
+          });
 
           // لا تمنع الافتراضي حتى يصل click للأزرار
           el.editor.addEventListener(
@@ -3086,6 +3571,29 @@
               }
             });
           }
+
+          const tblBorderWidth = document.getElementById("tblBorderWidth");
+          const tblBorderColor = document.getElementById("tblBorderColor");
+          const applyTableBorders = () => {
+            if (!state.currentCell) return;
+            const table = state.currentCell.closest("table");
+            if (!table) return;
+
+            const width = tblBorderWidth.value;
+            const color = tblBorderColor.value;
+
+            table.classList.remove("no-border");
+
+            const cells = table.querySelectorAll("th, td");
+            cells.forEach((cell) => {
+              cell.style.border = `${width}px solid ${color}`;
+            });
+            saveToStorage();
+          };
+          if (tblBorderWidth && tblBorderColor) {
+            tblBorderWidth.addEventListener("input", applyTableBorders);
+            tblBorderColor.addEventListener("input", applyTableBorders);
+          }
         })();
 
         UI.closePreview = function () {
@@ -3250,96 +3758,6 @@
           } catch (_) {}
         };
 
-        // ==== (A) معاينة الإنجاز بلوحة إدخال الغلاف =====
-        UI.previewPortfolio = function () {
-          try {
-            // خزّن تبويبك الحالي
-            var active = state.tabs.find(function (x) {
-              return x.id === state.activeTabId;
-            });
-            if (active) active.content = el.editor.innerHTML;
-
-            // نظّف منطقة المعاينة
-            el.portfolioSidebar.innerHTML = "";
-            el.portfolioContent.innerHTML = "";
-
-            // عنوان الرأس
-            var title =
-              (state.portfolio && state.portfolio.title) || "ملف الإنجاز";
-            document.getElementById("portfolioHeaderTitle").textContent = title;
-
-            // حدّث الشعار والاسم/الصفة
-            UI.refreshPortfolioHeaderFooter();
-
-            // ابنِ لوحة إعدادات الغلاف + فهرس المحتويات
-            UI.buildPortfolioSidebar();
-
-            // أنشئ الأقسام
-            state.tabs.forEach(function (t, i) {
-              // رابط في الفهرس
-              var link = document.createElement("a");
-              link.href = "#tab-" + i;
-              link.textContent = t.title;
-              el.portfolioSidebar.appendChild(link);
-
-              // حاوية القسم
-              var wrap = document.createElement("div");
-              wrap.className = "tab-content";
-              wrap.id = "tab-" + i;
-
-              var h2 = document.createElement("h2");
-              h2.textContent = t.title;
-              h2.style.color = "var(--primary)";
-              h2.style.borderBottom = "2px solid var(--primary)";
-              h2.style.paddingBottom = "10px";
-              h2.style.marginBottom = "20px";
-
-              var body = document.createElement("div");
-              body.innerHTML = t.content || "";
-              var bars = body.querySelectorAll(".embed-actions");
-              bars.forEach(function (x) {
-                x.remove();
-              });
-
-              wrap.appendChild(h2);
-              wrap.appendChild(body);
-              el.portfolioContent.appendChild(wrap);
-            });
-
-            // تذييل قابل للتحرير في المعاينة
-            var f = document.createElement("div");
-            f.className = "portfolio-footer";
-            f.id = "portfolioFooterBlock";
-            f.contentEditable = "true";
-            f.textContent =
-              (state.portfolio && state.portfolio.footerText) || "";
-            f.addEventListener("input", function () {
-              state.portfolio.footerText = f.textContent || "";
-              try {
-                localStorage.setItem(
-                  "portfolio_v34",
-                  JSON.stringify({
-                    version: "3.4",
-                    tabs: state.tabs,
-                    settings: state.settings,
-                    portfolio: state.portfolio,
-                    activeTabId: state.activeTabId,
-                  })
-                );
-              } catch (_) {}
-            });
-            el.portfolioContent.appendChild(f);
-
-            // أظهر المعاينة
-            el.finalPortfolio.style.display = "block";
-
-            // فعّل أول تبويب
-            UI.showTab(0);
-          } catch (err) {
-            UI.note("تعذّرت المعاينة", "error");
-          }
-        };
-
         // ==== (C) تصدير ZIP (index.html + assets/) ====
         UI.exportZIP = async function () {
           try {
@@ -3439,16 +3857,11 @@
             contentRoot.className = "portfolio-content";
             contentRoot.id = "expContent";
 
-            state.tabs.forEach(function (t, i) {
-              var link = document.createElement("a");
-              link.href = "#tab-" + i;
-              link.textContent = t.title;
-              sidebar.appendChild(link);
-
+            sidebar.appendChild(buildToc(state.tabs, true));
+            state.tabs.forEach(function (t) {
               var w = document.createElement("div");
               w.className = "tab-content";
-              w.id = "tab-" + i;
-
+              w.id = "tab-" + t.id;
               var h2 = document.createElement("h2");
               h2.textContent = t.title;
               h2.style.color = "var(--primary)";
@@ -3614,20 +4027,18 @@
               })
               .join("\n");
             var navScript = [
-              "(function(){",
-              " function setActive(id){",
-              "  var secs=document.querySelectorAll('.tab-content');",
-              "  secs.forEach(function(s){ s.classList.remove('active'); });",
-              "  var el=document.getElementById(id); if(el){ el.classList.add('active'); }",
-              "  var links=document.querySelectorAll('.portfolio-sidebar a');",
-              "  links.forEach(function(a){ var on=(a.getAttribute('href')||'')==='#'+id; a.style.backgroundColor=on?'#4361ee':'transparent'; a.style.color=on?'#fff':'#333'; });",
-              " }",
-              " document.addEventListener('DOMContentLoaded', function(){",
-              "  var links=document.querySelectorAll('.portfolio-sidebar a[href^=\"#tab-\"]');",
-              "  links.forEach(function(a){ a.addEventListener('click', function(e){ e.preventDefault(); var id=(this.getAttribute('href')||'').slice(1); setActive(id); }); });",
-              "  if(links[0]){ var first=(links[0].getAttribute('href')||'').slice(1); setActive(first); }",
-              " });",
-              "})();",
+              "(function(){" +
+                " function setActive(id){" +
+                "  document.querySelectorAll('.tab-content').forEach(function(s){ s.style.display='none'; s.classList.remove('active'); });" +
+                "  var el=document.getElementById(id); if(el){ el.style.display='block'; el.classList.add('active'); }" +
+                "  document.querySelectorAll('.portfolio-sidebar a').forEach(function(a){ a.classList.remove('active'); if((a.getAttribute('href')||'')==='#'+id) a.classList.add('active'); });" +
+                " }" +
+                " document.addEventListener('DOMContentLoaded', function(){" +
+                "  document.querySelectorAll('.portfolio-sidebar a[href^=\"#tab-\"]').forEach(function(a){ a.addEventListener('click', function(e){ e.preventDefault(); var id=(this.getAttribute('href')||'').slice(1); setActive(id); }); });" +
+                "  var firstTab = document.querySelector('.portfolio-sidebar a');" +
+                "  if(firstTab){ setActive((firstTab.getAttribute('href')||'').slice(1)); }" +
+                " });" +
+                "})();",
             ].join("");
 
             var html =
@@ -3674,50 +4085,6 @@
             UI.note("تعذّر إنشاء ملف ZIP", "error");
           }
         };
-
-        function enableTabReorder() {
-          const wrap = document.getElementById("tabsContainer");
-          if (!wrap) return;
-          const items = [...wrap.children]; // يفترض أن كل طفل يمثل تبويبًا
-          let src = -1;
-
-          items.forEach((item, idx) => {
-            item.setAttribute("draggable", "true");
-
-            item.addEventListener("dragstart", (e) => {
-              src = idx;
-              item.classList.add("dragging");
-              // تحسين: شفافية أثناء السحب
-              e.dataTransfer.effectAllowed = "move";
-              try {
-                e.dataTransfer.setData("text/plain", String(idx));
-              } catch (_) {}
-            });
-
-            item.addEventListener("dragover", (e) => {
-              e.preventDefault(); // يسمح بالإسقاط
-            });
-
-            item.addEventListener("drop", (e) => {
-              e.preventDefault();
-              const dest = [...wrap.children].indexOf(item);
-              if (src === -1 || dest === -1 || dest === src) return;
-
-              // حرّك العنصر في state.tabs
-              const moved = state.tabs.splice(src, 1)[0];
-              state.tabs.splice(dest, 0, moved);
-
-              // أعِد الرسم واحفظ وفعِّل التبويب المنقول
-              renderTabs();
-              saveToStorage();
-              UI.setActiveTab(state.tabs[dest].id);
-            });
-
-            item.addEventListener("dragend", () => {
-              item.classList.remove("dragging");
-            });
-          });
-        }
 
         UI.updatePortfolioSettingsFromSidebar = function () {
           try {
