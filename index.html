@@ -2741,7 +2741,7 @@
                    </div>`;
           }
           const d = downloadHref
-            ? `<a href="${downloadHref}" download class="download-link">تحميل</a>`
+            ? `<a href="${downloadHref}" target="_blank" rel="noopener noreferrer" class="download-link">تحميل الملف</a>`
             : "";
 
           const captionEl = `<figcaption class="embed-caption" contenteditable="true" data-placeholder="وصف (اختياري)...">${esc(
@@ -2861,7 +2861,8 @@
               );
             }
             const fileId = match[1];
-            const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+            // رابط التحميل الافتراضي للملفات العادية (فيديو، صور، PDF)
+            let downloadUrl = `https://drive.google.com/file/d/${fileId}/view`;
 
             let t = document.getElementById("gdriveFileType").value;
             let fType = t;
@@ -2875,26 +2876,35 @@
               shareUrl
             );
 
+            // تم توحيد روابط العرض لاستخدام /preview لزيادة التوافقية، باستثناء الصور
             if (isGoogleDoc || t === "word") {
-              previewSrc = `https://docs.google.com/document/d/${fileId}/embed`;
+              previewSrc = `https://docs.google.com/document/d/${fileId}/preview`;
+              // رابط التحميل يفتح المحرر مباشرة للوصول لزر التحميل
+              downloadUrl = `https://docs.google.com/document/d/${fileId}/edit`;
               fType = "word";
             } else if (isGoogleSheet || t === "excel") {
-              previewSrc = `https://docs.google.com/spreadsheets/d/${fileId}/htmlview`;
+              previewSrc = `https://docs.google.com/spreadsheets/d/${fileId}/preview`;
+              // رابط التحميل يفتح المحرر مباشرة للوصول لزر التحميل
+              downloadUrl = `https://docs.google.com/spreadsheets/d/${fileId}/edit`;
               fType = "excel";
             } else if (isGoogleSlide || t === "powerpoint") {
               previewSrc = `https://docs.google.com/presentation/d/${fileId}/preview`;
+              // رابط التحميل يفتح المحرر مباشرة للوصول لزر التحميل
+              downloadUrl = `https://docs.google.com/presentation/d/${fileId}/edit`;
               fType = "powerpoint";
             } else if (t === "video") {
-              previewSrc = `https://drive.google.com/file/d/${fileId}/embed`;
+              previewSrc = `https://drive.google.com/file/d/${fileId}/preview`;
               fType = "video";
             } else if (t === "image" || t === "auto") {
-              previewSrc = `https://drive.google.com/uc?export=view&id=${fileId}`;
-              fType = "image"; // تعامل مع "تلقائي" كصورة للتضمين
+              // هذا الرابط يعمل بشكل ممتاز للصور، لذا سنبقيه
+              previewSrc = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1280`;
+              fType = "image";
             } else if (t === "pdf") {
-              previewSrc = `https://drive.google.com/file/d/${fileId}/embed`;
+              previewSrc = `https://drive.google.com/file/d/${fileId}/preview`;
             } else {
               // This is for 'other'
               previewSrc = "";
+              fType = "other";
             }
 
             html = makeEmbedHTML({
