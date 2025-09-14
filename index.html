@@ -1249,16 +1249,16 @@
             <button
               class="toolbar-btn"
               type="button"
-              onclick="UI.setPasteMode('smart')"
+              onclick="UI.setPasteMode('smart')" id="pasteSmartBtn"
             >
-              ذكي
+              لصق أوفيس
             </button>
             <button
               class="toolbar-btn"
               type="button"
-              onclick="UI.setPasteMode('plain')"
+              onclick="UI.setPasteMode('plain')" id="pastePlainBtn"
             >
-              نصي
+              لصق عادي
             </button>
           </div>
 
@@ -1298,7 +1298,9 @@
             </div>
             <div class="tb-row">
               <label class="tb-label">حدود:</label>
+              <button class="tb-btn" data-act="border-width-dec" title="تصغير الحد">−</button>
               <input type="number" id="tblBorderWidth" min="0" max="10" value="1" class="tb-input" title="حجم الحد (px)"/>
+              <button class="tb-btn" data-act="border-width-inc" title="تكبير الحد">+</button>
               <select id="tblBorderStyle" class="tb-select" title="نمط الحد">
                 <option value="solid">صلب</option>
                 <option value="dashed">متقطع</option>
@@ -1312,6 +1314,11 @@
               <button class="tb-btn" data-act="cell-bg-row" title="تطبيق على الصف">صف</button>
               <button class="tb-btn" data-act="cell-bg-col" title="تطبيق على العمود">عمود</button>
               <button class="tb-btn" data-act="cell-bg-clear" title="مسح اللون">مسح</button>
+              <span class="sep"></span>
+              <button class="tb-btn" data-act="border-cell" title="تطبيق الحد على الخلية">حدود الخلية</button>
+              <button class="tb-btn" data-act="border-row" title="تطبيق الحد على الصف">حدود الصف</button>
+              <button class="tb-btn" data-act="border-col" title="تطبيق الحد على العمود">حدود العمود</button>
+              <button class="tb-btn" data-act="border-table" title="تطبيق الحد على الجدول">حدود الجدول</button>
             </div>
           </div>
         </div>
@@ -1901,6 +1908,11 @@
         }
         function showTableToolbar(td) {
           if (!td) return hideTableToolbar();
+          // إذا كان الشريط ظاهرًا لنفس الخلية، لا تعيد تحديثه (لمنع إعادة تعيين المدخلات)
+          if (el.tableToolbar.style.display === 'flex' && state.currentCell === td) {
+            return;
+          }
+
           state.currentCell = td;
           const b = el.tableToolbar;
           if (!b) return;
@@ -1963,165 +1975,96 @@
         }
 
         /* === لصق ذكي (Word Tables) === */
-        function sanitizeHTMLBasic(html) {
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(html, "text/html");
-          const allowed = new Set([
-            "P",
-            "BR",
-            "B",
-            "STRONG",
-            "I",
-            "EM",
-            "U",
-            "A",
-            "UL",
-            "OL",
-            "LI",
-            "H1",
-            "H2",
-            "H3",
-          ]);
-          doc.body.querySelectorAll("*").forEach((n) => {
-            const tag = n.tagName;
-            if (!allowed.has(tag)) {
-              const p = n.parentNode;
-              while (n.firstChild) p.insertBefore(n.firstChild, n);
-              p.removeChild(n);
-              return;
-            }
-            [...n.attributes].forEach((a) => {
-              if (!(tag === "A" && a.name.toLowerCase() === "href"))
-                n.removeAttribute(a.name);
-            });
-            if (tag === "A") {
-              const h = n.getAttribute("href") || "";
-              n.setAttribute("href", sanitizeUrl(h));
-            }
-          });
-          doc.body.innerHTML = doc.body.innerHTML.replace(
-            /<\/?o:p[^>]*>/gi,
-            ""
-          );
-          return doc.body.innerHTML;
-        }
-
-        function sanitizeTablesHTML(html) {
+        function sanitizePastedHTML(html) {
           const parser = new DOMParser();
           const doc = parser.parseFromString(html, "text/html");
 
-          const allowed = new Set([
-            "P",
-            "BR",
-            "B",
-            "STRONG",
-            "I",
-            "EM",
-            "U",
-            "A",
-            "UL",
-            "OL",
-            "LI",
-            "H1",
-            "H2",
-            "H3",
-            "TABLE",
-            "TBODY",
-            "THEAD",
-            "TR",
-            "TD",
-            "TH",
-            "CAPTION",
-            "COLGROUP",
-            "COL",
-          ]);
+          // 1. إزالة الوسوم الخطيرة
+          doc.querySelectorAll('script, style, meta, link, object, embed, iframe').forEach(el => el.remove());
 
-          const keepAttrsPerTag = {
-            A: ["href"],
-            TD: ["rowspan", "colspan", "style"],
-            TH: ["rowspan", "colspan", "style"],
-            TABLE: ["style"],
-            P: ["style"],
-            H1: ["style"],
-            H2: ["style"],
-            H3: ["style"],
-            LI: ["style"],
-          };
-
-          const allowStyles = (el) => {
-            const tag = el.tagName;
-            const raw = (el.getAttribute("style") || "").toLowerCase();
-            if (!raw) {
-              el.removeAttribute("style");
-              return;
-            }
-
-            const map = {};
-            raw.split(";").forEach((part) => {
-              const kv = part.split(":");
-              if (kv.length < 2) return;
-              const k = kv[0].trim(),
-                v = kv.slice(1).join(":").trim();
-              if (!k) return;
-              map[k] = v;
-            });
-
-            const out = [];
-            if (tag === "TD" || tag === "TH") {
-              if (map["background"])
-                out.push("background-color:" + map["background"]);
-              if (map["background-color"])
-                out.push("background-color:" + map["background-color"]);
-              if (map["text-align"])
-                out.push("text-align:" + map["text-align"]);
-              if (map["vertical-align"])
-                out.push("vertical-align:" + map["vertical-align"]);
-            } else {
-              if (map["text-align"])
-                out.push("text-align:" + map["text-align"]);
-            }
-            if (out.length) el.setAttribute("style", out.join("; "));
-            else el.removeAttribute("style");
-          };
-
-          [...doc.body.querySelectorAll("*")].forEach((n) => {
-            const tag = n.tagName;
-
-            if (!allowed.has(tag)) {
-              const p = n.parentNode;
-              while (n.firstChild) p.insertBefore(n.firstChild, n);
-              p.removeChild(n);
-              return;
-            }
-
-            const keep = keepAttrsPerTag[tag] || [];
-            [...n.attributes].forEach((a) => {
-              const name = a.name.toLowerCase();
-              if (!keep.includes(a.name)) n.removeAttribute(a.name);
-              if (tag === "A" && name === "href") {
-                n.setAttribute(
-                  "href",
-                  sanitizeUrl(n.getAttribute("href") || "")
-                );
-              }
-            });
-
-            if (keep.includes("style")) allowStyles(n);
-
-            if (tag === "TABLE") {
-              n.className = "rte-table";
-              n.removeAttribute("border");
-              n.removeAttribute("cellpadding");
-              n.removeAttribute("cellspacing");
-            }
-          });
-
-          doc.body.innerHTML = doc.body.innerHTML
+          // 2. تنظيف أولي لـ Word
+          let cleanHtml = doc.body.innerHTML
+            .replace(/<!--[\s\S]*?-->/g, '') // إزالة التعليقات
             .replace(/<\/?o:p[^>]*>/gi, "")
             .replace(/\sclass="?Mso[^"]*"?/gi, "")
             .replace(/\smso-[^:]+:[^;"]+;?/gi, "");
+          doc.body.innerHTML = cleanHtml;
 
-          if (!doc.body.querySelector("table")) return sanitizeHTMLBasic(html);
+          // 3. قائمة بيضاء بالوسوم والسمات المسموحة
+          const allowedTags = new Set([
+            "P", "BR", "B", "STRONG", "I", "EM", "U", "A", "H1", "H2", "H3",
+            "UL", "OL", "LI", "BLOCKQUOTE", "IMG", "DIV", "SPAN",
+            "TABLE", "THEAD", "TBODY", "TR", "TH", "TD", "CAPTION", "COLGROUP", "COL"
+          ]);
+
+          const allowedAttrs = {
+            A: ["href", "target", "rel"],
+            IMG: ["src", "alt", "style", "width", "height"],
+            TD: ["rowspan", "colspan", "style"],
+            TH: ["rowspan", "colspan", "style"],
+            TABLE: ["style", "width"],
+            P: ["style"], SPAN: ["style"], DIV: ["style"],
+            H1: ["style"], H2: ["style"], H3: ["style"],
+          };
+
+          // 4. المرور على كل العناصر لتنظيفها
+          doc.body.querySelectorAll('*').forEach(n => {
+            const tag = n.tagName;
+            if (!allowedTags.has(tag)) {
+              // فك تغليف العنصر غير المسموح به مع الإبقاء على محتواه
+              n.replaceWith(...n.childNodes);
+              return;
+            }
+
+            // تنظيف السمات
+            const keepAttrs = allowedAttrs[tag] || [];
+            [...n.attributes].forEach(attr => {
+              const attrName = attr.name.toLowerCase();
+              if (!keepAttrs.includes(attrName)) {
+                n.removeAttribute(attr.name);
+              }
+            });
+
+            // تنظيف السمات الخطيرة
+            if (tag === 'A' && n.hasAttribute('href')) {
+              n.setAttribute('href', sanitizeUrl(n.getAttribute('href')));
+            }
+            if (tag === 'IMG' && n.hasAttribute('src')) {
+              const src = n.getAttribute('src');
+              if (src.trim().toLowerCase().startsWith('javascript:')) {
+                n.remove(); // إزالة الصورة الخبيثة
+                return;
+              }
+            }
+            
+            // تنظيف الأنماط المضمنة
+            if (n.hasAttribute('style')) {
+              const allowedStyles = [
+                'color', 'background-color', 'text-align', 'font-weight', 
+                'font-style', 'text-decoration', 'font-size', 'font-family',
+                'vertical-align', 'width', 'height', 'border', 'border-collapse'
+              ];
+              const newStyles = [];
+              const tempEl = document.createElement('div');
+              tempEl.style.cssText = n.style.cssText;
+
+              allowedStyles.forEach(styleName => {
+                  const value = tempEl.style.getPropertyValue(styleName);
+                  if (value) newStyles.push(`${styleName}: ${value}`);
+              });
+
+              if (newStyles.length > 0) n.setAttribute('style', newStyles.join('; '));
+              else n.removeAttribute('style');
+            }
+
+            // تنسيق خاص بالجداول
+            if (tag === 'TABLE') {
+              n.classList.add('rte-table');
+              n.style.width = n.style.width || '100%';
+              n.style.borderCollapse = 'collapse';
+            }
+          });
+
           return doc.body.innerHTML;
         }
 
@@ -2132,10 +2075,11 @@
           note,
           setPasteMode: (m) => {
             state.pasteMode = m === "plain" ? "plain" : "smart";
-            note(
-              "تم اختيار اللصق: " +
-                (state.pasteMode === "smart" ? "ذكي" : "نصي")
-            );
+            const smartBtn = document.getElementById('pasteSmartBtn');
+            const plainBtn = document.getElementById('pastePlainBtn');
+            if(smartBtn) smartBtn.classList.toggle('active', state.pasteMode === 'smart');
+            if(plainBtn) plainBtn.classList.toggle('active', state.pasteMode === 'plain');
+            note("تم اختيار اللصق: " + (state.pasteMode === "smart" ? "أوفيس" : "عادي"));
           },
           toggleFormatPainter: () => {
             if (state.formatPainterActive) {
@@ -2600,7 +2544,7 @@
               const tr = document.createElement("tr");
               for (let j = 0; j < c; j++) {
                 const td = document.createElement("td");
-                td.innerHTML = "";
+                td.innerHTML = "<br>"; // يجعل الخلية قابلة للنقر بسهولة
                 tr.appendChild(td);
               }
               tbody.appendChild(tr);
@@ -2901,6 +2845,10 @@
               <button class="embed-btn" type="button" data-action="replace">🔁</button>
               <button class="embed-btn" type="button" data-action="link">🔗</button>
               <button class="embed-btn" type="button" data-action="unlink">⛓️</button>
+              <span style="border-left: 1px solid #ddd; margin: 0 4px;"></span>
+              <button class="embed-btn" type="button" data-action="align-right" title="محاذاة لليمين">⟸</button>
+              <button class="embed-btn" type="button" data-action="align-center" title="توسيط">↔</button>
+              <button class="embed-btn" type="button" data-action="align-left" title="محاذاة لليسار">⟹</button>
               <button class="embed-btn" type="button" data-action="smaller">−</button>
               <button class="embed-btn" type="button" data-action="bigger">+</button>
               <button class="embed-btn" type="button" data-action="fit">100%</button>
@@ -3601,14 +3549,11 @@
           });
 
           // لا تمنع الافتراضي حتى يصل click للأزرار
-          el.editor.addEventListener(
-            "mousedown",
-            (e) => {
-              if (e.target && e.target.closest(".embed-actions"))
-                e.stopPropagation();
-            },
-            true
-          );
+          el.editor.addEventListener("mousedown", (e) => {
+            if (e.target.closest(".embed-actions")) {
+              e.preventDefault();
+            }
+          }, true);
 
           // تفويض النقر على أزرار شريط الوسائط
           el.editor.addEventListener(
@@ -3640,29 +3585,81 @@
           });
 
           /* ===== لصق: ذكي أو نصي ===== */
-          el.editor.addEventListener("paste", (e) => {
+          el.editor.addEventListener("paste", async (e) => {
             e.preventDefault();
-            const html =
-              (e.clipboardData && e.clipboardData.getData("text/html")) || "";
-            const txt =
-              (e.clipboardData && e.clipboardData.getData("text/plain")) || "";
-            let toInsert = "";
-            if (state.pasteMode === "plain") {
-              toInsert = esc(txt).replace(/\r?\n/g, "<br>");
-            } else {
-              if (html) {
-                if (
-                  /<table[\s\S]*?>/i.test(html) ||
-                  /class="?Mso|mso-/i.test(html)
-                ) {
-                  toInsert = sanitizeTablesHTML(html);
-                } else {
-                  toInsert = sanitizeHTMLBasic(html);
+            const clipboardData = e.clipboardData; if (!clipboardData) return;
+
+            // --- Layer 1: Handle pasted files (especially images) ---
+            const files = e.clipboardData?.files;
+            if (files && files.length > 0) {
+              const imageFile = Array.from(files).find(f => f.type.startsWith('image/'));
+              if (imageFile) {
+                try {
+                  const reader = new FileReader();
+                  reader.onload = (event) => {
+                    const dataUrl = event.target.result;
+                    const html = makeEmbedHTML({
+                      fType: 'image', src: dataUrl, name: imageFile.name || 'Pasted Image',
+                      caption: '', downloadHref: dataUrl, origin: 'paste'
+                    });
+                    ensureRangeInEditor();
+                    const sel = window.getSelection();
+                    if (sel && sel.rangeCount > 0) {
+                        const r = sel.getRangeAt(0);
+                        const frag = r.createContextualFragment(html);
+                        r.deleteContents();
+                        r.insertNode(frag);
+                        r.collapse(false);
+                        sel.removeAllRanges();
+                        sel.addRange(r);
+                    }
+                    upgradeEmbeds(el.editor);
+                    saveToStorage();
+                    note("تم لصق الصورة بنجاح");
+                  };
+                  reader.readAsDataURL(imageFile);
+                } catch (err) {
+                  note("فشل في معالجة الصورة الملصقة", "error");
                 }
-              } else {
-                toInsert = esc(txt).replace(/\r?\n/g, "<br>");
+                return; // Image handled, stop here.
               }
             }
+
+            // --- Layer 2 & 3: Handle HTML and Plain Text ---
+            const html = clipboardData.getData("text/html") || "";
+            const txt = clipboardData.getData("text/plain") || "";
+            let toInsert = "";
+
+            const plainTextToParagraphs = (plainText) => {
+                if (!plainText) return "";
+                // تحويل النص العادي إلى فقرات مع الحفاظ على فواصل الأسطر
+                return plainText.split(/\r?\n\r?\n/).map(p => {
+                    if (!p.trim()) return "";
+                    const lines = p.split(/\r?\n/).map(l => esc(l.trim())).filter(Boolean);
+                    return `<p>${lines.join("<br>")}</p>`;
+                }).join("");
+            };
+
+            if (state.pasteMode === "plain") {
+              toInsert = plainTextToParagraphs(txt);
+            } else {
+              let sanitizedHtml = html ? sanitizePastedHTML(html) : "";
+              const tempDiv = document.createElement('div');
+              tempDiv.innerHTML = sanitizedHtml;
+              const hasVisibleContent = tempDiv.textContent.trim().length > 0 || tempDiv.querySelector('img, table, video, iframe');
+
+              if (!hasVisibleContent && txt.trim().length > 0) {
+                toInsert = plainTextToParagraphs(txt);
+              } else {
+                toInsert = sanitizedHtml;
+              }
+            }
+
+            if (!toInsert.trim()) {
+                note("لا يوجد محتوى نصي للصق", "warning");
+                return;
+            }
+
             ensureRangeInEditor();
             const sel = window.getSelection();
             if (sel && sel.rangeCount > 0) {
@@ -3677,7 +3674,7 @@
             upgradeEmbeds(el.editor);
             saveToStorage();
             note(
-              state.pasteMode === "smart" ? "تم اللصق (ذكي)" : "تم اللصق (نصي)"
+              state.pasteMode === "smart" ? "تم اللصق (أوفيس)" : "تم اللصق (عادي)"
             );
           });
 
@@ -3722,8 +3719,12 @@
           /* ===== أحداث الجداول ===== */
           document.addEventListener("selectionchange", () => {
             const td = getCellFromSelection();
-            if (td) showTableToolbar(td);
-            else hideTableToolbar();
+            if (td) {
+              showTableToolbar(td);
+            } else if (!el.tableToolbar.matches(":hover")) {
+              // لا تخفِ الشريط إذا كان مؤشر الفأرة فوقه
+              hideTableToolbar();
+            }
             updateToolbarState();
           });
           el.editor.addEventListener("scroll", () => {
@@ -3737,21 +3738,34 @@
               if (e.target.closest("input, select")) return;
               e.preventDefault();
             });
-            el.tableToolbar.addEventListener("click", (e) => {
+            el.tableToolbar.addEventListener("click", (e) => { // This listener was already here
             const btn = e.target.closest(".tb-btn");
             if (!btn) return;
             const act = btn.getAttribute("data-act");
             const td = state.currentCell;
             if (!td) return;
+            const tblBorderWidth = document.getElementById("tblBorderWidth");
+            const tblBorderColor = document.getElementById("tblBorderColor");
+            const tblBorderStyle = document.getElementById("tblBorderStyle");
+
             const table = td.closest("table");
             if (!table) return;
             // Simple actions that don't need the table map
+
             if (act.startsWith("valign-")) {
               td.style.verticalAlign = act.split("-")[1];
             } else if (act === "cell-bg-cell") {
               td.style.backgroundColor = el.cellBgPicker.value;
             } else if (act === "cell-bg-clear") {
               td.style.removeProperty("background-color");
+            } else if (act === 'border-width-inc' || act === 'border-width-dec') {
+                const input = document.getElementById('tblBorderWidth');
+                if (input) {
+                    let val = parseInt(input.value, 10);
+                    val += (act === 'border-width-inc' ? 1 : -1);
+                    input.value = Math.max(0, Math.min(10, val));
+                    // The user still needs to click an "apply" button
+                }
             } else if (act === "del-table") {
               table.remove();
               hideTableToolbar();
@@ -3888,6 +3902,29 @@
                   if (cellInCol) cellsToColor.add(cellInCol);
                 }
                 cellsToColor.forEach((cell) => (cell.style.backgroundColor = color));
+              } else if (act.startsWith("border-")) {
+                  const width = tblBorderWidth.value;
+                  const color = tblBorderColor.value;
+                  const style = tblBorderStyle.value;
+                  const borderString = `${width}px ${style} ${color}`;
+
+                  if (act === 'border-cell') {
+                      td.style.border = borderString;
+                  } else if (act === 'border-row') {
+                      const tr = td.closest('tr');
+                      if (tr) [...tr.cells].forEach(c => c.style.border = borderString);
+                  } else if (act === 'border-col') {
+                      if (!coords) return;
+                      const cellsToBorder = new Set();
+                      for (let r = 0; r < map.length; r++) {
+                          const cellInCol = map[r][coords.c];
+                          if (cellInCol) cellsToBorder.add(cellInCol);
+                      }
+                      cellsToBorder.forEach(c => c.style.border = borderString);
+                  } else if (act === 'border-table') {
+                      table.querySelectorAll('td, th').forEach(c => c.style.border = borderString);
+                  }
+                  note("تم تطبيق الحدود");
               }
             }
 
@@ -3906,31 +3943,6 @@
             saveToStorage();
           });
 
-          const tblBorderWidth = document.getElementById("tblBorderWidth");
-          const tblBorderColor = document.getElementById("tblBorderColor");
-          const tblBorderStyle = document.getElementById("tblBorderStyle");
-          const applyTableBorders = () => {
-            if (!state.currentCell) return;
-            const table = state.currentCell.closest("table");
-            if (!table) return;
-
-            const width = tblBorderWidth.value;
-            const color = tblBorderColor.value;
-            const style = tblBorderStyle.value;
-
-            table.classList.remove("no-border");
-
-            const cells = table.querySelectorAll("th, td");
-            cells.forEach((cell) => {
-              cell.style.border = `${width}px ${style} ${color}`;
-            });
-            saveToStorage();
-          };
-          if (tblBorderWidth && tblBorderColor && tblBorderStyle) {
-            tblBorderWidth.addEventListener("input", applyTableBorders);
-            tblBorderColor.addEventListener("input", applyTableBorders);
-            tblBorderStyle.addEventListener("change", applyTableBorders);
-          }
         }
         })();
 
@@ -4636,6 +4648,19 @@
                 saveToStorage();
                 note("تم التعديل");
               }
+              return;
+            }
+
+            if (act.startsWith("align-")) {
+              if (act === "align-center") {
+                cont.style.textAlign = "center";
+              } else if (act === "align-left") {
+                cont.style.textAlign = "left";
+              } else if (act === "align-right") {
+                cont.style.textAlign = "right";
+              }
+              saveToStorage();
+              note("تم تحديث المحاذاة");
               return;
             }
 
