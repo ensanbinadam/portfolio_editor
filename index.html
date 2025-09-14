@@ -4,6 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>محرر ملف الإنجاز | portfolio_editor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Tajawal:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
       :root {
         --primary: #4361ee;
@@ -23,7 +29,8 @@
         margin: 0;
         padding: 0;
         box-sizing: border-box;
-        font-family: "Segoe UI", "Cairo", Tahoma, Geneva, Verdana, sans-serif;
+        font-family: "Segoe UI", "Cairo", "Tajawal", Tahoma, Geneva, Verdana,
+          sans-serif;
       }
       body {
         background: #f5f7fb;
@@ -234,6 +241,11 @@
         border-radius: 8px;
         outline: none;
         font-size: var(--editor-font-size);
+      }
+      .editor-content ul,
+      .editor-content ol {
+        /* زيادة المسافة البادئة الافتراضية للقوائم */
+        padding-right: 50px;
       }
       .editor-content h1 {
         font-size: 2em;
@@ -938,6 +950,22 @@
             </select>
           </div>
 
+          <div class="toolbar-group" title="نوع الخط">
+            <select
+              class="toolbar-select"
+              id="fontNameSelect"
+              onchange="UI.setFontName(this.value)"
+            >
+              <option value="Segoe UI, Cairo, Tahoma, sans-serif">
+                افتراضي
+              </option>
+              <option value="Cairo, sans-serif">Cairo</option>
+              <option value="Tajawal, sans-serif">Tajawal</option>
+              <option value="Arial, sans-serif">Arial</option>
+              <option value="Times New Roman, serif">Times New Roman</option>
+            </select>
+          </div>
+
           <div class="toolbar-group">
             <button
               class="toolbar-btn"
@@ -1041,6 +1069,14 @@
             <button
               class="toolbar-btn"
               type="button"
+              title="مسافة بادئة للسطر الأول"
+              onclick="UI.toggleTextIndent()"
+            >
+              ¶→
+            </button>
+            <button
+              class="toolbar-btn"
+              type="button"
               aria-label="إدراج خط أفقي"
               onclick="UI.exec('insertHorizontalRule')"
             >
@@ -1075,23 +1111,22 @@
             </button>
           </div>
 
-          <div class="toolbar-group" title="تكبير/تصغير الخط">
-            <button
-              class="toolbar-btn"
-              type="button"
-              aria-label="تصغير الخط"
-              onclick="UI.font(-2)"
+          <div class="toolbar-group" title="حجم الخط">
+            <select
+              class="toolbar-select"
+              id="fontSizeSelect"
+              onchange="UI.setFontSize(this.value)"
             >
-              A−
-            </button>
-            <button
-              class="toolbar-btn"
-              type="button"
-              aria-label="تكبير الخط"
-              onclick="UI.font(+2)"
-            >
-              A+
-            </button>
+              <option value="">حجم الخط</option>
+              <option value="12px">12</option>
+              <option value="14px">14</option>
+              <option value="16px">16 (افتراضي)</option>
+              <option value="18px">18</option>
+              <option value="20px">20</option>
+              <option value="24px">24</option>
+              <option value="32px">32</option>
+              <option value="48px">48</option>
+            </select>
           </div>
 
           <div class="toolbar-group" title="لون الخط">
@@ -2207,12 +2242,38 @@
             el.editor.focus();
             saveToStorage();
           },
-          font: (d) => {
-            state.settings.editorFontSize = Math.max(
-              10,
-              Math.min(36, state.settings.editorFontSize + d)
+          setFontName: (font) => {
+            ensureRangeInEditor();
+            document.execCommand("fontName", false, font);
+            el.editor.focus();
+            saveToStorage();
+          },
+          setFontSize: (size) => {
+            if (!size) return;
+            ensureRangeInEditor();
+            const sel = window.getSelection();
+            if (!sel.rangeCount || sel.isCollapsed) {
+              return note("الرجاء تحديد نص لتغيير حجمه", "warning");
+            }
+
+            // نستخدم حيلة بسيطة وموثوقة لتغليف التحديد بعنصر span
+            // وذلك باستخدام أمر createLink ثم استبدال الرابط بالـ span المطلوب
+            const placeholderId = `_font-size-${Date.now()}`;
+            document.execCommand("createLink", false, placeholderId);
+            const links = Array.from(
+              el.editor.querySelectorAll(`a[href="${placeholderId}"]`)
             );
-            applySettings();
+
+            links.forEach((link) => {
+              const newSpan = document.createElement("span");
+              newSpan.style.fontSize = size;
+              while (link.firstChild) {
+                newSpan.appendChild(link.firstChild);
+              }
+              link.parentNode.replaceChild(newSpan, link);
+            });
+
+            el.editor.focus();
             saveToStorage();
           },
           color: (val) => {
@@ -2239,6 +2300,34 @@
             state.settings.editorBg = "#ffffff";
             applySettings();
             saveToStorage();
+          },
+
+          toggleTextIndent: () => {
+            ensureRangeInEditor();
+            const sel = window.getSelection();
+            if (!sel.rangeCount) return;
+
+            let node = sel.anchorNode;
+            if (node.nodeType === 3) node = node.parentElement;
+
+            // Find the parent paragraph
+            const p = node.closest("p");
+
+            if (p && el.editor.contains(p)) {
+              if (p.style.textIndent) {
+                p.style.textIndent = ""; // Toggle off
+              } else {
+                p.style.textIndent = "40px"; // Toggle on
+              }
+              // Clean up empty style attribute
+              if (!p.getAttribute("style")) {
+                p.removeAttribute("style");
+              }
+              saveToStorage();
+            } else {
+              note("الرجاء وضع المؤشر داخل فقرة نصية لتطبيق المسافة البادئة.", "warning");
+            }
+            el.editor.focus();
           },
 
           toggleTabCollapse: (tabId) => {
@@ -2644,6 +2733,49 @@
             }
           }
           return null;
+        }
+
+        function updateToolbarState() {
+          const sel = window.getSelection();
+          if (
+            !sel ||
+            sel.rangeCount === 0 ||
+            !el.editor.contains(sel.anchorNode)
+          )
+            return;
+
+          // Update font name
+          const fontName = document
+            .queryCommandValue("fontName")
+            .replace(/['"]/g, "");
+          const fontSelect = document.getElementById("fontNameSelect");
+          if (fontSelect) {
+            let matched = false;
+            for (const option of fontSelect.options) {
+              if (option.value.toLowerCase().startsWith(fontName.toLowerCase())) {
+                fontSelect.value = option.value;
+                matched = true;
+                break;
+              }
+            }
+            if (!matched) fontSelect.selectedIndex = 0;
+          }
+
+          // Update font size
+          let node = sel.anchorNode;
+          if (node.nodeType === 3) node = node.parentElement;
+          let size = "";
+          while (node && node !== el.editor) {
+            if (node.style && node.style.fontSize) {
+              size = node.style.fontSize;
+              break;
+            }
+            node = node.parentElement;
+          }
+          const sizeSelect = document.getElementById("fontSizeSelect");
+          if (sizeSelect) {
+            sizeSelect.value = size || "";
+          }
         }
 
         function buildToc(tabs, forExport = false) {
@@ -3590,6 +3722,7 @@
             const td = getCellFromSelection();
             if (td) showTableToolbar(td);
             else hideTableToolbar();
+            updateToolbarState();
           });
           el.editor.addEventListener("scroll", () => {
             if (state.currentCell) showTableToolbar(state.currentCell);
