@@ -2291,7 +2291,7 @@
           show,
           hide,
           note,
-          setPasteMode: (m) => {
+          setPasteMode: (m, silent = false) => {
             state.pasteMode = m === "plain" ? "plain" : "smart";
             const smartBtn = document.getElementById("pasteSmartBtn");
             const plainBtn = document.getElementById("pastePlainBtn");
@@ -2299,10 +2299,12 @@
               smartBtn.classList.toggle("active", state.pasteMode === "smart");
             if (plainBtn)
               plainBtn.classList.toggle("active", state.pasteMode === "plain");
-            note(
-              "تم اختيار اللصق: " +
-                (state.pasteMode === "smart" ? "أوفيس" : "عادي")
-            );
+            if (!silent) {
+              note(
+                "تم اختيار اللصق: " +
+                  (state.pasteMode === "smart" ? "أوفيس" : "عادي")
+              );
+            }
           },
           toggleFormatPainter: () => {
             if (state.formatPainterActive) {
@@ -3726,7 +3728,7 @@
             encodeURIComponent(JSON.stringify(data, null, 2));
           const link = document.createElement("a");
           link.href = uri;
-          link.download = "ملف_الإنجاز_v3_6.json";
+          link.download = "ملف_الإنجاز.json";
           link.click();
           note("تم التصدير");
         }
@@ -4176,7 +4178,7 @@
           );
           // sync paste-mode buttons with current state
           if (typeof UI.setPasteMode === "function") {
-            UI.setPasteMode(state.pasteMode);
+            UI.setPasteMode(state.pasteMode, true);
           }
 
           ["mouseup", "keyup", "touchend"].forEach((ev) =>
