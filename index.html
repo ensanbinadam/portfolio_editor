@@ -10,6 +10,10 @@
       href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Tajawal:wght@400;700&display=swap"
       rel="stylesheet"
     />
+    <script
+      src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"
+      crossorigin="anonymous"
+    ></script>
     <style>
       :root {
         --primary: #4361ee;
@@ -24,6 +28,8 @@
         --editor-font-size: 16px;
         --page-print-bg: #f5f7fb;
         --editor-print-bg: #ffffff;
+        --text: #1f2937;
+        --muted: #6b7280;
       }
       * {
         margin: 0;
@@ -65,6 +71,7 @@
       }
       .tabs-container {
         margin-bottom: 20px;
+        position: relative; /* anchor drop-indicator inside */
       }
       .tab {
         background: rgba(255, 255, 255, 0.1);
@@ -89,6 +96,10 @@
         outline: 2px solid rgba(255, 255, 255, 0.7);
         outline-offset: -2px;
         transform: translateY(-1px);
+      }
+      .tab:focus-visible {
+        outline: 2px dashed rgba(255, 255, 255, 0.7);
+        outline-offset: -2px;
       }
       .tab-title-wrapper {
         display: flex;
@@ -233,6 +244,7 @@
         margin: 20px;
         border-radius: 12px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        position: relative; /* for positioning resize handle */
       }
       .editor-content {
         min-height: 500px;
@@ -907,10 +919,27 @@
         pointer-events: none;
         z-index: 10;
       }
+
+      /* ===== Table column resize handle ===== */
+      .col-resize-handle {
+        position: absolute;
+        top: 0;
+        width: 6px;
+        background: rgba(76, 201, 240, 0.25);
+        cursor: col-resize;
+        display: none;
+        z-index: 1000;
+      }
+      .col-resize-handle.visible {
+        display: block;
+      }
+      .col-resize-handle.active {
+        background: rgba(76, 201, 240, 0.6);
+      }
     </style>
   </head>
   <body>
-    <div id="jsError"></div>
+    <div id="jsError" role="alert" aria-live="assertive"></div>
     <div class="container">
       <aside class="sidebar">
         <div class="app-title">
@@ -1249,14 +1278,16 @@
             <button
               class="toolbar-btn"
               type="button"
-              onclick="UI.setPasteMode('smart')" id="pasteSmartBtn"
+              onclick="UI.setPasteMode('smart')"
+              id="pasteSmartBtn"
             >
               لصق أوفيس
             </button>
             <button
               class="toolbar-btn"
               type="button"
-              onclick="UI.setPasteMode('plain')" id="pastePlainBtn"
+              onclick="UI.setPasteMode('plain')"
+              id="pastePlainBtn"
             >
               لصق عادي
             </button>
@@ -1273,52 +1304,184 @@
             </button>
           </div>
 
-          <div id="tableToolbar" class="table-toolbar" style="display: none;">
+          <div id="tableToolbar" class="table-toolbar" style="display: none">
             <div class="tb-row">
-              <button class="tb-btn" data-act="row-before" title="إضافة صف قبل">صف ↑</button>
-              <button class="tb-btn" data-act="row-after" title="إضافة صف بعد">صف ↓</button>
-              <button class="tb-btn" data-act="col-before" title="إضافة عمود قبل">عمود ←</button>
-              <button class="tb-btn" data-act="col-after" title="إضافة عمود بعد">عمود →</button>
+              <button class="tb-btn" data-act="row-before" title="إضافة صف قبل">
+                صف ↑
+              </button>
+              <button class="tb-btn" data-act="row-after" title="إضافة صف بعد">
+                صف ↓
+              </button>
+              <button
+                class="tb-btn"
+                data-act="col-before"
+                title="إضافة عمود قبل"
+              >
+                عمود ←
+              </button>
+              <button
+                class="tb-btn"
+                data-act="col-after"
+                title="إضافة عمود بعد"
+              >
+                عمود →
+              </button>
               <span class="sep"></span>
-              <button class="tb-btn" data-act="del-row" title="حذف الصف">حذف صف</button>
-              <button class="tb-btn" data-act="del-col" title="حذف العمود">حذف عمود</button>
-              <button class="tb-btn" data-act="del-table" title="حذف الجدول">حذف جدول</button>
+              <button class="tb-btn" data-act="del-row" title="حذف الصف">
+                حذف صف
+              </button>
+              <button class="tb-btn" data-act="del-col" title="حذف العمود">
+                حذف عمود
+              </button>
+              <button class="tb-btn" data-act="del-table" title="حذف الجدول">
+                حذف جدول
+              </button>
             </div>
             <div class="tb-row">
-              <button class="tb-btn" data-act="merge-right" title="دمج يمين">دمج ↔</button>
-              <button class="tb-btn" data-act="merge-down" title="دمج أسفل">دمج ↕</button>
-              <button class="tb-btn" data-act="split-cell" title="تقسيم الخلية">تقسيم</button>
+              <button class="tb-btn" data-act="merge-right" title="دمج يمين">
+                دمج ↔
+              </button>
+              <button class="tb-btn" data-act="merge-down" title="دمج أسفل">
+                دمج ↕
+              </button>
+              <button class="tb-btn" data-act="split-cell" title="تقسيم الخلية">
+                تقسيم
+              </button>
               <span class="sep"></span>
-              <button class="tb-btn" data-act="toggle-header" title="تبديل صف العنوان">رأس</button>
-              <button class="tb-btn" data-act="autofit-table" title="ضبط تلقائي لعرض الجدول">↔ ضبط</button>
+              <button
+                class="tb-btn"
+                data-act="toggle-header"
+                title="تبديل صف العنوان"
+              >
+                رأس
+              </button>
+              <button
+                class="tb-btn"
+                data-act="autofit-table"
+                title="ضبط تلقائي لعرض الجدول"
+              >
+                ↔ ضبط
+              </button>
               <span class="sep"></span>
-              <button class="tb-btn" data-act="valign-top" title="محاذاة للأعلى">أعلى</button>
-              <button class="tb-btn" data-act="valign-middle" title="توسيط عمودي">وسط</button>
-              <button class="tb-btn" data-act="valign-bottom" title="محاذاة للأسفل">أسفل</button>
+              <button
+                class="tb-btn"
+                data-act="valign-top"
+                title="محاذاة للأعلى"
+              >
+                أعلى
+              </button>
+              <button
+                class="tb-btn"
+                data-act="valign-middle"
+                title="توسيط عمودي"
+              >
+                وسط
+              </button>
+              <button
+                class="tb-btn"
+                data-act="valign-bottom"
+                title="محاذاة للأسفل"
+              >
+                أسفل
+              </button>
             </div>
             <div class="tb-row">
               <label class="tb-label">حدود:</label>
-              <button class="tb-btn" data-act="border-width-dec" title="تصغير الحد">−</button>
-              <input type="number" id="tblBorderWidth" min="0" max="10" value="1" class="tb-input" title="حجم الحد (px)"/>
-              <button class="tb-btn" data-act="border-width-inc" title="تكبير الحد">+</button>
+              <button
+                class="tb-btn"
+                data-act="border-width-dec"
+                title="تصغير الحد"
+              >
+                −
+              </button>
+              <input
+                type="number"
+                id="tblBorderWidth"
+                min="0"
+                max="10"
+                value="1"
+                class="tb-input"
+                title="حجم الحد (px)"
+              />
+              <button
+                class="tb-btn"
+                data-act="border-width-inc"
+                title="تكبير الحد"
+              >
+                +
+              </button>
               <select id="tblBorderStyle" class="tb-select" title="نمط الحد">
                 <option value="solid">صلب</option>
                 <option value="dashed">متقطع</option>
                 <option value="dotted">منقط</option>
               </select>
-              <input type="color" id="tblBorderColor" class="tb-color" title="لون الحد"/>
+              <input
+                type="color"
+                id="tblBorderColor"
+                class="tb-color"
+                title="لون الحد"
+              />
               <span class="sep"></span>
               <label class="tb-label">خلفية:</label>
-              <input type="color" id="cellBgPicker" class="tb-color" title="لون الخلفية"/>
-              <button class="tb-btn" data-act="cell-bg-cell" title="تطبيق على الخلية">خلية</button>
-              <button class="tb-btn" data-act="cell-bg-row" title="تطبيق على الصف">صف</button>
-              <button class="tb-btn" data-act="cell-bg-col" title="تطبيق على العمود">عمود</button>
-              <button class="tb-btn" data-act="cell-bg-clear" title="مسح اللون">مسح</button>
+              <input
+                type="color"
+                id="cellBgPicker"
+                class="tb-color"
+                title="لون الخلفية"
+              />
+              <button
+                class="tb-btn"
+                data-act="cell-bg-cell"
+                title="تطبيق على الخلية"
+              >
+                خلية
+              </button>
+              <button
+                class="tb-btn"
+                data-act="cell-bg-row"
+                title="تطبيق على الصف"
+              >
+                صف
+              </button>
+              <button
+                class="tb-btn"
+                data-act="cell-bg-col"
+                title="تطبيق على العمود"
+              >
+                عمود
+              </button>
+              <button class="tb-btn" data-act="cell-bg-clear" title="مسح اللون">
+                مسح
+              </button>
               <span class="sep"></span>
-              <button class="tb-btn" data-act="border-cell" title="تطبيق الحد على الخلية">حدود الخلية</button>
-              <button class="tb-btn" data-act="border-row" title="تطبيق الحد على الصف">حدود الصف</button>
-              <button class="tb-btn" data-act="border-col" title="تطبيق الحد على العمود">حدود العمود</button>
-              <button class="tb-btn" data-act="border-table" title="تطبيق الحد على الجدول">حدود الجدول</button>
+              <button
+                class="tb-btn"
+                data-act="border-cell"
+                title="تطبيق الحد على الخلية"
+              >
+                حدود الخلية
+              </button>
+              <button
+                class="tb-btn"
+                data-act="border-row"
+                title="تطبيق الحد على الصف"
+              >
+                حدود الصف
+              </button>
+              <button
+                class="tb-btn"
+                data-act="border-col"
+                title="تطبيق الحد على العمود"
+              >
+                حدود العمود
+              </button>
+              <button
+                class="tb-btn"
+                data-act="border-table"
+                title="تطبيق الحد على الجدول"
+              >
+                حدود الجدول
+              </button>
             </div>
           </div>
         </div>
@@ -1333,7 +1496,6 @@
           </div>
 
           <!-- شريط تحكم الجداول العائم -->
-          </div>
         </div>
 
         <div class="action-buttons">
@@ -1669,7 +1831,12 @@
       <div class="portfolio-content" id="portfolioContent"></div>
     </div>
 
-    <div class="notification" id="notification">
+    <div
+      class="notification"
+      id="notification"
+      role="status"
+      aria-live="polite"
+    >
       <span id="notificationMessage"></span>
     </div>
 
@@ -1698,7 +1865,7 @@
         >
       </div>
     </footer>
-<script>
+    <script>
       (function () {
         window.onerror = function (msg) {
           const b = document.getElementById("jsError");
@@ -1909,7 +2076,10 @@
         function showTableToolbar(td) {
           if (!td) return hideTableToolbar();
           // إذا كان الشريط ظاهرًا لنفس الخلية، لا تعيد تحديثه (لمنع إعادة تعيين المدخلات)
-          if (el.tableToolbar.style.display === 'flex' && state.currentCell === td) {
+          if (
+            el.tableToolbar.style.display === "flex" &&
+            state.currentCell === td
+          ) {
             return;
           }
 
@@ -1934,7 +2104,8 @@
             const color = rgbToHex(computedStyle.borderColor);
             const style = computedStyle.borderTopStyle;
 
-            if (borderWidthInput) borderWidthInput.value = isNaN(width) ? 1 : width;
+            if (borderWidthInput)
+              borderWidthInput.value = isNaN(width) ? 1 : width;
             if (borderColorInput) borderColorInput.value = color || "#e5e7eb";
             if (borderStyleInput) borderStyleInput.value = style || "solid";
 
@@ -1954,7 +2125,10 @@
               if (!coords) mergeDownBtn.disabled = true;
               else {
                 const belowCell = map[coords.r + td.rowSpan]?.[coords.c];
-                mergeDownBtn.disabled = !belowCell || belowCell.colSpan !== td.colSpan || getCoordsOfCell(belowCell, map)?.c !== coords.c;
+                mergeDownBtn.disabled =
+                  !belowCell ||
+                  belowCell.colSpan !== td.colSpan ||
+                  getCoordsOfCell(belowCell, map)?.c !== coords.c;
               }
             }
           }
@@ -1980,11 +2154,15 @@
           const doc = parser.parseFromString(html, "text/html");
 
           // 1. إزالة الوسوم الخطيرة
-          doc.querySelectorAll('script, style, meta, link, object, embed, iframe').forEach(el => el.remove());
+          doc
+            .querySelectorAll(
+              "script, style, meta, link, object, embed, iframe"
+            )
+            .forEach((el) => el.remove());
 
           // 2. تنظيف أولي لـ Word
           let cleanHtml = doc.body.innerHTML
-            .replace(/<!--[\s\S]*?-->/g, '') // إزالة التعليقات
+            .replace(/<!--[\s\S]*?-->/g, "") // إزالة التعليقات
             .replace(/<\/?o:p[^>]*>/gi, "")
             .replace(/\sclass="?Mso[^"]*"?/gi, "")
             .replace(/\smso-[^:]+:[^;"]+;?/gi, "");
@@ -1992,9 +2170,33 @@
 
           // 3. قائمة بيضاء بالوسوم والسمات المسموحة
           const allowedTags = new Set([
-            "P", "BR", "B", "STRONG", "I", "EM", "U", "A", "H1", "H2", "H3",
-            "UL", "OL", "LI", "BLOCKQUOTE", "IMG", "DIV", "SPAN",
-            "TABLE", "THEAD", "TBODY", "TR", "TH", "TD", "CAPTION", "COLGROUP", "COL"
+            "P",
+            "BR",
+            "B",
+            "STRONG",
+            "I",
+            "EM",
+            "U",
+            "A",
+            "H1",
+            "H2",
+            "H3",
+            "UL",
+            "OL",
+            "LI",
+            "BLOCKQUOTE",
+            "IMG",
+            "DIV",
+            "SPAN",
+            "TABLE",
+            "THEAD",
+            "TBODY",
+            "TR",
+            "TH",
+            "TD",
+            "CAPTION",
+            "COLGROUP",
+            "COL",
           ]);
 
           const allowedAttrs = {
@@ -2003,12 +2205,16 @@
             TD: ["rowspan", "colspan", "style"],
             TH: ["rowspan", "colspan", "style"],
             TABLE: ["style", "width"],
-            P: ["style"], SPAN: ["style"], DIV: ["style"],
-            H1: ["style"], H2: ["style"], H3: ["style"],
+            P: ["style"],
+            SPAN: ["style"],
+            DIV: ["style"],
+            H1: ["style"],
+            H2: ["style"],
+            H3: ["style"],
           };
 
           // 4. المرور على كل العناصر لتنظيفها
-          doc.body.querySelectorAll('*').forEach(n => {
+          doc.body.querySelectorAll("*").forEach((n) => {
             const tag = n.tagName;
             if (!allowedTags.has(tag)) {
               // فك تغليف العنصر غير المسموح به مع الإبقاء على محتواه
@@ -2018,7 +2224,7 @@
 
             // تنظيف السمات
             const keepAttrs = allowedAttrs[tag] || [];
-            [...n.attributes].forEach(attr => {
+            [...n.attributes].forEach((attr) => {
               const attrName = attr.name.toLowerCase();
               if (!keepAttrs.includes(attrName)) {
                 n.removeAttribute(attr.name);
@@ -2026,42 +2232,54 @@
             });
 
             // تنظيف السمات الخطيرة
-            if (tag === 'A' && n.hasAttribute('href')) {
-              n.setAttribute('href', sanitizeUrl(n.getAttribute('href')));
+            if (tag === "A" && n.hasAttribute("href")) {
+              n.setAttribute("href", sanitizeUrl(n.getAttribute("href")));
             }
-            if (tag === 'IMG' && n.hasAttribute('src')) {
-              const src = n.getAttribute('src');
-              if (src.trim().toLowerCase().startsWith('javascript:')) {
+            if (tag === "IMG" && n.hasAttribute("src")) {
+              const src = n.getAttribute("src");
+              if (src.trim().toLowerCase().startsWith("javascript:")) {
                 n.remove(); // إزالة الصورة الخبيثة
                 return;
               }
             }
-            
+
             // تنظيف الأنماط المضمنة
-            if (n.hasAttribute('style')) {
+            if (n.hasAttribute("style")) {
               const allowedStyles = [
-                'color', 'background-color', 'text-align', 'font-weight', 
-                'font-style', 'text-decoration', 'font-size', 'font-family',
-                'vertical-align', 'width', 'height', 'border', 'border-collapse'
+                "color",
+                "background-color",
+                "text-align",
+                "font-weight",
+                "font-style",
+                "text-decoration",
+                "font-size",
+                "font-family",
+                "text-indent",
+                "vertical-align",
+                "width",
+                "height",
+                "border",
+                "border-collapse",
               ];
               const newStyles = [];
-              const tempEl = document.createElement('div');
+              const tempEl = document.createElement("div");
               tempEl.style.cssText = n.style.cssText;
 
-              allowedStyles.forEach(styleName => {
-                  const value = tempEl.style.getPropertyValue(styleName);
-                  if (value) newStyles.push(`${styleName}: ${value}`);
+              allowedStyles.forEach((styleName) => {
+                const value = tempEl.style.getPropertyValue(styleName);
+                if (value) newStyles.push(`${styleName}: ${value}`);
               });
 
-              if (newStyles.length > 0) n.setAttribute('style', newStyles.join('; '));
-              else n.removeAttribute('style');
+              if (newStyles.length > 0)
+                n.setAttribute("style", newStyles.join("; "));
+              else n.removeAttribute("style");
             }
 
             // تنسيق خاص بالجداول
-            if (tag === 'TABLE') {
-              n.classList.add('rte-table');
-              n.style.width = n.style.width || '100%';
-              n.style.borderCollapse = 'collapse';
+            if (tag === "TABLE") {
+              n.classList.add("rte-table");
+              n.style.width = n.style.width || "100%";
+              n.style.borderCollapse = "collapse";
             }
           });
 
@@ -2075,11 +2293,16 @@
           note,
           setPasteMode: (m) => {
             state.pasteMode = m === "plain" ? "plain" : "smart";
-            const smartBtn = document.getElementById('pasteSmartBtn');
-            const plainBtn = document.getElementById('pastePlainBtn');
-            if(smartBtn) smartBtn.classList.toggle('active', state.pasteMode === 'smart');
-            if(plainBtn) plainBtn.classList.toggle('active', state.pasteMode === 'plain');
-            note("تم اختيار اللصق: " + (state.pasteMode === "smart" ? "أوفيس" : "عادي"));
+            const smartBtn = document.getElementById("pasteSmartBtn");
+            const plainBtn = document.getElementById("pastePlainBtn");
+            if (smartBtn)
+              smartBtn.classList.toggle("active", state.pasteMode === "smart");
+            if (plainBtn)
+              plainBtn.classList.toggle("active", state.pasteMode === "plain");
+            note(
+              "تم اختيار اللصق: " +
+                (state.pasteMode === "smart" ? "أوفيس" : "عادي")
+            );
           },
           toggleFormatPainter: () => {
             if (state.formatPainterActive) {
@@ -2146,22 +2369,38 @@
               "superscript",
               "subscript",
             ].forEach((cmd) => {
-              if (!!formats[cmd] !== document.queryCommandState(cmd))
-                document.execCommand(cmd, false, null);
+              // fallback: if query state mismatches, apply via custom toggler
+              if (!!formats[cmd] !== document.queryCommandState(cmd)) {
+                const map = {
+                  bold: "b",
+                  italic: "i",
+                  underline: "u",
+                  strikeThrough: "s",
+                  superscript: "sup",
+                  subscript: "sub",
+                };
+                if (map[cmd]) toggleInlineTag(map[cmd]);
+              }
             });
             if (
               (formats.formatBlock || "p").toLowerCase() !==
               document.queryCommandValue("formatBlock").toLowerCase()
             )
               UI.format(formats.formatBlock);
-            document.execCommand(
-              "foreColor",
-              false,
-              formats.foreColor || "#000000"
-            );
-            document.execCommand("unlink", false, null);
+            try {
+              document.execCommand(
+                "foreColor",
+                false,
+                formats.foreColor || "#000000"
+              );
+            } catch (_) {}
+            // Modern link apply
+            unlinkInSelection();
             if (formats.link)
-              document.execCommand("createLink", false, formats.link.href);
+              createLinkForSelection(
+                formats.link.href,
+                formats.link.target === "_blank"
+              );
 
             UI.toggleFormatPainter();
             note("تم تطبيق التنسيق");
@@ -2170,7 +2409,40 @@
           exec: (cmd) => {
             try {
               ensureRangeInEditor();
-              document.execCommand(cmd, false, null);
+              const map = {
+                bold: "b",
+                italic: "i",
+                underline: "u",
+                strikeThrough: "s",
+                superscript: "sup",
+                subscript: "sub",
+              };
+              if (map[cmd]) {
+                toggleInlineTag(map[cmd]);
+              } else if (cmd === "unlink") {
+                unlinkInSelection();
+                note("تم فك الرابط");
+              } else if (
+                cmd === "justifyRight" ||
+                cmd === "justifyCenter" ||
+                cmd === "justifyLeft"
+              ) {
+                const align =
+                  cmd === "justifyCenter"
+                    ? "center"
+                    : cmd === "justifyRight"
+                    ? "right"
+                    : "left";
+                setBlockAlignment(align);
+              } else if (cmd === "indent") {
+                adjustBlockIndent(40);
+              } else if (cmd === "outdent") {
+                adjustBlockIndent(-40);
+              } else if (cmd === "insertHorizontalRule") {
+                insertHrAtCaret();
+              } else {
+                document.execCommand(cmd, false, null);
+              }
               el.editor.focus();
               saveToStorage();
             } catch (_) {}
@@ -2225,8 +2497,12 @@
           color: (val) => {
             ensureRangeInEditor();
             try {
-              document.execCommand("foreColor", false, val);
-            } catch (_) {}
+              toggleColor(val);
+            } catch (_) {
+              try {
+                document.execCommand("foreColor", false, val);
+              } catch (__) {}
+            }
             el.editor.focus();
             saveToStorage();
           },
@@ -2271,7 +2547,10 @@
               }
               saveToStorage();
             } else {
-              note("الرجاء وضع المؤشر داخل فقرة نصية لتطبيق المسافة البادئة.", "warning");
+              note(
+                "الرجاء وضع المؤشر داخل فقرة نصية لتطبيق المسافة البادئة.",
+                "warning"
+              );
             }
             el.editor.focus();
           },
@@ -2337,6 +2616,8 @@
               id: id(),
               title: t.title + " - نسخة",
               content: t.content,
+              parentId: t.parentId || null,
+              isCollapsed: false,
             };
             state.tabs.push(nt);
             UI.setActiveTab(nt.id);
@@ -2489,15 +2770,7 @@
             show(document.getElementById("linkModal"));
           },
           unlinkSelection: () => {
-            const sel = window.getSelection();
-            const a =
-              sel && sel.anchorNode
-                ? closest("A", sel.anchorNode.parentElement)
-                : null;
-            if (a) {
-              unwrapAnchor(a);
-              saveToStorage();
-            }
+            unlinkInSelection();
             note("تم فك الرابط");
           },
           confirmLink: confirmLinkImpl,
@@ -2535,7 +2808,7 @@
             const colgroup = document.createElement("colgroup");
             for (let j = 0; j < c; j++) {
               const col = document.createElement("col");
-              col.setAttribute('data-col-index', j);
+              col.setAttribute("data-col-index", j);
               colgroup.appendChild(col);
             }
             table.appendChild(colgroup);
@@ -2566,6 +2839,8 @@
 
         function renderTabs() {
           el.tabsContainer.innerHTML = "";
+          // ARIA role for list container
+          el.tabsContainer.setAttribute("role", "list");
           const tabsByParent = state.tabs.reduce((acc, tab) => {
             const parentId = tab.parentId || "root";
             if (!acc[parentId]) acc[parentId] = [];
@@ -2578,21 +2853,30 @@
               const children = tabsByParent[t.id] || [];
               const hasChildren = children.length > 0;
 
-              const b = document.createElement("button");
+              const b = document.createElement("div");
               b.className =
                 "tab " + (t.id === state.activeTabId ? "active" : "");
-              b.type = "button";
+              b.setAttribute("role", "button");
+              b.setAttribute(
+                "aria-selected",
+                t.id === state.activeTabId ? "true" : "false"
+              );
+              b.tabIndex = 0;
               b.dataset.tabId = t.id;
               b.draggable = true;
               b.style.paddingRight = `${15 + level * 20}px`;
+              b.setAttribute("aria-level", String(level + 1));
+              b.setAttribute("title", t.title);
 
               let toggleIcon = "";
               if (hasChildren) {
                 toggleIcon = `<span class="tab-toggle" onclick="event.stopPropagation(); UI.toggleTabCollapse('${
                   t.id
                 }')">${t.isCollapsed ? "▶" : "▼"}</span>`;
+                b.setAttribute("aria-expanded", String(!t.isCollapsed));
               } else {
                 toggleIcon = `<span class="tab-toggle"></span>`; // for alignment
+                b.removeAttribute("aria-expanded");
               }
 
               const prefix = level > 0 ? " " : "";
@@ -2602,18 +2886,24 @@
                     <span>${prefix}${esc(t.title)}</span>
                 </div>
                 <div class="tab-actions">
-                    <button class="tab-btn" title="إضافة تبويب فرعي" onclick="event.stopPropagation(); UI.addTab('${
+                    <button type="button" class="tab-btn" title="إضافة تبويب فرعي" onclick="event.stopPropagation(); UI.addTab('${
                       t.id
                     }')">+</button>
-                    <button class="tab-btn" title="تعديل" onclick="event.stopPropagation(); UI.renameTab('${
+                    <button type="button" class="tab-btn" title="تعديل" onclick="event.stopPropagation(); UI.renameTab('${
                       t.id
                     }')">✎</button>
-                    <button class="tab-btn" title="نسخ" onclick="event.stopPropagation(); UI.duplicateTab('${
+                    <button type="button" class="tab-btn" title="نسخ" onclick="event.stopPropagation(); UI.duplicateTab('${
                       t.id
                     }')">⧉</button>
                 </div>`;
 
               b.onclick = () => UI.setActiveTab(t.id);
+              b.onkeydown = (ev) => {
+                if (ev.key === "Enter" || ev.key === " ") {
+                  ev.preventDefault();
+                  UI.setActiveTab(t.id);
+                }
+              };
               el.tabsContainer.appendChild(b);
 
               if (hasChildren && !t.isCollapsed) {
@@ -2623,6 +2913,75 @@
           };
           renderLevel(tabsByParent["root"] || [], 0);
           enableDragAndDrop();
+
+          // Keyboard navigation among tabs
+          el.tabsContainer.onkeydown = (ev) => {
+            const current =
+              ev.target && ev.target.closest && ev.target.closest(".tab");
+            if (!current) return;
+            const tabs = Array.from(el.tabsContainer.querySelectorAll(".tab"));
+            const i = tabs.indexOf(current);
+            const focusAt = (idx) => {
+              const target = tabs[Math.max(0, Math.min(tabs.length - 1, idx))];
+              if (target) target.focus();
+            };
+            if (ev.key === "Home") {
+              ev.preventDefault();
+              focusAt(0);
+              return;
+            }
+            if (ev.key === "End") {
+              ev.preventDefault();
+              focusAt(tabs.length - 1);
+              return;
+            }
+            const isRTL =
+              (
+                document.documentElement.getAttribute("dir") || ""
+              ).toLowerCase() === "rtl";
+            const isForward =
+              ev.key === "ArrowDown" ||
+              (isRTL ? ev.key === "ArrowLeft" : ev.key === "ArrowRight");
+            const isBack =
+              ev.key === "ArrowUp" ||
+              (isRTL ? ev.key === "ArrowRight" : ev.key === "ArrowLeft");
+            if (isForward) {
+              // Expand if collapsed and has children, else move focus next
+              const toggle = current.querySelector(".tab-toggle");
+              if (toggle && toggle.textContent === "▶") {
+                UI.toggleTabCollapse(current.dataset.tabId);
+                setTimeout(() => {
+                  const el2 = el.tabsContainer.querySelector(
+                    `.tab[data-tab-id="${current.dataset.tabId}"]`
+                  );
+                  el2 && el2.focus();
+                }, 0);
+                ev.preventDefault();
+                return;
+              }
+              ev.preventDefault();
+              focusAt(i + 1);
+              return;
+            }
+            if (isBack) {
+              // Collapse if expanded and has children, else move focus prev
+              const toggle = current.querySelector(".tab-toggle");
+              if (toggle && toggle.textContent === "▼") {
+                UI.toggleTabCollapse(current.dataset.tabId);
+                setTimeout(() => {
+                  const el2 = el.tabsContainer.querySelector(
+                    `.tab[data-tab-id="${current.dataset.tabId}"]`
+                  );
+                  el2 && el2.focus();
+                }, 0);
+                ev.preventDefault();
+                return;
+              }
+              ev.preventDefault();
+              focusAt(i - 1);
+              return;
+            }
+          };
         }
         function closest(tag, node) {
           while (node && node.nodeType === 1) {
@@ -2645,6 +3004,291 @@
           }
           node.parentNode.insertBefore(a, node);
           a.appendChild(node);
+        }
+
+        // ====== Modern inline formatting helpers (no execCommand) ======
+        function rangeCoversNode(range, node) {
+          const r2 = document.createRange();
+          r2.selectNodeContents(node);
+          return (
+            range.compareBoundaryPoints(Range.START_TO_START, r2) <= 0 &&
+            range.compareBoundaryPoints(Range.END_TO_END, r2) >= 0
+          );
+        }
+        function unwrapNode(node) {
+          const parent = node.parentNode;
+          while (node.firstChild) parent.insertBefore(node.firstChild, node);
+          parent.removeChild(node);
+        }
+        function toggleInlineTag(tagName) {
+          const sel = window.getSelection();
+          if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
+            return note("يرجى تحديد نص أولاً", "warning");
+          }
+          const range = sel.getRangeAt(0);
+          // Try to unwrap if selection fully covers the nearest matching ancestor
+          let startEl =
+            range.startContainer.nodeType === 1
+              ? range.startContainer
+              : range.startContainer.parentElement;
+          let endEl =
+            range.endContainer.nodeType === 1
+              ? range.endContainer
+              : range.endContainer.parentElement;
+          const common =
+            range.commonAncestorContainer.nodeType === 1
+              ? range.commonAncestorContainer
+              : range.commonAncestorContainer.parentElement;
+          // Find nearest matching ancestor within common ancestor
+          const getMatch = (nd) => {
+            while (nd && nd !== common && nd !== el.editor) {
+              if (nd.tagName === tagName.toUpperCase()) return nd;
+              nd = nd.parentElement;
+            }
+            return null;
+          };
+          const m1 = getMatch(startEl);
+          const m2 = getMatch(endEl);
+          if (m1 && m1 === m2 && rangeCoversNode(range, m1)) {
+            // Unwrap
+            unwrapNode(m1);
+            sel.removeAllRanges();
+            sel.addRange(range);
+            saveToStorage();
+            return;
+          }
+          // Wrap selection
+          const frag = range.extractContents();
+          const wrap = document.createElement(tagName);
+          wrap.appendChild(frag);
+          range.insertNode(wrap);
+          range.selectNodeContents(wrap);
+          sel.removeAllRanges();
+          sel.addRange(range);
+          saveToStorage();
+        }
+        function unlinkInSelection() {
+          const sel = window.getSelection();
+          if (!sel || sel.rangeCount === 0) return;
+          const range = sel.getRangeAt(0);
+          const walker = document.createTreeWalker(
+            el.editor,
+            NodeFilter.SHOW_ELEMENT,
+            {
+              acceptNode(node) {
+                if (node.tagName === "A" && range.intersectsNode(node))
+                  return NodeFilter.FILTER_ACCEPT;
+                return NodeFilter.FILTER_SKIP;
+              },
+            }
+          );
+          const anchors = [];
+          let cur = walker.nextNode();
+          while (cur) {
+            anchors.push(cur);
+            cur = walker.nextNode();
+          }
+          if (anchors.length === 0) {
+            // Try single anchor at caret
+            const a =
+              sel.anchorNode &&
+              (sel.anchorNode.nodeType === 1
+                ? sel.anchorNode
+                : sel.anchorNode.parentElement
+              ).closest &&
+              (sel.anchorNode.nodeType === 1
+                ? sel.anchorNode
+                : sel.anchorNode.parentElement
+              ).closest("a");
+            if (a) anchors.push(a);
+          }
+          anchors.forEach(unwrapAnchor);
+          saveToStorage();
+        }
+        function createLinkForSelection(url, newTab) {
+          const sel = window.getSelection();
+          if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return false;
+          const r = sel.getRangeAt(0);
+          const a = document.createElement("a");
+          a.href = url;
+          if (newTab) {
+            a.target = "_blank";
+            a.rel = "noopener noreferrer";
+          }
+          const contents = r.extractContents();
+          a.appendChild(contents);
+          r.insertNode(a);
+          r.selectNodeContents(a);
+          sel.removeAllRanges();
+          sel.addRange(r);
+          saveToStorage();
+          return true;
+        }
+
+        // ====== Block helpers: alignment, indent, hr, color, cleanup ======
+        function getEditorDir() {
+          const d = (
+            document.documentElement.getAttribute("dir") || ""
+          ).toLowerCase();
+          return d === "rtl" ? "rtl" : "ltr";
+        }
+        function getSelectedBlocks(range) {
+          const blocks = new Set();
+          const blockTags = new Set([
+            "P",
+            "DIV",
+            "H1",
+            "H2",
+            "H3",
+            "BLOCKQUOTE",
+            "LI",
+            "TD",
+            "TH",
+          ]);
+          const walker = document.createTreeWalker(
+            el.editor,
+            NodeFilter.SHOW_ELEMENT,
+            {
+              acceptNode(node) {
+                if (!blockTags.has(node.tagName)) return NodeFilter.FILTER_SKIP;
+                return range.intersectsNode(node)
+                  ? NodeFilter.FILTER_ACCEPT
+                  : NodeFilter.FILTER_SKIP;
+              },
+            }
+          );
+          let cur = walker.nextNode();
+          while (cur) {
+            blocks.add(cur);
+            cur = walker.nextNode();
+          }
+          if (blocks.size === 0) {
+            // fallback to closest block of selection start
+            let n =
+              range.startContainer.nodeType === 1
+                ? range.startContainer
+                : range.startContainer.parentElement;
+            while (n && n !== el.editor) {
+              if (blockTags.has(n.tagName)) {
+                blocks.add(n);
+                break;
+              }
+              n = n.parentElement;
+            }
+          }
+          return Array.from(blocks);
+        }
+        function setBlockAlignment(alignment) {
+          const sel = window.getSelection();
+          if (!sel || sel.rangeCount === 0) return;
+          const range = sel.getRangeAt(0);
+          const blocks = getSelectedBlocks(range);
+          blocks.forEach((b) => {
+            b.style.textAlign = alignment;
+          });
+          saveToStorage();
+        }
+        function px(n) {
+          return `${n | 0}px`;
+        }
+        function adjustBlockIndent(deltaPx) {
+          const dir = getEditorDir();
+          const prop = dir === "rtl" ? "marginRight" : "marginLeft";
+          const sel = window.getSelection();
+          if (!sel || sel.rangeCount === 0) return;
+          const range = sel.getRangeAt(0);
+          const blocks = getSelectedBlocks(range);
+          blocks.forEach((b) => {
+            const cur = parseInt(getComputedStyle(b)[prop], 10) || 0;
+            let next = cur + deltaPx;
+            if (next < 0) next = 0;
+            b.style[prop] = px(next);
+          });
+          saveToStorage();
+        }
+        function insertHrAtCaret() {
+          const sel = window.getSelection();
+          if (!sel) return;
+          ensureRangeInEditor();
+          const r = sel.getRangeAt(0);
+          r.deleteContents();
+          const hr = document.createElement("hr");
+          r.insertNode(hr);
+          // move caret after hr
+          r.setStartAfter(hr);
+          r.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(r);
+          saveToStorage();
+        }
+        function mergeAdjacentInlines(root) {
+          const tags = ["SPAN", "B", "I", "U", "S", "SUP", "SUB"];
+          const walker = document.createTreeWalker(
+            root || el.editor,
+            NodeFilter.SHOW_ELEMENT,
+            null
+          );
+          const toRemove = [];
+          let node = walker.nextNode();
+          while (node) {
+            if (tags.includes(node.tagName)) {
+              // remove empty
+              if (!node.textContent && node.childElementCount === 0) {
+                toRemove.push(node);
+              } else {
+                // merge with next sibling if same tag and same style
+                let next = node.nextSibling;
+                while (next && next.nodeType === 3 && !next.textContent.trim())
+                  next = next.nextSibling;
+                if (
+                  next &&
+                  next.nodeType === 1 &&
+                  next.tagName === node.tagName &&
+                  next.getAttribute("style") === node.getAttribute("style")
+                ) {
+                  while (next.firstChild) node.appendChild(next.firstChild);
+                  toRemove.push(next);
+                }
+              }
+            }
+            node = walker.nextNode();
+          }
+          toRemove.forEach((n) => n.parentNode && n.parentNode.removeChild(n));
+        }
+        function toggleColor(hex) {
+          const sel = window.getSelection();
+          if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
+            return note("يرجى تحديد نص لتطبيق اللون", "warning");
+          }
+          const range = sel.getRangeAt(0);
+          // If selection fully inside a span with same color, unwrap it (toggle off)
+          let startEl =
+            range.startContainer.nodeType === 1
+              ? range.startContainer
+              : range.startContainer.parentElement;
+          const containerSpan =
+            startEl && startEl.closest && startEl.closest("span");
+          if (
+            containerSpan &&
+            containerSpan.style &&
+            containerSpan.style.color &&
+            containerSpan.style.color.toLowerCase() === hex.toLowerCase() &&
+            rangeCoversNode(range, containerSpan)
+          ) {
+            unwrapNode(containerSpan);
+            saveToStorage();
+            return;
+          }
+          const frag = range.extractContents();
+          const span = document.createElement("span");
+          span.style.color = hex;
+          span.appendChild(frag);
+          range.insertNode(span);
+          range.selectNodeContents(span);
+          sel.removeAllRanges();
+          sel.addRange(range);
+          mergeAdjacentInlines(el.editor);
+          saveToStorage();
         }
 
         function buildTableMap(table) {
@@ -2698,7 +3342,9 @@
           if (fontSelect) {
             let matched = false;
             for (const option of fontSelect.options) {
-              if (option.value.toLowerCase().startsWith(fontName.toLowerCase())) {
+              if (
+                option.value.toLowerCase().startsWith(fontName.toLowerCase())
+              ) {
                 fontSelect.value = option.value;
                 matched = true;
                 break;
@@ -2790,9 +3436,7 @@
         }) {
           const eid = id();
           let inner = "";
-          const useIframeForMedia = // استخدم الإطار فقط لفيديو جوجل درايف
-            origin === "gdrive" &&
-            fType === "video";
+          const useIframeForMedia = origin === "gdrive" && fType === "video"; // استخدم الإطار فقط لفيديو جوجل درايف
 
           if (fType === "image" && !useIframeForMedia) {
             inner = `<div class="embed-media resizable-x" style="width:100%">
@@ -3330,13 +3974,12 @@
               }
             });
 
-            // CSS الحالي (يتضمن قواعد الطباعة)
+            // CSS + ����� ������� �� ���� <style>
             var css = Array.prototype.map
               .call(document.querySelectorAll("style"), function (s) {
                 return s.innerHTML;
               })
               .join("\n");
-            // سكربت صغير لتفعيل تبويب واحد مرئي + تمييز الفهرس
             var navScript = [
               "(function(){" +
                 " function setActive(id){" +
@@ -3531,6 +4174,10 @@
               ? loadedId
               : state.tabs[0].id
           );
+          // sync paste-mode buttons with current state
+          if (typeof UI.setPasteMode === "function") {
+            UI.setPasteMode(state.pasteMode);
+          }
 
           ["mouseup", "keyup", "touchend"].forEach((ev) =>
             el.editor.addEventListener(ev, saveSel)
@@ -3549,11 +4196,15 @@
           });
 
           // لا تمنع الافتراضي حتى يصل click للأزرار
-          el.editor.addEventListener("mousedown", (e) => {
-            if (e.target.closest(".embed-actions")) {
-              e.preventDefault();
-            }
-          }, true);
+          el.editor.addEventListener(
+            "mousedown",
+            (e) => {
+              if (e.target.closest(".embed-actions")) {
+                e.preventDefault();
+              }
+            },
+            true
+          );
 
           // تفويض النقر على أزرار شريط الوسائط
           el.editor.addEventListener(
@@ -3569,14 +4220,27 @@
             true
           );
 
-          document
-            .getElementById("mediaFile")
-            .addEventListener("change", (e) => {
+          const mediaInp = document.getElementById("mediaFile");
+          if (mediaInp) {
+            mediaInp.addEventListener("change", () => {
               el.filePreview.innerHTML = "";
+              if (!mediaInp.files || !mediaInp.files[0]) {
+                el.filePreview.style.display = "none";
+                return;
+              }
+              const f = mediaInp.files[0];
+              const t = getFileType(f.name || "");
+              const url = URL.createObjectURL(f);
               el.filePreview.style.display = "block";
-              if (!e.target.files || !e.target.files[0]) return;
-              el.filePreview.textContent = e.target.files[0].name;
+              if (t === "image") {
+                el.filePreview.innerHTML = `<img src="${url}" alt="" style="max-width:100%;height:auto;border-radius:8px"/>`;
+              } else {
+                el.filePreview.innerHTML = `<div>الملف: ${esc(
+                  f.name
+                )} (${Math.round(f.size / 1024)} KB)</div>`;
+              }
             });
+          }
 
           el.editor.addEventListener("input", () => {
             const a = state.tabs.find((x) => x.id === state.activeTabId);
@@ -3587,31 +4251,38 @@
           /* ===== لصق: ذكي أو نصي ===== */
           el.editor.addEventListener("paste", async (e) => {
             e.preventDefault();
-            const clipboardData = e.clipboardData; if (!clipboardData) return;
+            const clipboardData = e.clipboardData;
+            if (!clipboardData) return;
 
             // --- Layer 1: Handle pasted files (especially images) ---
             const files = e.clipboardData?.files;
             if (files && files.length > 0) {
-              const imageFile = Array.from(files).find(f => f.type.startsWith('image/'));
+              const imageFile = Array.from(files).find((f) =>
+                f.type.startsWith("image/")
+              );
               if (imageFile) {
                 try {
                   const reader = new FileReader();
                   reader.onload = (event) => {
                     const dataUrl = event.target.result;
                     const html = makeEmbedHTML({
-                      fType: 'image', src: dataUrl, name: imageFile.name || 'Pasted Image',
-                      caption: '', downloadHref: dataUrl, origin: 'paste'
+                      fType: "image",
+                      src: dataUrl,
+                      name: imageFile.name || "Pasted Image",
+                      caption: "",
+                      downloadHref: dataUrl,
+                      origin: "paste",
                     });
                     ensureRangeInEditor();
                     const sel = window.getSelection();
                     if (sel && sel.rangeCount > 0) {
-                        const r = sel.getRangeAt(0);
-                        const frag = r.createContextualFragment(html);
-                        r.deleteContents();
-                        r.insertNode(frag);
-                        r.collapse(false);
-                        sel.removeAllRanges();
-                        sel.addRange(r);
+                      const r = sel.getRangeAt(0);
+                      const frag = r.createContextualFragment(html);
+                      r.deleteContents();
+                      r.insertNode(frag);
+                      r.collapse(false);
+                      sel.removeAllRanges();
+                      sel.addRange(r);
                     }
                     upgradeEmbeds(el.editor);
                     saveToStorage();
@@ -3631,22 +4302,30 @@
             let toInsert = "";
 
             const plainTextToParagraphs = (plainText) => {
-                if (!plainText) return "";
-                // تحويل النص العادي إلى فقرات مع الحفاظ على فواصل الأسطر
-                return plainText.split(/\r?\n\r?\n/).map(p => {
-                    if (!p.trim()) return "";
-                    const lines = p.split(/\r?\n/).map(l => esc(l.trim())).filter(Boolean);
-                    return `<p>${lines.join("<br>")}</p>`;
-                }).join("");
+              if (!plainText) return "";
+              // تحويل النص العادي إلى فقرات مع الحفاظ على فواصل الأسطر
+              return plainText
+                .split(/\r?\n\r?\n/)
+                .map((p) => {
+                  if (!p.trim()) return "";
+                  const lines = p
+                    .split(/\r?\n/)
+                    .map((l) => esc(l.trim()))
+                    .filter(Boolean);
+                  return `<p>${lines.join("<br>")}</p>`;
+                })
+                .join("");
             };
 
             if (state.pasteMode === "plain") {
               toInsert = plainTextToParagraphs(txt);
             } else {
               let sanitizedHtml = html ? sanitizePastedHTML(html) : "";
-              const tempDiv = document.createElement('div');
+              const tempDiv = document.createElement("div");
               tempDiv.innerHTML = sanitizedHtml;
-              const hasVisibleContent = tempDiv.textContent.trim().length > 0 || tempDiv.querySelector('img, table, video, iframe');
+              const hasVisibleContent =
+                tempDiv.textContent.trim().length > 0 ||
+                tempDiv.querySelector("img, table, video, iframe");
 
               if (!hasVisibleContent && txt.trim().length > 0) {
                 toInsert = plainTextToParagraphs(txt);
@@ -3656,8 +4335,8 @@
             }
 
             if (!toInsert.trim()) {
-                note("لا يوجد محتوى نصي للصق", "warning");
-                return;
+              note("لا يوجد محتوى نصي للصق", "warning");
+              return;
             }
 
             ensureRangeInEditor();
@@ -3674,7 +4353,9 @@
             upgradeEmbeds(el.editor);
             saveToStorage();
             note(
-              state.pasteMode === "smart" ? "تم اللصق (أوفيس)" : "تم اللصق (عادي)"
+              state.pasteMode === "smart"
+                ? "تم اللصق (أوفيس)"
+                : "تم اللصق (عادي)"
             );
           });
 
@@ -3738,212 +4419,250 @@
               if (e.target.closest("input, select")) return;
               e.preventDefault();
             });
-            el.tableToolbar.addEventListener("click", (e) => { // This listener was already here
-            const btn = e.target.closest(".tb-btn");
-            if (!btn) return;
-            const act = btn.getAttribute("data-act");
-            const td = state.currentCell;
-            if (!td) return;
-            const tblBorderWidth = document.getElementById("tblBorderWidth");
-            const tblBorderColor = document.getElementById("tblBorderColor");
-            const tblBorderStyle = document.getElementById("tblBorderStyle");
+            el.tableToolbar.addEventListener("click", (e) => {
+              // This listener was already here
+              const btn = e.target.closest(".tb-btn");
+              if (!btn) return;
+              const act = btn.getAttribute("data-act");
+              const td = state.currentCell;
+              if (!td) return;
+              const tblBorderWidth = document.getElementById("tblBorderWidth");
+              const tblBorderColor = document.getElementById("tblBorderColor");
+              const tblBorderStyle = document.getElementById("tblBorderStyle");
 
-            const table = td.closest("table");
-            if (!table) return;
-            // Simple actions that don't need the table map
+              const table = td.closest("table");
+              if (!table) return;
+              // Simple actions that don't need the table map
 
-            if (act.startsWith("valign-")) {
-              td.style.verticalAlign = act.split("-")[1];
-            } else if (act === "cell-bg-cell") {
-              td.style.backgroundColor = el.cellBgPicker.value;
-            } else if (act === "cell-bg-clear") {
-              td.style.removeProperty("background-color");
-            } else if (act === 'border-width-inc' || act === 'border-width-dec') {
-                const input = document.getElementById('tblBorderWidth');
+              if (act.startsWith("valign-")) {
+                td.style.verticalAlign = act.split("-")[1];
+              } else if (act === "cell-bg-cell") {
+                td.style.backgroundColor = el.cellBgPicker.value;
+              } else if (act === "cell-bg-clear") {
+                td.style.removeProperty("background-color");
+              } else if (
+                act === "border-width-inc" ||
+                act === "border-width-dec"
+              ) {
+                const input = document.getElementById("tblBorderWidth");
                 if (input) {
-                    let val = parseInt(input.value, 10);
-                    val += (act === 'border-width-inc' ? 1 : -1);
-                    input.value = Math.max(0, Math.min(10, val));
-                    // The user still needs to click an "apply" button
+                  let val = parseInt(input.value, 10);
+                  val += act === "border-width-inc" ? 1 : -1;
+                  input.value = Math.max(0, Math.min(10, val));
+                  // The user still needs to click an "apply" button
                 }
-            } else if (act === "del-table") {
-              table.remove();
-              hideTableToolbar();
-            } else if (act === "autofit-table") {
-                table.style.width = 'auto';
-                table.style.tableLayout = 'auto';
+              } else if (act === "del-table") {
+                table.remove();
+                hideTableToolbar();
+              } else if (act === "autofit-table") {
+                table.style.width = "auto";
+                table.style.tableLayout = "auto";
                 note("تم ضبط عرض الجدول تلقائياً");
-            } else {
-              // Complex actions that need the table map
-              const map = buildTableMap(table);
-              const coords = getCoordsOfCell(td, map);
-              const rIndex = td.parentElement.rowIndex;
+              } else {
+                // Complex actions that need the table map
+                const map = buildTableMap(table);
+                const coords = getCoordsOfCell(td, map);
+                const rIndex = td.parentElement.rowIndex;
 
-              if (act === "row-before") {
-                const newRow = table.insertRow(rIndex);
-                for (let i = 0; i < (map[0] || []).length; i++) newRow.insertCell();
-              } else if (act === "row-after") {
-                const newRow = table.insertRow(rIndex + td.rowSpan);
-                for (let i = 0; i < (map[0] || []).length; i++) newRow.insertCell();
-              } else if (act === "del-row") {
-                table.deleteRow(rIndex);
-              } else if (act === "col-before" || act === "col-after") {
-                if (!coords) return;
-                const addAfter = act === "col-after";
-                const insertAt = coords.c + (addAfter ? td.colSpan : 0);
-                for (let r = 0; r < map.length; ) {
-                  const cellOnLeft = map[r][insertAt - 1];
-                  if (cellOnLeft && getCoordsOfCell(cellOnLeft, map).c + cellOnLeft.colSpan > insertAt) {
-                    cellOnLeft.colSpan++;
-                    r += cellOnLeft.rowSpan;
+                if (act === "row-before") {
+                  const newRow = table.insertRow(rIndex);
+                  for (let i = 0; i < (map[0] || []).length; i++)
+                    newRow.insertCell();
+                } else if (act === "row-after") {
+                  const newRow = table.insertRow(rIndex + td.rowSpan);
+                  for (let i = 0; i < (map[0] || []).length; i++)
+                    newRow.insertCell();
+                } else if (act === "del-row") {
+                  table.deleteRow(rIndex);
+                } else if (act === "col-before" || act === "col-after") {
+                  if (!coords) return;
+                  const addAfter = act === "col-after";
+                  const insertAt = coords.c + (addAfter ? td.colSpan : 0);
+                  for (let r = 0; r < map.length; ) {
+                    const cellOnLeft = map[r][insertAt - 1];
+                    if (
+                      cellOnLeft &&
+                      getCoordsOfCell(cellOnLeft, map).c + cellOnLeft.colSpan >
+                        insertAt
+                    ) {
+                      cellOnLeft.colSpan++;
+                      r += cellOnLeft.rowSpan;
+                    } else {
+                      const newCell = document.createElement("td");
+                      const refCell = map[r][insertAt];
+                      if (table.rows[r]) {
+                        table.rows[r].insertBefore(newCell, refCell || null);
+                      }
+                      r++;
+                    }
+                  }
+                } else if (act === "del-col") {
+                  if (!coords) return;
+                  for (let r = 0; r < map.length; ) {
+                    const cell = map[r][coords.c];
+                    if (cell) {
+                      if (cell.colSpan > 1) cell.colSpan--;
+                      else cell.remove();
+                      r += cell.rowSpan;
+                    } else {
+                      r++;
+                    }
+                  }
+                } else if (act === "toggle-header") {
+                  const firstRow = table.rows[0];
+                  if (firstRow) {
+                    const isHeader = firstRow.cells[0]?.tagName === "TH";
+                    [...firstRow.cells].forEach((cell) => {
+                      const repl = document.createElement(
+                        isHeader ? "td" : "th"
+                      );
+                      repl.innerHTML = cell.innerHTML;
+                      for (const attr of ["rowspan", "colspan", "style"]) {
+                        if (cell.hasAttribute(attr))
+                          repl.setAttribute(attr, cell.getAttribute(attr));
+                      }
+                      cell.parentNode.replaceChild(repl, cell);
+                    });
+                  }
+                } else if (act === "merge-right") {
+                  const rightCell = td.nextElementSibling;
+                  if (rightCell && rightCell.rowSpan === td.rowSpan) {
+                    const contentToMove = rightCell.innerHTML;
+                    td.colSpan += rightCell.colSpan;
+                    if (contentToMove.trim() && contentToMove !== "<br>")
+                      td.innerHTML += " " + contentToMove;
+                    rightCell.remove();
                   } else {
-                    const newCell = document.createElement('td');
-                    const refCell = map[r][insertAt];
-                    if (table.rows[r]) {
-                      table.rows[r].insertBefore(newCell, refCell || null);
-                    }
-                    r++;
+                    return note("لا يمكن دمج هذه الخلية يميناً", "warning");
                   }
-                }
-              } else if (act === "del-col") {
-                if (!coords) return;
-                for (let r = 0; r < map.length; ) {
-                  const cell = map[r][coords.c];
-                  if (cell) {
-                    if (cell.colSpan > 1) cell.colSpan--;
-                    else cell.remove();
-                    r += cell.rowSpan;
+                } else if (act === "merge-down") {
+                  if (!coords) return;
+                  const belowCell = map[coords.r + td.rowSpan]?.[coords.c];
+                  if (
+                    belowCell &&
+                    belowCell.colSpan === td.colSpan &&
+                    getCoordsOfCell(belowCell, map).c === coords.c
+                  ) {
+                    const contentToMove = belowCell.innerHTML;
+                    td.rowSpan += belowCell.rowSpan;
+                    if (contentToMove.trim() && contentToMove !== "<br>")
+                      td.innerHTML += "<br>" + contentToMove;
+                    belowCell.remove();
                   } else {
-                    r++;
+                    return note("لا يمكن دمج هذه الخلية للأسفل", "warning");
                   }
-                }
-              } else if (act === "toggle-header") {
-                const firstRow = table.rows[0];
-                if (firstRow) {
-                  const isHeader = firstRow.cells[0]?.tagName === "TH";
-                  [...firstRow.cells].forEach((cell) => {
-                    const repl = document.createElement(isHeader ? "td" : "th");
-                    repl.innerHTML = cell.innerHTML;
-                    for(const attr of ['rowspan', 'colspan', 'style']) {
-                        if(cell.hasAttribute(attr)) repl.setAttribute(attr, cell.getAttribute(attr));
+                } else if (act === "split-cell") {
+                  const colSpan = td.colSpan;
+                  const rowSpan = td.rowSpan;
+
+                  if (colSpan <= 1 && rowSpan <= 1) {
+                    return note("الخلية غير مدمجة", "warning");
+                  }
+
+                  td.colSpan = 1;
+                  td.rowSpan = 1;
+
+                  // Add cells for colSpan in the current row
+                  let anchorCell = td;
+                  for (let j = 1; j < colSpan; j++) {
+                    const newCell = document.createElement(td.tagName);
+                    anchorCell.after(newCell);
+                    anchorCell = newCell;
+                  }
+
+                  // Add cells for rowSpan in subsequent rows
+                  for (let i = 1; i < rowSpan; i++) {
+                    const targetRow = table.rows[coords.r + i];
+                    if (!targetRow) continue;
+
+                    let insertBeforeCell = null;
+                    for (const cell of targetRow.cells) {
+                      const cellCoords = getCoordsOfCell(cell, map);
+                      if (cellCoords && cellCoords.c >= coords.c) {
+                        insertBeforeCell = cell;
+                        break;
+                      }
                     }
-                    cell.parentNode.replaceChild(repl, cell);
-                  });
-                }
-              } else if (act === "merge-right") {
-                const rightCell = td.nextElementSibling;
-                if (rightCell && rightCell.rowSpan === td.rowSpan) {
-                  const contentToMove = rightCell.innerHTML;
-                  td.colSpan += rightCell.colSpan;
-                  if (contentToMove.trim() && contentToMove !== "<br>") td.innerHTML += " " + contentToMove;
-                  rightCell.remove();
-                } else {
-                  return note("لا يمكن دمج هذه الخلية يميناً", "warning");
-                }
-              } else if (act === "merge-down") {
-                if (!coords) return;
-                const belowCell = map[coords.r + td.rowSpan]?.[coords.c];
-                if (belowCell && belowCell.colSpan === td.colSpan && getCoordsOfCell(belowCell, map).c === coords.c) {
-                  const contentToMove = belowCell.innerHTML;
-                  td.rowSpan += belowCell.rowSpan;
-                  if (contentToMove.trim() && contentToMove !== "<br>") td.innerHTML += "<br>" + contentToMove;
-                  belowCell.remove();
-                } else {
-                  return note("لا يمكن دمج هذه الخلية للأسفل", "warning");
-                }
-              } else if (act === "split-cell") {
-                const colSpan = td.colSpan;
-                const rowSpan = td.rowSpan;
-            
-                if (colSpan <= 1 && rowSpan <= 1) {
-                  return note("الخلية غير مدمجة", "warning");
-                }
-            
-                td.colSpan = 1;
-                td.rowSpan = 1;
-            
-                // Add cells for colSpan in the current row
-                let anchorCell = td;
-                for (let j = 1; j < colSpan; j++) {
-                  const newCell = document.createElement(td.tagName);
-                  anchorCell.after(newCell);
-                  anchorCell = newCell;
-                }
-            
-                // Add cells for rowSpan in subsequent rows
-                for (let i = 1; i < rowSpan; i++) {
-                  const targetRow = table.rows[coords.r + i];
-                  if (!targetRow) continue;
-            
-                  let insertBeforeCell = null;
-                  for (const cell of targetRow.cells) {
-                    const cellCoords = getCoordsOfCell(cell, map);
-                    if (cellCoords && cellCoords.c >= coords.c) {
-                      insertBeforeCell = cell;
-                      break;
+
+                    for (let j = 0; j < colSpan; j++) {
+                      targetRow.insertBefore(
+                        document.createElement(td.tagName),
+                        insertBeforeCell
+                      );
                     }
                   }
-            
-                  for (let j = 0; j < colSpan; j++) {
-                    targetRow.insertBefore(document.createElement(td.tagName), insertBeforeCell);
+                  note("تم تقسيم الخلية بنجاح");
+                } else if (act === "cell-bg-row") {
+                  const color = el.cellBgPicker.value;
+                  const tr = td.closest("tr");
+                  if (tr)
+                    [...tr.cells].forEach(
+                      (cell) => (cell.style.backgroundColor = color)
+                    );
+                } else if (act === "cell-bg-col") {
+                  if (!coords) return;
+                  const color = el.cellBgPicker.value;
+                  const cellsToColor = new Set();
+                  for (let r = 0; r < map.length; r++) {
+                    const cellInCol = map[r][coords.c];
+                    if (cellInCol) cellsToColor.add(cellInCol);
                   }
-                }
-                note("تم تقسيم الخلية بنجاح");
-              } else if (act === "cell-bg-row") {
-                const color = el.cellBgPicker.value;
-                const tr = td.closest("tr");
-                if (tr) [...tr.cells].forEach((cell) => (cell.style.backgroundColor = color));
-              } else if (act === "cell-bg-col") {
-                if (!coords) return;
-                const color = el.cellBgPicker.value;
-                const cellsToColor = new Set();
-                for (let r = 0; r < map.length; r++) {
-                  const cellInCol = map[r][coords.c];
-                  if (cellInCol) cellsToColor.add(cellInCol);
-                }
-                cellsToColor.forEach((cell) => (cell.style.backgroundColor = color));
-              } else if (act.startsWith("border-")) {
+                  cellsToColor.forEach(
+                    (cell) => (cell.style.backgroundColor = color)
+                  );
+                } else if (act.startsWith("border-")) {
                   const width = tblBorderWidth.value;
                   const color = tblBorderColor.value;
                   const style = tblBorderStyle.value;
                   const borderString = `${width}px ${style} ${color}`;
 
-                  if (act === 'border-cell') {
-                      td.style.border = borderString;
-                  } else if (act === 'border-row') {
-                      const tr = td.closest('tr');
-                      if (tr) [...tr.cells].forEach(c => c.style.border = borderString);
-                  } else if (act === 'border-col') {
-                      if (!coords) return;
-                      const cellsToBorder = new Set();
-                      for (let r = 0; r < map.length; r++) {
-                          const cellInCol = map[r][coords.c];
-                          if (cellInCol) cellsToBorder.add(cellInCol);
-                      }
-                      cellsToBorder.forEach(c => c.style.border = borderString);
-                  } else if (act === 'border-table') {
-                      table.querySelectorAll('td, th').forEach(c => c.style.border = borderString);
+                  if (act === "border-cell") {
+                    td.style.border = borderString;
+                  } else if (act === "border-row") {
+                    const tr = td.closest("tr");
+                    if (tr)
+                      [...tr.cells].forEach(
+                        (c) => (c.style.border = borderString)
+                      );
+                  } else if (act === "border-col") {
+                    if (!coords) return;
+                    const cellsToBorder = new Set();
+                    for (let r = 0; r < map.length; r++) {
+                      const cellInCol = map[r][coords.c];
+                      if (cellInCol) cellsToBorder.add(cellInCol);
+                    }
+                    cellsToBorder.forEach(
+                      (c) => (c.style.border = borderString)
+                    );
+                  } else if (act === "border-table") {
+                    table
+                      .querySelectorAll("td, th")
+                      .forEach((c) => (c.style.border = borderString));
                   }
                   note("تم تطبيق الحدود");
+                }
               }
-            }
 
-            // Final cleanup and save
-            if (table.parentNode) {
-              if (table.rows.length === 0 || (table.rows[0] && table.rows[0].cells.length === 0)) {
-                table.remove();
-                hideTableToolbar();
-              } else if (document.body.contains(table)) {
-                const newTd = table.contains(td) ? td : table.querySelector('td, th');
-                if (newTd) showTableToolbar(newTd);
-                else hideTableToolbar();
+              // Final cleanup and save
+              if (table.parentNode) {
+                if (
+                  table.rows.length === 0 ||
+                  (table.rows[0] && table.rows[0].cells.length === 0)
+                ) {
+                  table.remove();
+                  hideTableToolbar();
+                } else if (document.body.contains(table)) {
+                  const newTd = table.contains(td)
+                    ? td
+                    : table.querySelector("td, th");
+                  if (newTd) showTableToolbar(newTd);
+                  else hideTableToolbar();
+                }
               }
-            }
 
-            saveToStorage();
-          });
-
-        }
+              saveToStorage();
+            });
+          }
         })();
 
         UI.closePreview = function () {
@@ -3952,74 +4671,86 @@
           } catch (_) {}
         };
         function initTableResizing() {
-            const handle = document.createElement('div');
-            handle.className = 'col-resize-handle';
-            el.editorWrapper.appendChild(handle);
+          const handle = document.createElement("div");
+          handle.className = "col-resize-handle";
+          el.editorWrapper.appendChild(handle);
 
-            let targetCol = null;
-            let table = null;
-            let startX = 0;
-            let startWidth = 0;
+          let targetCol = null;
+          let table = null;
+          let startX = 0;
+          let startWidth = 0;
 
-            const onMouseMove = (e) => {
-                if (!targetCol) return;
-                const width = startWidth + (e.clientX - startX);
-                if (width > 20) { // Minimum width
-                    targetCol.style.width = width + 'px';
-                    table.style.width = 'auto'; 
-                    table.style.tableLayout = 'fixed';
-                }
-            };
+          const onMouseMove = (e) => {
+            if (!targetCol) return;
+            const width = startWidth + (e.clientX - startX);
+            if (width > 20) {
+              // Minimum width
+              targetCol.style.width = width + "px";
+              table.style.width = "auto";
+              table.style.tableLayout = "fixed";
+            }
+          };
 
-            const onMouseUp = () => {
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
-                handle.classList.remove('active');
-                handle.classList.remove('visible');
-                targetCol = null;
-                table = null;
-                saveToStorage();
-            };
+          const onMouseUp = () => {
+            document.removeEventListener("mousemove", onMouseMove);
+            document.removeEventListener("mouseup", onMouseUp);
+            handle.classList.remove("active");
+            handle.classList.remove("visible");
+            targetCol = null;
+            table = null;
+            saveToStorage();
+          };
 
-            handle.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                table = state.currentCell.closest('table');
-                if(!table) return;
-                targetCol = table.querySelector(`col[data-col-index="${handle.dataset.colIndex}"]`);
-                if (!targetCol) return;
+          handle.addEventListener("mousedown", (e) => {
+            e.preventDefault();
+            table = state.currentCell.closest("table");
+            if (!table) return;
+            targetCol = table.querySelector(
+              `col[data-col-index="${handle.dataset.colIndex}"]`
+            );
+            if (!targetCol) return;
 
-                startX = e.clientX;
-                startWidth = targetCol.offsetWidth;
-                handle.classList.add('active');
+            startX = e.clientX;
+            startWidth = targetCol.offsetWidth;
+            handle.classList.add("active");
 
-                document.addEventListener('mousemove', onMouseMove);
-                document.addEventListener('mouseup', onMouseUp);
-            });
+            document.addEventListener("mousemove", onMouseMove);
+            document.addEventListener("mouseup", onMouseUp);
+          });
 
-            el.editor.addEventListener('mousemove', (e) => {
-                if (handle.classList.contains('active')) return;
-                const cell = e.target.closest('td, th');
-                if (!cell) {
-                    handle.classList.remove('visible');
-                    return;
-                }
-                const rect = cell.getBoundingClientRect();
-                if (Math.abs(rect.right - e.clientX) < 5) {
-                    const tableRect = cell.closest('table').getBoundingClientRect();
-                    const editorRect = el.editorWrapper.getBoundingClientRect();
-                    const map = buildTableMap(cell.closest('table'));
-                    const coords = getCoordsOfCell(cell, map);
-                    if (!coords) return;
-                    handle.style.left = (rect.right - editorRect.left - 3 + el.editorWrapper.scrollLeft) + 'px';
-                    handle.style.top = (tableRect.top - editorRect.top + el.editorWrapper.scrollTop) + 'px';
-                    handle.style.height = tableRect.height + 'px';
-                    handle.dataset.colIndex = coords.c + cell.colSpan - 1;
-                    handle.classList.add('visible');
-                } else {
-                    handle.classList.remove('visible');
-                }
-            });
-        };
+          el.editor.addEventListener("mousemove", (e) => {
+            if (handle.classList.contains("active")) return;
+            const cell = e.target.closest("td, th");
+            if (!cell) {
+              handle.classList.remove("visible");
+              return;
+            }
+            const rect = cell.getBoundingClientRect();
+            if (Math.abs(rect.right - e.clientX) < 5) {
+              const tableRect = cell.closest("table").getBoundingClientRect();
+              const editorRect = el.editorWrapper.getBoundingClientRect();
+              const map = buildTableMap(cell.closest("table"));
+              const coords = getCoordsOfCell(cell, map);
+              if (!coords) return;
+              handle.style.left =
+                rect.right -
+                editorRect.left -
+                3 +
+                el.editorWrapper.scrollLeft +
+                "px";
+              handle.style.top =
+                tableRect.top -
+                editorRect.top +
+                el.editorWrapper.scrollTop +
+                "px";
+              handle.style.height = tableRect.height + "px";
+              handle.dataset.colIndex = coords.c + cell.colSpan - 1;
+              handle.classList.add("visible");
+            } else {
+              handle.classList.remove("visible");
+            }
+          });
+        }
         UI.refreshPortfolioHeaderFooter = function () {
           try {
             var subtitleEl = document.getElementById("portfolioHeaderSubtitle");
@@ -4186,20 +4917,14 @@
             });
             if (active) active.content = el.editor.innerHTML;
 
-            // تحميل JSZip إن لم يكن موجوداً
-            async function ensureJSZip() {
-              if (window.JSZip) return window.JSZip;
-              await new Promise(function (resolve, reject) {
-                var s = document.createElement("script");
-                s.src =
-                  "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js";
-                s.onload = resolve;
-                s.onerror = reject;
-                document.head.appendChild(s);
-              });
-              return window.JSZip;
+            var JSZipLib = window.JSZip;
+            if (!JSZipLib) {
+              UI.note(
+                "تعذر تحميل مكتبة JSZip. يرجى تحديث الصفحة أو التحقق من الاتصال/حظر الشبكة ثم إعادة المحاولة.",
+                "error"
+              );
+              return;
             }
-            var JSZipLib = await ensureJSZip();
 
             // أدوات اسم الملف
             function sanitizeFilename(name) {
@@ -4439,12 +5164,54 @@
               }
             });
 
-            // CSS + سكربت التنقّل
-            var css = Array.prototype.map
+            // CSS + الخطوط المضمنة + روابط Google Fonts
+            var inlineCss = Array.prototype.map
               .call(document.querySelectorAll("style"), function (s) {
                 return s.innerHTML;
               })
               .join("\n");
+            async function safeFetchText(url) {
+              try {
+                var r = await fetch(url);
+                if (!r || !r.ok) return null;
+                return await r.text();
+              } catch (_) {
+                return null;
+              }
+            }
+            var fontsCss = "";
+            try {
+              var fontLinks = Array.prototype.filter.call(
+                document.querySelectorAll('link[rel="stylesheet"][href]'),
+                function (ln) {
+                  return /fonts\.googleapis\.com/i.test(ln.href || "");
+                }
+              );
+              for (var k = 0; k < fontLinks.length; k++) {
+                var href = fontLinks[k].href;
+                var cssText = await safeFetchText(href);
+                if (!cssText) continue;
+                var replaced = cssText;
+                var urlRe = /url\(("|')?([^\)"']+)(\1)?\)/g;
+                var seen = {};
+                var m;
+                var reps = [];
+                while ((m = urlRe.exec(cssText))) {
+                  var u = m[2];
+                  if (!/^https?:/i.test(u)) continue;
+                  if (!/\.(woff2?|ttf|otf)(\?|$)/i.test(u)) continue;
+                  if (seen[u]) continue;
+                  seen[u] = true;
+                  var saved = await addAssetFrom(u, nameFromUrl(u));
+                  if (saved) reps.push([u, "assets/" + saved]);
+                }
+                for (var r = 0; r < reps.length; r++) {
+                  replaced = replaced.split(reps[r][0]).join(reps[r][1]);
+                }
+                fontsCss += "\n" + replaced + "\n";
+              }
+            } catch (_) {}
+            var css = fontsCss + "\n" + inlineCss;
             var navScript = [
               "(function(){" +
                 " function setActive(id){" +
@@ -4466,7 +5233,7 @@
               "<title>" +
               (state.portfolio && state.portfolio.title
                 ? state.portfolio.title
-                : "ملف الإنجاز") +
+                : "محفظتي") +
               "</title>" +
               "<style>" +
               css +
@@ -4476,10 +5243,40 @@
               navScript.replace(/<\/script>/gi, "<\\/script>") +
               "<\/script>" +
               "</body></html>";
-
-            // أنشئ الأرشيف
+            var readme = (function () {
+              function d(s) {
+                try {
+                  return decodeURIComponent(s);
+                } catch (_) {
+                  return s;
+                }
+              }
+              var L = [
+                "README%20-%20%D8%AA%D8%B9%D9%84%D9%8A%D9%85%D8%A7%D8%AA%20%D9%86%D8%B4%D8%B1%20%D8%A7%D9%84%D8%AD%D8%B2%D9%85%D8%A9",
+                "",
+                "%D8%A7%D9%84%D9%85%D8%AD%D8%AA%D9%88%D9%8A%D8%A7%D8%AA%3A",
+                "-%20index.html%3A%20%D8%A7%D9%84%D8%B5%D9%81%D8%AD%D8%A9%20%D8%A7%D9%84%D8%B1%D8%A6%D9%8A%D8%B3%D9%8A%D8%A9",
+                "-%20assets%2F%3A%20%D9%85%D8%AC%D9%84%D8%AF%20%D8%A7%D9%84%D9%85%D9%84%D9%81%D8%A7%D8%AA",
+                "",
+                "%D8%B7%D8%B1%D9%8A%D9%82%D8%A9%20%D8%A7%D9%84%D8%B1%D9%81%D8%B9%3A",
+                "1)%20%D8%A3%D9%86%D8%B4%D8%A6%20%D9%85%D8%AC%D9%84%D8%AF%D8%A7%D9%8B%20%D8%B9%D9%84%D9%89%20%D9%85%D9%88%D9%82%D8%B9%D9%83%20(%D9%85%D8%AB%D8%A7%D9%84%3A%20portfolio%2F).",
+                "2)%20%D8%A7%D8%B1%D9%81%D8%B9%20index.html%20%D9%88%D9%85%D8%AC%D9%84%D8%AF%20assets%20%D8%A8%D8%AF%D8%A7%D8%AE%D9%84%D9%87%20%D9%83%D9%85%D8%A7%20%D9%87%D9%85%D8%A7.",
+                "3)%20%D8%A7%D9%81%D8%AA%D8%AD%20%D8%A7%D9%84%D8%B1%D8%A7%D8%A8%D8%B7%3A%20https%3A%2F%2Fyourdomain%2Fportfolio%2Findex.html",
+                "",
+                "%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%3A",
+                "-%20%D9%84%D8%A7%20%D8%AA%D8%BA%D9%8A%D9%91%D8%B1%20%D8%A3%D8%B3%D9%85%D8%A7%D8%A1%20%D8%A7%D9%84%D9%85%D9%84%D9%81%D8%A7%D8%AA%20%D8%A3%D9%88%20%D8%A3%D9%85%D8%A7%D9%83%D9%86%D9%87%D8%A7.",
+                "-%20%D9%8A%D9%85%D9%83%D9%86%D9%83%20%D8%A5%D8%B9%D8%A7%D8%AF%D8%A9%20%D8%AA%D8%B3%D9%85%D9%8A%D8%A9%20%D8%A7%D9%84%D9%85%D8%AC%D9%84%D8%AF%20%D8%A7%D9%84%D8%AE%D8%A7%D8%B1%D8%AC%D9%8A%20%D9%81%D9%82%D8%B7.",
+              ].map(d);
+              L.push(
+                d(
+                  "%D8%AA%D8%A7%D8%B1%D9%8A%D8%AE%20%D8%A7%D9%84%D8%AA%D8%B5%D8%AF%D9%8A%D8%B1%3A%20"
+                ) + new Date().toLocaleString()
+              );
+              return L.join("\n");
+            })();
             var zip = new JSZipLib();
             zip.file("index.html", html);
+            zip.file("README.txt", readme);
             var af = zip.folder("assets");
             for (var z = 0; z < assets.length; z++) {
               var it = assets[z];
