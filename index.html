@@ -254,6 +254,13 @@
         outline: none;
         font-size: var(--editor-font-size);
       }
+      /* تفعيل الأرقام الهندية (الشرق أوسطية) */
+      .editor-content,
+      .portfolio-content {
+        font-feature-settings: "locl" 1;
+        -webkit-font-feature-settings: "locl" 1;
+        -moz-font-feature-settings: "locl" 1;
+      }
       .editor-content ul,
       .editor-content ol,
       .portfolio-content ul,
