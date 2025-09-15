@@ -254,13 +254,6 @@
         outline: none;
         font-size: var(--editor-font-size);
       }
-      /* تفعيل الأرقام الهندية (الشرق أوسطية) */
-      .editor-content,
-      .portfolio-content {
-        font-feature-settings: "locl" 1;
-        -webkit-font-feature-settings: "locl" 1;
-        -moz-font-feature-settings: "locl" 1;
-      }
       .editor-content ul,
       .editor-content ol,
       .portfolio-content ul,
@@ -677,29 +670,11 @@
       }
       .tab-content {
         display: none;
-        border: 2px dashed #e5e7eb;
+        border: none; /* تم إزالة الإطار المقطع حول المحتوى في المعاينة */
         border-radius: 10px;
         padding: 16px;
         background: #fff;
         margin-bottom: 16px;
-      }
-      .portfolio-content .tab-content:nth-of-type(6n + 1) {
-        border-color: #1d4ed8;
-      }
-      .portfolio-content .tab-content:nth-of-type(6n + 2) {
-        border-color: #047857;
-      }
-      .portfolio-content .tab-content:nth-of-type(6n + 3) {
-        border-color: #b45309;
-      }
-      .portfolio-content .tab-content:nth-of-type(6n + 4) {
-        border-color: #b91c1c;
-      }
-      .portfolio-content .tab-content:nth-of-type(6n + 5) {
-        border-color: #0e7490;
-      }
-      .portfolio-content .tab-content:nth-of-type(6n) {
-        border-color: #6b21a8;
       }
       .tab-content.active {
         display: block;
@@ -967,6 +942,13 @@
           </button>
           <button class="sidebar-btn" type="button" onclick="UI.newProject()">
             مشروع جديد
+          </button>
+          <button
+            class="sidebar-btn"
+            type="button"
+            onclick="UI.openAddFontModal()"
+          >
+            إضافة خط
           </button>
         </div>
       </aside>
@@ -1804,6 +1786,50 @@
       </div>
     </div>
 
+    <div class="modal" id="addFontModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">إضافة خط مخصص</h2>
+          <button
+            class="close-modal"
+            onclick="UI.hide(document.getElementById('addFontModal'))"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="form-group">
+          <label for="fontFile">اختر ملف الخط</label>
+          <input
+            type="file"
+            class="form-control"
+            id="fontFile"
+            accept=".woff,.woff2,.ttf,.otf"
+          />
+          <small>الأنواع المدعومة: woff, woff2, ttf, otf</small>
+        </div>
+        <div class="form-group">
+          <label for="fontName">اسم الخط (كما سيظهر في القائمة)</label>
+          <input
+            type="text"
+            class="form-control"
+            id="fontName"
+            placeholder="مثال: خطي الجميل"
+          />
+        </div>
+        <div class="form-actions">
+          <button
+            class="btn btn-secondary"
+            onclick="UI.hide(document.getElementById('addFontModal'))"
+          >
+            إلغاء
+          </button>
+          <button class="btn btn-primary" onclick="UI.addCustomFont()">
+            إضافة
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div class="final-portfolio" id="finalPortfolio">
       <button class="close-portfolio" onclick="UI.closePreview()">
         &times;
@@ -1917,6 +1943,7 @@
           linkContext: null,
           currentCell: null,
           pasteMode: "smart",
+          customFonts: [],
         };
         state.formatPainterActive = false;
         state.copiedFormats = null;
@@ -1974,6 +2001,39 @@
           return "https://" + t.replace(/^\/+/, "");
         }
 
+        function injectFontFace(name, dataUrl) {
+          const styleId = "custom-font-style-" + name.replace(/[\s"]/g, "-");
+          let styleEl = document.getElementById(styleId);
+          if (!styleEl) {
+            styleEl = document.createElement("style");
+            styleEl.id = styleId;
+            document.head.appendChild(styleEl);
+          }
+          styleEl.innerHTML = `
+@font-face {
+    font-family: "${name}";
+    src: url(${dataUrl});
+}
+`;
+        }
+
+        function rebuildFontSelect() {
+          const fontSelect = document.getElementById("fontNameSelect");
+          if (!fontSelect) return;
+
+          const defaultOptionsCount = 5;
+          while (fontSelect.options.length > defaultOptionsCount) {
+            fontSelect.remove(defaultOptionsCount);
+          }
+
+          (state.customFonts || []).forEach((font) => {
+            const option = document.createElement("option");
+            option.value = `"${font.name}", sans-serif`;
+            option.textContent = font.name;
+            fontSelect.appendChild(option);
+          });
+        }
+
         function applySettings() {
           el.editor.style.setProperty(
             "--editor-font-size",
@@ -1997,11 +2057,12 @@
             const a = state.tabs.find((x) => x.id === state.activeTabId);
             if (a) a.content = el.editor.innerHTML;
             const data = {
-              version: "3.6",
+              version: "3.7",
               tabs: state.tabs,
               settings: state.settings,
               portfolio: state.portfolio,
               activeTabId: state.activeTabId,
+              customFonts: state.customFonts || [],
             };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
           } catch (_) {}
@@ -2021,7 +2082,14 @@
 
             state.settings = d.settings || state.settings;
             state.portfolio = d.portfolio || state.portfolio;
+            if (d.customFonts && Array.isArray(d.customFonts)) {
+              state.customFonts = d.customFonts;
+              state.customFonts.forEach((font) => {
+                injectFontFace(font.name, font.dataUrl);
+              });
+            }
             applySettings();
+            rebuildFontSelect();
             const eb = document.getElementById("editorBgPicker");
             if (eb) eb.value = state.settings.editorBg || "#ffffff";
             const pb = document.getElementById("pageBgPicker");
@@ -2482,8 +2550,26 @@
             saveToStorage();
           },
           setFontName: (font) => {
+            if (!font) return;
             ensureRangeInEditor();
-            document.execCommand("fontName", false, font);
+            const sel = window.getSelection();
+            if (!sel.rangeCount || sel.isCollapsed) {
+              return note("الرجاء تحديد نص لتغيير الخط", "warning");
+            }
+
+            const range = sel.getRangeAt(0);
+            const frag = range.extractContents();
+            const span = document.createElement("span");
+            span.style.fontFamily = font;
+            span.appendChild(frag);
+            range.insertNode(span);
+
+            range.selectNodeContents(span);
+            sel.removeAllRanges();
+            sel.addRange(range);
+
+            mergeAdjacentInlines(el.editor);
+
             el.editor.focus();
             saveToStorage();
           },
@@ -2495,22 +2581,18 @@
               return note("الرجاء تحديد نص لتغيير حجمه", "warning");
             }
 
-            // نستخدم حيلة بسيطة وموثوقة لتغليف التحديد بعنصر span
-            // وذلك باستخدام أمر createLink ثم استبدال الرابط بالـ span المطلوب
-            const placeholderId = `_font-size-${Date.now()}`;
-            document.execCommand("createLink", false, placeholderId);
-            const links = Array.from(
-              el.editor.querySelectorAll(`a[href="${placeholderId}"]`)
-            );
+            const range = sel.getRangeAt(0);
+            const frag = range.extractContents();
+            const span = document.createElement("span");
+            span.style.fontSize = size;
+            span.appendChild(frag);
+            range.insertNode(span);
 
-            links.forEach((link) => {
-              const newSpan = document.createElement("span");
-              newSpan.style.fontSize = size;
-              while (link.firstChild) {
-                newSpan.appendChild(link.firstChild);
-              }
-              link.parentNode.replaceChild(newSpan, link);
-            });
+            range.selectNodeContents(span);
+            sel.removeAllRanges();
+            sel.addRange(range);
+
+            mergeAdjacentInlines(el.editor);
 
             el.editor.focus();
             saveToStorage();
@@ -2729,7 +2811,9 @@
               logoData: "",
               title: "الغلاف",
             };
+            state.customFonts = [];
             applySettings();
+            rebuildFontSelect();
             renderTabs();
             UI.setActiveTab(state.tabs[0].id);
             note("تم بدء مشروع جديد");
@@ -2855,6 +2939,41 @@
             hide(document.getElementById("tableModal"));
             saveToStorage();
             note("تم إدراج جدول");
+          },
+          openAddFontModal: () => {
+            document.getElementById("fontFile").value = "";
+            document.getElementById("fontName").value = "";
+            show(document.getElementById("addFontModal"));
+          },
+          addCustomFont: () => {
+            const fontFileInput = document.getElementById("fontFile");
+            const fontNameInput = document.getElementById("fontName");
+            const file = fontFileInput.files[0];
+            const name = fontNameInput.value.trim();
+
+            if (!file) return note("الرجاء اختيار ملف خط", "error");
+            if (!name) return note("الرجاء إدخال اسم للخط", "error");
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const dataUrl = e.target.result;
+
+              if ((state.customFonts || []).some((f) => f.name === name)) {
+                return note("يوجد خط بنفس الاسم بالفعل", "error");
+              }
+
+              const font = { id: id(), name, dataUrl };
+              if (!state.customFonts) state.customFonts = [];
+              state.customFonts.push(font);
+
+              injectFontFace(font.name, font.dataUrl);
+              rebuildFontSelect();
+
+              hide(document.getElementById("addFontModal"));
+              note(`تمت إضافة الخط "${name}" بنجاح`);
+              saveToStorage();
+            };
+            reader.readAsDataURL(file);
           },
         };
 
@@ -3355,35 +3474,48 @@
           )
             return;
 
+          let node = sel.anchorNode;
+          if (node.nodeType === 3) node = node.parentElement;
+
           // Update font name
-          const fontName = document
-            .queryCommandValue("fontName")
-            .replace(/['"]/g, "");
           const fontSelect = document.getElementById("fontNameSelect");
           if (fontSelect) {
-            let matched = false;
-            for (const option of fontSelect.options) {
-              if (
-                option.value.toLowerCase().startsWith(fontName.toLowerCase())
-              ) {
-                fontSelect.value = option.value;
-                matched = true;
+            let font = "";
+            let tempNode = node;
+            while (tempNode && tempNode !== el.editor) {
+              if (tempNode.style && tempNode.style.fontFamily) {
+                font = tempNode.style.fontFamily;
                 break;
               }
+              tempNode = tempNode.parentElement;
             }
-            if (!matched) fontSelect.selectedIndex = 0;
+            const normalize = (s) =>
+              (s || "").replace(/['"]/g, "").replace(/\s*,\s*/g, ",");
+
+            if (font) {
+              let matched = false;
+              for (const option of fontSelect.options) {
+                if (normalize(option.value) === normalize(font)) {
+                  fontSelect.value = option.value;
+                  matched = true;
+                  break;
+                }
+              }
+              if (!matched) fontSelect.selectedIndex = 0;
+            } else {
+              fontSelect.selectedIndex = 0;
+            }
           }
 
           // Update font size
-          let node = sel.anchorNode;
-          if (node.nodeType === 3) node = node.parentElement;
           let size = "";
-          while (node && node !== el.editor) {
-            if (node.style && node.style.fontSize) {
-              size = node.style.fontSize;
+          let sizeNode = node;
+          while (sizeNode && sizeNode !== el.editor) {
+            if (sizeNode.style && sizeNode.style.fontSize) {
+              size = sizeNode.style.fontSize;
               break;
             }
-            node = node.parentElement;
+            sizeNode = sizeNode.parentElement;
           }
           const sizeSelect = document.getElementById("fontSizeSelect");
           if (sizeSelect) {
@@ -4190,6 +4322,7 @@
           if (pb) pb.value = state.settings.pageBg || "#f5f7fb";
           const loadedId = loadFromStorage();
           renderTabs();
+          // rebuildFontSelect() is called inside loadFromStorage
           UI.setActiveTab(
             loadedId && state.tabs.find((t) => t.id === loadedId)
               ? loadedId
@@ -5232,7 +5365,7 @@
                 fontsCss += "\n" + replaced + "\n";
               }
             } catch (_) {}
-            var css = fontsCss + "\n" + inlineCss;
+            var css = customFontsCss + "\n" + fontsCss + "\n" + inlineCss;
             var navScript = [
               "(function(){" +
                 " function setActive(id){" +
