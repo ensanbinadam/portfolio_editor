@@ -3643,6 +3643,8 @@
               <button class="embed-btn" type="button" data-action="link">🔗</button>
               <button class="embed-btn" type="button" data-action="unlink">⛓️</button>
               <span style="border-left: 1px solid #ddd; margin: 0 4px;"></span>
+              <button class="embed-btn" type="button" data-action="toggle-caption" title="إخفاء/إظهار الوصف">وصف</button>
+              <button class="embed-btn" type="button" data-action="toggle-download" title="إخفاء/إظهار التحميل">تحميل</button>
               <button class="embed-btn" type="button" data-action="align-right" title="محاذاة لليمين">⟸</button>
               <button class="embed-btn" type="button" data-action="align-center" title="توسيط">↔</button>
               <button class="embed-btn" type="button" data-action="align-left" title="محاذاة لليسار">⟹</button>
@@ -5598,6 +5600,30 @@
                 if (img) img.alt = v || img.alt || "صورة";
                 saveToStorage();
                 note("تم التعديل");
+              }
+              return;
+            }
+
+            if (act === "toggle-caption") {
+              const captionEl = cont.querySelector(".embed-caption");
+              if (captionEl) {
+                const isHidden = captionEl.style.display === "none";
+                captionEl.style.display = isHidden ? "" : "none";
+                saveToStorage();
+                return note(isHidden ? "تم إظهار الوصف" : "تم إخفاء الوصف");
+              }
+              return;
+            }
+
+            if (act === "toggle-download") {
+              const downloadEl = cont.querySelector(".download-link");
+              if (downloadEl) {
+                const isHidden = downloadEl.style.display === "none";
+                downloadEl.style.display = isHidden ? "" : "none";
+                saveToStorage();
+                return note(
+                  isHidden ? "تم إظهار رابط التحميل" : "تم إخفاء رابط التحميل"
+                );
               }
               return;
             }
